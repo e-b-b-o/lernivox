@@ -1,0 +1,35 @@
+{
+  "name": "@lernivox/worker",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "nest build",
+    "dev": "nest start --watch",
+    "start": "node dist/main.js",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/ --ext .ts"
+  },
+  "dependencies": {
+    "@lernivox/ai-core": "workspace:*",
+    "@lernivox/contracts": "workspace:*",
+    "@lernivox/database": "workspace:*",
+    "@lernivox/storage": "workspace:*",
+    "@nestjs/bullmq": "^12.0.0",
+    "@nestjs/common": "^12.3.2",
+    "@nestjs/config": "^12.0.1",
+    "@nestjs/core": "^12.3.2",
+    "bullmq": "^6.5.1",
+    "ioredis": "^5.4.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "@lernivox/eslint-config": "workspace:*",
+    "@lernivox/typescript-config": "workspace:*",
+    "@nestjs/cli": "^12.0.11",
+    "@nestjs/schematics": "^12.0.0",
+    "@nestjs/testing": "^12.3.2",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  }
+}

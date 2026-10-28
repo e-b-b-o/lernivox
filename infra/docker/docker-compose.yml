@@ -1,0 +1,41 @@
+name: lernivox-infra
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: lernivox-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-lernivox}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lernivox_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-lernivox}
+    ports:
+      # Host port 5433 maps to container 5432 to avoid conflicts with host PostgreSQL
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - lernivox_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-lernivox} -d ${POSTGRES_DB:-lernivox}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: lernivox-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - lernivox_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  lernivox_pgdata:
+    name: lernivox_pgdata
+  lernivox_redisdata:
+    name: lernivox_redisdata

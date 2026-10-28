@@ -1,0 +1,45 @@
+{
+  "name": "@lernivox/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "nest build",
+    "dev": "nest start --watch",
+    "start": "node dist/main.js",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/ --ext .ts"
+  },
+  "dependencies": {
+    "@lernivox/ai-core": "workspace:*",
+    "@lernivox/contracts": "workspace:*",
+    "@lernivox/database": "workspace:*",
+    "@lernivox/storage": "workspace:*",
+    "@nestjs/common": "^12.3.2",
+    "@nestjs/config": "^12.0.1",
+    "@nestjs/core": "^12.3.2",
+    "@nestjs/platform-express": "^12.3.2",
+    "@nestjs/swagger": "^12.0.5",
+    "@nestjs/terminus": "^12.1.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "@lernivox/eslint-config": "workspace:*",
+    "@lernivox/typescript-config": "workspace:*",
+    "@nestjs/cli": "^12.0.11",
+    "@nestjs/schematics": "^12.0.0",
+    "@nestjs/testing": "^12.3.2",
+    "@types/express": "^5.0.0",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.0.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.7.0"
+  }
+}
