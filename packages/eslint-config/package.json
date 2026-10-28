@@ -1,0 +1,12 @@
+{
+  "name": "@lernivox/eslint-config",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "files": [
+    "index.js"
+  ],
+  "peerDependencies": {
+    "eslint": ">=8.0.0"
+  }
+}
