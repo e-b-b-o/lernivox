@@ -1,0 +1,74 @@
+datasource db {
+  provider   = "postgresql"
+  extensions = [vector]
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum DocumentStatus {
+  UPLOADED
+  PROCESSING
+  READY
+  FAILED
+}
+
+model User {
+  id           String      @id @default(uuid())
+  email        String      @unique
+  name         String?
+  role         Role        @default(USER)
+  workspaces   Workspace[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@map("users")
+}
+
+model Workspace {
+  id          String      @id @default(uuid())
+  name        String
+  ownerId     String
+  owner       User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  documents   Document[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@map("workspaces")
+}
+
+model Document {
+  id               String          @id @default(uuid())
+  workspaceId      String
+  workspace        Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  title            String
+  storagePath      String
+  mimeType         String
+  sizeBytes        Int
+  status           DocumentStatus  @default(UPLOADED)
+  chunks           DocumentChunk[]
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@map("documents")
+}
+
+model DocumentChunk {
+  id          String                   @id @default(uuid())
+  documentId  String
+  document    Document                 @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  chunkIndex  Int
+  content     String
+  embedding   Unsupported("vector(768)")?
+  createdAt   DateTime                 @default(now())
+
+  @@index([documentId])
+  @@map("document_chunks")
+}

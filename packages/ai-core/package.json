@@ -1,0 +1,19 @@
+{
+  "name": "@lernivox/ai-core",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/ --ext .ts"
+  },
+  "devDependencies": {
+    "@lernivox/eslint-config": "workspace:*",
+    "@lernivox/typescript-config": "workspace:*",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  }
+}
