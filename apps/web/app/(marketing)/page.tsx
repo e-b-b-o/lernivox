@@ -22,6 +22,7 @@ import {
 import { Button } from '../../components/ui/button';
 import { HeroUpload } from '../../components/marketing/HeroUpload';
 import { GuidedLearningPreview } from '../../components/marketing/GuidedLearningPreview';
+import { WavingRibbon } from '../../components/marketing/WavingRibbon';
 
 export default function MarketingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -152,24 +153,60 @@ export default function MarketingPage() {
             </a>
           </div>
 
-          {/* Prominent Upload Card Component */}
-          <div id="upload-card" className="mt-16 md:mt-24">
-            <HeroUpload />
-          </div>
+          {/* ======================================================== */}
+          {/* PHOTO SHOWCASE & WAVING RIBBON BAND */}
+          {/* ======================================================== */}
+          <div className="relative mt-20 md:mt-28 w-full overflow-visible">
+            {/* Edge-to-edge animated waving ribbon band passing behind photos */}
+            <WavingRibbon />
 
-          {/* Value Props Row under Hero */}
-          <div className="mt-16 flex flex-wrap items-center justify-center gap-4 md:gap-8">
-            <div className="flex items-center gap-2.5 rounded-full border border-stone-200/80 bg-white/80 backdrop-blur-sm px-5 py-2 text-sm font-medium text-stone-700 shadow-subtle">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-              <span>Verifiable Page Citations</span>
-            </div>
-            <div className="flex items-center gap-2.5 rounded-full border border-stone-200/80 bg-white/80 backdrop-blur-sm px-5 py-2 text-sm font-medium text-stone-700 shadow-subtle">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-              <span>Zero-Hallucination Grounding</span>
-            </div>
-            <div className="flex items-center gap-2.5 rounded-full border border-stone-200/80 bg-white/80 backdrop-blur-sm px-5 py-2 text-sm font-medium text-stone-700 shadow-subtle">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-              <span>Asynchronous BullMQ Ingestion</span>
+            {/* Three Overlapping Photography Cards */}
+            <div className="relative z-10 flex items-center justify-center gap-4 sm:gap-8 md:gap-12 max-w-5xl mx-auto px-4 pt-4 pb-8">
+              {/* Left Card: Tilted (-rotate-6) */}
+              <div className="group relative w-44 md:w-56 aspect-[3/4] rounded-3xl overflow-hidden shadow-lg border-4 border-white -rotate-6 hover:rotate-0 transition-transform duration-300 mt-10 md:mt-16 flex-shrink-0">
+                <img
+                  src="https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=600&q=80"
+                  alt="Student reading focused"
+                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
+                />
+                {/* Soft peach badge with smiling face sticker */}
+                <div className="absolute top-3 left-3 bg-[#F9D8C0] text-[#14261D] rounded-full px-3 py-1 text-xs font-bold shadow-md flex items-center gap-1 select-none">
+                  <span>Focused</span>
+                  <span>:)</span>
+                </div>
+              </div>
+
+              {/* Center Card: Elevated & Upright */}
+              <div className="group relative w-60 md:w-72 lg:w-80 aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl border-4 border-white z-10 -mt-6 md:-mt-10 flex-shrink-0 transition-transform duration-300 hover:scale-[1.02]">
+                <img
+                  src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80"
+                  alt="Modern library student with books"
+                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
+                />
+                {/* Subtle caption tag */}
+                <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-[#14261D]/80 via-[#14261D]/20 to-transparent flex items-end justify-center">
+                  <span className="rounded-full bg-white/90 backdrop-blur-sm px-4 py-1.5 text-xs font-bold text-[#14261D] shadow-sm select-none">
+                    Stewart Calculus • Grounded
+                  </span>
+                </div>
+              </div>
+
+              {/* Right Card: Tilted (rotate-6) */}
+              <div className="group relative w-48 md:w-60 aspect-[3/4] rounded-3xl overflow-hidden shadow-lg border-4 border-white rotate-6 hover:rotate-0 transition-transform duration-300 -mt-4 md:-mt-6 flex-shrink-0">
+                <img
+                  src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=600&q=80"
+                  alt="Collaborative tutoring study session"
+                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
+                />
+                {/* Soft green flower/cloud sticker */}
+                <div className="absolute top-3 right-3 bg-[#497E64] text-[#F6F4EE] rounded-full px-3 py-1 text-xs font-bold shadow-md flex items-center gap-1 select-none">
+                  <span>Peer Study</span>
+                  <span>✿</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
