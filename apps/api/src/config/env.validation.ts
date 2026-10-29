@@ -23,6 +23,58 @@ export class EnvironmentVariables {
   @IsString()
   @IsOptional()
   CORS_ORIGIN: string = 'http://localhost:3000';
+
+  @IsString()
+  @IsOptional()
+  FRONTEND_URL: string = 'http://localhost:3000';
+
+  @IsString()
+  @IsOptional()
+  JWT_SECRET: string = 'lernivox-dev-jwt-secret-minimum-32-chars-long';
+
+  @IsString()
+  @IsOptional()
+  JWT_EXPIRES_IN: string = '15m';
+
+  @IsNumber()
+  @IsOptional()
+  REFRESH_TOKEN_EXPIRES_IN_DAYS: number = 7;
+
+  @IsString()
+  @IsOptional()
+  COOKIE_DOMAIN?: string;
+
+  @IsString()
+  @IsOptional()
+  GOOGLE_CLIENT_ID?: string;
+
+  @IsString()
+  @IsOptional()
+  GOOGLE_CLIENT_SECRET?: string;
+
+  @IsString()
+  @IsOptional()
+  GOOGLE_CALLBACK_URL: string = 'http://localhost:4000/api/v1/auth/google/callback';
+
+  @IsString()
+  @IsOptional()
+  REDIS_HOST: string = 'localhost';
+
+  @IsNumber()
+  @IsOptional()
+  REDIS_PORT: number = 6379;
+
+  @IsString()
+  @IsOptional()
+  STORAGE_DRIVER: string = 'local';
+
+  @IsString()
+  @IsOptional()
+  STORAGE_BASE_DIR?: string;
+
+  @IsNumber()
+  @IsOptional()
+  MAX_UPLOAD_SIZE_BYTES: number = 26214400; // 25 MB
 }
 
 export function validate(config: Record<string, unknown>) {
