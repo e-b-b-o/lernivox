@@ -29,9 +29,9 @@ export function GuidedLearningPreview() {
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto rounded-[2.5rem] border border-stone-200/80 bg-white/90 backdrop-blur-md p-8 md:p-12 shadow-card hover:shadow-card-hover transition-all duration-300">
+    <div className="w-full max-w-5xl mx-auto rounded-[2.5rem] border border-[#EAE4D3] bg-white/90 backdrop-blur-md p-8 md:p-12 shadow-card hover:shadow-card-hover transition-all duration-300">
       {/* Sample Badge */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-stone-200/80 pb-6 mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#EAE4D3] pb-6 mb-8">
         <div className="flex flex-wrap items-center gap-3">
           <span className="inline-flex items-center gap-2 rounded-full bg-lernivox-peach/70 px-4 py-1.5 text-xs md:text-sm font-bold text-lernivox-forest">
             <Sparkles className="h-4 w-4 text-lernivox-terracotta" />
@@ -41,14 +41,14 @@ export function GuidedLearningPreview() {
             Topic: Calculus I • Chapter 2.5 The Chain Rule
           </span>
         </div>
-        <div className="text-xs font-semibold text-stone-500 bg-stone-100 px-3.5 py-1.5 rounded-full border border-stone-200/80">
+        <div className="text-xs font-semibold text-[#14261D]/70 bg-stone-100 px-3.5 py-1.5 rounded-full border border-[#EAE4D3]">
           Curated sample demonstration
         </div>
       </div>
 
       <div className="space-y-8">
         {/* Step 1: Objective */}
-        <div className="rounded-2xl bg-stone-50/70 p-6 border border-stone-200/80">
+        <div className="rounded-2xl bg-stone-50/70 p-6 border border-[#EAE4D3]">
           <div className="flex items-center gap-2.5 text-xs font-bold uppercase tracking-wider text-stone-500 mb-2">
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-lernivox-forest text-white text-xs font-semibold">
               1
@@ -79,11 +79,11 @@ export function GuidedLearningPreview() {
             <span className="text-xs md:text-sm font-bold uppercase tracking-wider text-lernivox-terracotta">
               Step-by-Step Method
             </span>
-            <span className="flex items-center gap-1.5 text-xs font-semibold text-stone-600 bg-white/70 px-3 py-1 rounded-full border border-stone-200/60">
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-[#14261D]/70 bg-white/70 px-3 py-1 rounded-full border border-[#EAE4D3]">
               <Quote className="h-3.5 w-3.5 text-lernivox-terracotta" /> Stewart Calculus, 8th Ed., §2.5 p. 198
             </span>
           </div>
-          <div className="font-mono text-sm md:text-base text-lernivox-forest bg-white/90 p-4 rounded-xl border border-stone-200/80 shadow-subtle">
+          <div className="font-mono text-sm md:text-base text-lernivox-forest bg-white/90 p-4 rounded-xl border border-[#EAE4D3] shadow-subtle">
             dy/dx = (dy/du) · (du/dx)
           </div>
           <ol className="mt-4 list-decimal list-inside space-y-2 text-sm md:text-base text-stone-700 leading-relaxed">
@@ -102,7 +102,7 @@ export function GuidedLearningPreview() {
             </span>
             Worked Example
           </div>
-          <div className="rounded-2xl border border-stone-200/80 bg-stone-50/70 p-6 space-y-3">
+          <div className="rounded-2xl border border-[#EAE4D3] bg-stone-50/70 p-6 space-y-3">
             <p className="text-base font-semibold text-lernivox-forest">
               Problem: Find the derivative of y = (3x² - 5x + 2)⁴
             </p>
@@ -118,7 +118,7 @@ export function GuidedLearningPreview() {
         </div>
 
         {/* Step 5: Understanding Check */}
-        <div className="rounded-2xl border-2 border-stone-200 bg-white p-6 md:p-8 space-y-4">
+        <div className="rounded-2xl border-2 border-[#EAE4D3] bg-white p-6 md:p-8 space-y-4">
           <div className="flex items-center gap-2.5">
             <HelpCircle className="h-5 w-5 text-lernivox-terracotta" />
             <h4 className="text-base md:text-lg font-bold text-lernivox-forest">
@@ -129,7 +129,7 @@ export function GuidedLearningPreview() {
           <div className="grid gap-3 sm:grid-cols-2 pt-2">
             {options.map((opt) => {
               const isSelected = selectedAnswer === opt.id;
-              let btnClass = 'border-stone-200 bg-stone-50/60 hover:bg-stone-100 text-stone-800';
+              let btnClass = 'border-[#EAE4D3] bg-stone-50/60 hover:bg-stone-100 text-stone-800';
               if (isSelected) {
                 btnClass = opt.correct
                   ? 'border-emerald-500 bg-emerald-50 text-emerald-950 ring-2 ring-emerald-500/30'
@@ -157,7 +157,7 @@ export function GuidedLearningPreview() {
           </div>
 
           {showExplanation && selectedAnswer !== null && (
-            <div className="mt-4 rounded-xl bg-stone-50 p-4 text-sm border border-stone-200/80 animate-fadeIn">
+            <div className="mt-4 rounded-xl bg-stone-50 p-4 text-sm border border-[#EAE4D3] animate-fadeIn">
               <p className="font-semibold text-lernivox-forest">
                 {options[selectedAnswer]?.correct ? '🎉 Correct!' : '💡 Guidance:'}
               </p>
