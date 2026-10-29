@@ -137,25 +137,18 @@ export default function MarketingPage() {
           </p>
 
           {/* Action CTAs */}
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-5">
-            <a href="#upload-card">
-              <Button
-                variant="secondary"
-                size="lg"
-                className="px-8 font-semibold shadow-glow-terracotta"
-              >
-                Upload Course Material
-                <ArrowRight className="ml-2.5 h-5 w-5" />
-              </Button>
+          <div className="mt-10 md:mt-12 flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+            <a
+              href="#how-it-works"
+              className="h-[54px] px-[30px] py-[16px] rounded-[100px] bg-[#E8722C] text-white font-sans text-[16px] font-medium leading-[22.4px] shadow-[0_4px_0_0_#B26E45] hover:-translate-y-[1px] hover:shadow-[0_5px_0_0_#B26E45] active:translate-y-[2px] active:shadow-[0_2px_0_0_#B26E45] transition-all duration-150 inline-flex items-center justify-center select-none"
+            >
+              Upload Course Material
             </a>
-            <a href="#sample-lesson">
-              <Button
-                variant="outline"
-                size="lg"
-                className="px-8 font-medium border-stone-300"
-              >
-                Explore Sample Lesson
-              </Button>
+            <a
+              href="#sample-lesson"
+              className="h-[54px] px-[30px] py-[16px] rounded-[100px] bg-[#F4F0E5] text-[#14261D] font-sans text-[16px] font-medium leading-[22.4px] border border-[#1B3428] shadow-[0_4px_0_0_#1B3428] hover:-translate-y-[1px] hover:shadow-[0_5px_0_0_#1B3428] active:translate-y-[2px] active:shadow-[0_2px_0_0_#1B3428] transition-all duration-150 inline-flex items-center justify-center select-none"
+            >
+              Explore Sample Lesson
             </a>
           </div>
 
