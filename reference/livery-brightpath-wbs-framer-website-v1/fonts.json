@@ -1,0 +1,24 @@
+[
+  {
+    "family": "Instrument Sans",
+    "roles": [
+      "body"
+    ],
+    "licence": "free",
+    "licenceName": "SIL Open Font License (Google Fonts)",
+    "install": "next/font/google (Instrument_Sans) or npm i @fontsource-variable/instrument-sans",
+    "alternative": null,
+    "note": "Install from Google Fonts or Fontsource, never from the source site."
+  },
+  {
+    "family": "Bricolage Grotesque",
+    "roles": [
+      "display"
+    ],
+    "licence": "free",
+    "licenceName": "SIL Open Font License (Google Fonts)",
+    "install": "next/font/google (Bricolage_Grotesque) or npm i @fontsource-variable/bricolage-grotesque",
+    "alternative": null,
+    "note": "Install from Google Fonts or Fontsource, never from the source site."
+  }
+]

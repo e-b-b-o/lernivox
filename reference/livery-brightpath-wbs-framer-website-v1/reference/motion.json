@@ -1,0 +1,4109 @@
+{
+ "note": "CSS animations are in styles.css (their @keyframes are listed here too). `animations` says which element runs which; `scripted` are element.animate() calls with real keyframes; `players` are videos and Lottie/Rive players with the file they load; `recorded` are what the page's scripts wrote frame by frame while it loaded and was scrolled (one track per element and property, samples are [ms, value, scrollY]: replay them with the same timing); `classChanges` are classes scripts added or removed, with when and at what scroll; `films` are pictures of each moving thing over one cycle (look at them); `states` picture controls at rest, on hover and on focus; `scrollReveals` are elements the page's scripts watch as they scroll into view (their classes are as they ended up: write a small IntersectionObserver that adds the class the stylesheet keys on).",
+ "keyframes": [],
+ "animations": [],
+ "scripted": [
+  {
+   "path": "section.framer-horakz:nth-of-type(1) > div.framer-ys2jnx:nth-of-type(1) > div.framer-13m72pr > div.framer-1pwx3yz > div.framer-1gycpy5:nth-of-type(1)",
+   "keyframes": [
+    {
+     "offset": null,
+     "easing": "linear",
+     "composite": "auto",
+     "opacity": "0.001",
+     "computedOffset": 0
+    },
+    {
+     "offset": null,
+     "easing": "linear",
+     "composite": "auto",
+     "opacity": "0.001",
+     "computedOffset": 1
+    }
+   ],
+   "duration": 10000,
+   "delay": 0,
+   "easing": "linear",
+   "iterations": 1,
+   "section": 1
+  },
+  {
+   "path": "section.framer-horakz:nth-of-type(1) > div.framer-ys2jnx:nth-of-type(1) > div.framer-13m72pr > div.framer-1pwx3yz > div.framer-1gycpy5:nth-of-type(1)",
+   "keyframes": [
+    {
+     "offset": null,
+     "easing": "linear",
+     "composite": "auto",
+     "opacity": "0.001",
+     "computedOffset": 0
+    },
+    {
+     "offset": null,
+     "easing": "linear",
+     "composite": "auto",
+     "opacity": "1",
+     "computedOffset": 1
+    }
+   ],
+   "duration": 400,
+   "delay": 200,
+   "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+   "iterations": 1,
+   "section": 1
+  },
+  {
+   "path": "section.framer-horakz:nth-of-type(1) > div.framer-ys2jnx:nth-of-type(1) > div.framer-13m72pr > div.framer-1pwx3yz > div.framer-1gycpy5:nth-of-type(1)",
+   "keyframes": [
+    {
+     "offset": null,
+     "easing": "linear",
+     "composite": "auto",
+     "transform": "translateY(30px)",
+     "computedOffset": 0
+    },
+    {
+     "offset": null,
+     "easing": "linear",
+     "composite": "auto",
+     "transform": "none",
+     "computedOffset": 1
+    }
+   ],
+   "duration": 400,
+   "delay": 200,
+   "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+   "iterations": 1,
+   "section": 1
+  },
+  {
+   "path": "section.framer-horakz:nth-of-type(1) > div.framer-ys2jnx:nth-of-type(1) > div.framer-13m72pr > div.framer-1pwx3yz > div.framer-1ff9vru:nth-of-type(2)",
+   "keyframes": [
+    {
+     "offset": null,
+     "easing": "linear",
+     "composite": "auto",
+     "opacity": "0.001",
+     "computedOffset": 0
+    },
+    {
+     "offset": null,
+     "easing": "linear",
+     "composite": "auto",
+     "opacity": "1",
+     "computedOffset": 1
+    }
+   ],
+   "duration": 400,
+   "delay": 350,
+   "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+   "iterations": 1,
+   "section": 1
+  },
+  {
+   "path": "section.framer-horakz:nth-of-type(1) > div.framer-ys2jnx:nth-of-type(1) > div.framer-13m72pr > div.framer-1pwx3yz > div.framer-1ff9vru:nth-of-type(2)",
+   "keyframes": [
+    {
+     "offset": null,
+     "easing": "linear",
+     "composite": "auto",
+     "transform": "translateY(30px)",
+     "computedOffset": 0
+    },
+    {
+     "offset": null,
+     "easing": "linear",
+     "composite": "auto",
+     "transform": "none",
+     "computedOffset": 1
+    }
+   ],
+   "duration": 400,
+   "delay": 350,
+   "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+   "iterations": 1,
+   "section": 1
+  },
+  {
+   "path": "div.framer-tGarp.framer-Qa4tV:nth-of-type(2) > main.framer-1pwritj > section.framer-horakz:nth-of-type(1) > div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1)",
+   "keyframes": [
+    {
+     "offset": null,
+     "easing": "linear",
+     "composite": "auto",
+     "opacity": "0.001",
+     "computedOffset": 0
+    },
+    {
+     "offset": null,
+     "easing": "linear",
+     "composite": "auto",
+     "opacity": "1",
+     "computedOffset": 1
+    }
+   ],
+   "duration": 400,
+   "delay": 500,
+   "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+   "iterations": 1,
+   "section": 1
+  },
+  {
+   "path": "div.framer-tGarp.framer-Qa4tV:nth-of-type(2) > main.framer-1pwritj > section.framer-horakz:nth-of-type(1) > div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1)",
+   "keyframes": [
+    {
+     "offset": null,
+     "easing": "linear",
+     "composite": "auto",
+     "transform": "translateY(30px)",
+     "computedOffset": 0
+    },
+    {
+     "offset": null,
+     "easing": "linear",
+     "composite": "auto",
+     "transform": "none",
+     "computedOffset": 1
+    }
+   ],
+   "duration": 400,
+   "delay": 500,
+   "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+   "iterations": 1,
+   "section": 1
+  },
+  {
+   "path": "div.framer-tGarp.framer-Qa4tV:nth-of-type(2) > main.framer-1pwritj > section.framer-horakz:nth-of-type(1) > div.framer-1z04r43:nth-of-type(2) > div.framer-1hw68xg:nth-of-type(2)",
+   "keyframes": [
+    {
+     "offset": null,
+     "easing": "linear",
+     "composite": "auto",
+     "opacity": "0.001",
+     "computedOffset": 0
+    },
+    {
+     "offset": null,
+     "easing": "linear",
+     "composite": "auto",
+     "opacity": "1",
+     "computedOffset": 1
+    }
+   ],
+   "duration": 400,
+   "delay": 650,
+   "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+   "iterations": 1,
+   "section": 1
+  },
+  {
+   "path": "section.framer-horakz:nth-of-type(1) > div.framer-ys2jnx:nth-of-type(1) > div.framer-13m72pr > div.framer-1pwx3yz > div.framer-1gycpy5:nth-of-type(1)",
+   "keyframes": [
+    {
+     "offset": null,
+     "easing": "linear",
+     "composite": "auto",
+     "opacity": "0.001",
+     "computedOffset": 0
+    },
+    {
+     "offset": null,
+     "easing": "linear",
+     "composite": "auto",
+     "opacity": "1",
+     "computedOffset": 1
+    }
+   ],
+   "duration": 400,
+   "delay": 200,
+   "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+   "iterations": 1,
+   "section": 1
+  },
+  {
+   "path": "section.framer-horakz:nth-of-type(1) > div.framer-ys2jnx:nth-of-type(1) > div.framer-13m72pr > div.framer-1pwx3yz > div.framer-1ff9vru:nth-of-type(2)",
+   "keyframes": [
+    {
+     "offset": null,
+     "easing": "linear",
+     "composite": "auto",
+     "opacity": "0.001",
+     "computedOffset": 0
+    },
+    {
+     "offset": null,
+     "easing": "linear",
+     "composite": "auto",
+     "opacity": "1",
+     "computedOffset": 1
+    }
+   ],
+   "duration": 400,
+   "delay": 350,
+   "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+   "iterations": 1,
+   "section": 1
+  },
+  {
+   "path": "div.framer-tGarp.framer-Qa4tV:nth-of-type(2) > main.framer-1pwritj > section.framer-horakz:nth-of-type(1) > div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1)",
+   "keyframes": [
+    {
+     "offset": null,
+     "easing": "linear",
+     "composite": "auto",
+     "opacity": "0.001",
+     "computedOffset": 0
+    },
+    {
+     "offset": null,
+     "easing": "linear",
+     "composite": "auto",
+     "opacity": "1",
+     "computedOffset": 1
+    }
+   ],
+   "duration": 400,
+   "delay": 500,
+   "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+   "iterations": 1,
+   "section": 1
+  },
+  {
+   "path": "div.framer-tGarp.framer-Qa4tV:nth-of-type(2) > main.framer-1pwritj > section.framer-horakz:nth-of-type(1) > div.framer-1z04r43:nth-of-type(2) > div.framer-1hw68xg:nth-of-type(2)",
+   "keyframes": [
+    {
+     "offset": null,
+     "easing": "linear",
+     "composite": "auto",
+     "opacity": "0.001",
+     "computedOffset": 0
+    },
+    {
+     "offset": null,
+     "easing": "linear",
+     "composite": "auto",
+     "opacity": "1",
+     "computedOffset": 1
+    }
+   ],
+   "duration": 400,
+   "delay": 650,
+   "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+   "iterations": 1,
+   "section": 1
+  }
+ ],
+ "players": [],
+ "scrollReveals": [
+  {
+   "path": "main.framer-1pwritj > section.framer-1qxueqr:nth-of-type(2) > div.framer-1l50w3b > div.framer-i85edc > div.framer-t2zri2:nth-of-type(1)",
+   "classes": "framer-t2zri2",
+   "transition": "all",
+   "section": 2
+  },
+  {
+   "path": "section.framer-1cvbvj8:nth-of-type(3) > div.framer-zlk47g > div.framer-1tt5inq > div.framer-y9iuv6:nth-of-type(1) > div.framer-1xh49ct:nth-of-type(1)",
+   "classes": "framer-1xh49ct",
+   "transition": "all",
+   "section": 3
+  },
+  {
+   "path": "section.framer-1cvbvj8:nth-of-type(3) > div.framer-zlk47g > div.framer-1tt5inq > div.framer-qp82qt:nth-of-type(2) > div.framer-1nhinjh:nth-of-type(1)",
+   "classes": "framer-1nhinjh",
+   "transition": "all",
+   "section": 3
+  },
+  {
+   "path": "section.framer-1cvbvj8:nth-of-type(3) > div.framer-zlk47g > div.framer-1tt5inq > div.framer-qp82qt:nth-of-type(2) > div.framer-bps8x7:nth-of-type(2)",
+   "classes": "framer-bps8x7",
+   "transition": "all",
+   "section": 3
+  },
+  {
+   "path": "div.framer-1288zei > div.framer-1ky5bq3:nth-of-type(1) > div.framer-25zfiy:nth-of-type(1) > div.framer-nj1or > div.framer-10xczcq:nth-of-type(1)",
+   "classes": "framer-10xczcq",
+   "transition": "all",
+   "section": 4
+  },
+  {
+   "path": "div.framer-1288zei > div.framer-1ky5bq3:nth-of-type(1) > div.framer-25zfiy:nth-of-type(1) > div.framer-nj1or > div.framer-1fqzw1x:nth-of-type(2)",
+   "classes": "framer-1fqzw1x",
+   "transition": "all",
+   "section": 4
+  },
+  {
+   "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(1) > div.framer-18tazs6-container",
+   "classes": "framer-18tazs6-container",
+   "transition": "all",
+   "section": 4
+  },
+  {
+   "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(2) > div.framer-1v4hp66-container",
+   "classes": "framer-1v4hp66-container",
+   "transition": "all",
+   "section": 4
+  },
+  {
+   "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(3) > div.framer-rbt8o-container",
+   "classes": "framer-rbt8o-container",
+   "transition": "all",
+   "section": 4
+  },
+  {
+   "path": "main.framer-1pwritj > section.framer-1v54aht:nth-of-type(4) > div.framer-m7x2m1 > div.framer-1288zei > div.framer-137qra9:nth-of-type(2)",
+   "classes": "framer-137qra9",
+   "transition": "all",
+   "section": 4
+  },
+  {
+   "path": "main.framer-1pwritj > section.framer-9d011a:nth-of-type(5) > div.framer-a7hccw > div.framer-m6jfy4 > div.framer-4th0yu:nth-of-type(1)",
+   "classes": "framer-4th0yu",
+   "transition": "all",
+   "section": 5
+  },
+  {
+   "path": "main.framer-1pwritj > section.framer-9d011a:nth-of-type(5) > div.framer-a7hccw > div.framer-m6jfy4 > div.framer-12f3a3v:nth-of-type(3)",
+   "classes": "framer-12f3a3v",
+   "transition": "all",
+   "section": 5
+  },
+  {
+   "path": "main.framer-1pwritj > section.framer-1evv4nl:nth-of-type(6) > div.framer-1e42j99 > div.framer-1lc7zdx > div.framer-14qs9fm:nth-of-type(1)",
+   "classes": "framer-14qs9fm",
+   "transition": "all",
+   "section": 6
+  },
+  {
+   "path": "div.framer-14isgyg > div.framer-1qk11i4 > div.framer-1sacizq:nth-of-type(1) > div.ssr-variant.hidden-bcge12 > div.framer-4bbd2y",
+   "classes": "framer-4bbd2y",
+   "transition": "all",
+   "section": 7
+  },
+  {
+   "path": "main.framer-1pwritj > section.framer-1oyvzxc:nth-of-type(7) > div.framer-14isgyg > div.framer-1qk11i4 > div.framer-1sacizq:nth-of-type(1)",
+   "classes": "framer-1sacizq",
+   "transition": "all",
+   "section": 7
+  },
+  {
+   "path": "main.framer-1pwritj > section.framer-1oyvzxc:nth-of-type(7) > div.framer-14isgyg > div.framer-1qk11i4 > div.framer-fu3hjs:nth-of-type(2)",
+   "classes": "framer-fu3hjs",
+   "transition": "all",
+   "section": 7
+  },
+  {
+   "path": "main.framer-1pwritj > section.framer-1qz9sya:nth-of-type(8) > div.framer-1fjdtnj > div.framer-1e9xds5 > div.framer-10p5lo:nth-of-type(1)",
+   "classes": "framer-10p5lo",
+   "transition": "all",
+   "section": 8
+  },
+  {
+   "path": "div.framer-1fjdtnj > div.framer-1e9xds5 > div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(1) > div.framer-13p3dzp-container",
+   "classes": "framer-13p3dzp-container",
+   "transition": "all",
+   "section": 8
+  },
+  {
+   "path": "div.framer-1fjdtnj > div.framer-1e9xds5 > div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(2) > div.framer-12mf2sx-container",
+   "classes": "framer-12mf2sx-container",
+   "transition": "all",
+   "section": 8
+  },
+  {
+   "path": "div.framer-1fjdtnj > div.framer-1e9xds5 > div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(3) > div.framer-16dcfc6-container",
+   "classes": "framer-16dcfc6-container",
+   "transition": "all",
+   "section": 8
+  },
+  {
+   "path": "main.framer-1pwritj > section.framer-1qz9sya:nth-of-type(8) > div.framer-1fjdtnj > div.framer-1e9xds5 > div.framer-1aidgew:nth-of-type(3)",
+   "classes": "framer-1aidgew",
+   "transition": "all",
+   "section": 8
+  },
+  {
+   "path": "main.framer-1pwritj > section#price:nth-of-type(9) > div.framer-4u0z68 > div.framer-cdae3m > div.framer-vxgnum:nth-of-type(1)",
+   "classes": "framer-vxgnum",
+   "transition": "all",
+   "section": 9
+  },
+  {
+   "path": "main.framer-1pwritj > section.framer-q75nl4:nth-of-type(10) > div.framer-wzdtgy > div.framer-1vrwac6 > div.framer-duiqzy:nth-of-type(1)",
+   "classes": "framer-duiqzy",
+   "transition": "all",
+   "section": 10
+  },
+  {
+   "path": "div.framer-1voba55-container:nth-of-type(1) > div.framer-2Kaps.framer-xgT8x > div.framer-12z30u5:nth-of-type(2) > div.framer-13ctqaf > div.framer-11rlmyw",
+   "classes": "framer-11rlmyw",
+   "transition": "all",
+   "section": 10
+  },
+  {
+   "path": "div.framer-1m0kezk-container:nth-of-type(2) > div.framer-2Kaps.framer-xgT8x > div.framer-12z30u5:nth-of-type(2) > div.framer-13ctqaf > div.framer-11rlmyw",
+   "classes": "framer-11rlmyw",
+   "transition": "all",
+   "section": 10
+  },
+  {
+   "path": "div.framer-t3whst-container:nth-of-type(3) > div.framer-2Kaps.framer-xgT8x > div.framer-12z30u5:nth-of-type(2) > div.framer-13ctqaf > div.framer-11rlmyw",
+   "classes": "framer-11rlmyw",
+   "transition": "all",
+   "section": 10
+  },
+  {
+   "path": "div.framer-g3izwq-container:nth-of-type(4) > div.framer-2Kaps.framer-xgT8x > div.framer-12z30u5:nth-of-type(2) > div.framer-13ctqaf > div.framer-11rlmyw",
+   "classes": "framer-11rlmyw",
+   "transition": "all",
+   "section": 10
+  },
+  {
+   "path": "div.framer-wdcd03-container:nth-of-type(5) > div.framer-2Kaps.framer-xgT8x > div.framer-12z30u5:nth-of-type(2) > div.framer-13ctqaf > div.framer-11rlmyw",
+   "classes": "framer-11rlmyw",
+   "transition": "all",
+   "section": 10
+  },
+  {
+   "path": "div.framer-wzdtgy > div.framer-1vrwac6 > div.framer-127nd8z:nth-of-type(2) > div.ssr-variant.hidden-bcge12 > div.framer-14ab6j3-container",
+   "classes": "framer-14ab6j3-container",
+   "transition": "all",
+   "section": 10
+  },
+  {
+   "path": "section.framer-zkyT3.framer-KrJS4 > div.framer-6kjyqo:nth-of-type(1) > div.framer-1m4mmul > div.framer-ixplj4:nth-of-type(1) > div.framer-z09zx9-container:nth-of-type(1)",
+   "classes": "framer-z09zx9-container",
+   "transition": "all",
+   "section": 11
+  },
+  {
+   "path": "section.framer-zkyT3.framer-KrJS4 > div.framer-6kjyqo:nth-of-type(1) > div.framer-1m4mmul > div.framer-ixplj4:nth-of-type(1) > div.framer-1cfgdco:nth-of-type(2)",
+   "classes": "framer-1cfgdco",
+   "transition": "all",
+   "section": 11
+  },
+  {
+   "path": "section.framer-zkyT3.framer-KrJS4 > div.framer-6kjyqo:nth-of-type(1) > div.framer-1m4mmul > div.framer-h4zb48:nth-of-type(2) > div.framer-1a1t6n2:nth-of-type(1)",
+   "classes": "framer-1a1t6n2",
+   "transition": "all",
+   "section": 11
+  },
+  {
+   "path": "section.framer-zkyT3.framer-KrJS4 > div.framer-6kjyqo:nth-of-type(1) > div.framer-1m4mmul > div.framer-h4zb48:nth-of-type(2) > div.framer-1stv29z:nth-of-type(2)",
+   "classes": "framer-1stv29z",
+   "transition": "all",
+   "section": 11
+  },
+  {
+   "path": "footer.framer-du8q9.framer-YAjoW > div.framer-1ytcpym:nth-of-type(1) > div.framer-1rjns0g > div.framer-1rrgc3w:nth-of-type(1) > div.framer-tn092d:nth-of-type(1)",
+   "classes": "framer-tn092d",
+   "transition": "all",
+   "section": 12
+  },
+  {
+   "path": "div.framer-1ytcpym:nth-of-type(1) > div.framer-1rjns0g > div.framer-1rrgc3w:nth-of-type(1) > div.framer-m6wq2n:nth-of-type(3) > div.framer-yh8kr7:nth-of-type(1)",
+   "classes": "framer-yh8kr7",
+   "transition": "all",
+   "section": 12
+  },
+  {
+   "path": "div.framer-1ytcpym:nth-of-type(1) > div.framer-1rjns0g > div.framer-1rrgc3w:nth-of-type(1) > div.framer-m6wq2n:nth-of-type(3) > div.framer-jy1kgj:nth-of-type(2)",
+   "classes": "framer-jy1kgj",
+   "transition": "all",
+   "section": 12
+  },
+  {
+   "path": "div.ssr-variant.hidden-1py2jzh > footer.framer-du8q9.framer-YAjoW > div.framer-1ytcpym:nth-of-type(1) > div.framer-1rjns0g > div.framer-wid4sw:nth-of-type(2)",
+   "classes": "framer-wid4sw",
+   "transition": "all",
+   "section": 12
+  },
+  {
+   "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1hw68xg:nth-of-type(2) > div.framer-t7n6sr-container > div.ssr-variant.hidden-bcge12 > div",
+   "classes": "",
+   "transition": "all",
+   "section": 1
+  },
+  {
+   "path": "div.framer-1l50w3b > div.framer-i85edc > div.framer-e8ybnc:nth-of-type(2) > div.framer-fk11xy > div.framer-1qmbyeo:nth-of-type(1)",
+   "classes": "framer-1qmbyeo",
+   "transition": "all",
+   "section": 2
+  },
+  {
+   "path": "div.framer-1l50w3b > div.framer-i85edc > div.framer-e8ybnc:nth-of-type(2) > div.framer-fk11xy > div.framer-1qmbyeo:nth-of-type(2)",
+   "classes": "framer-1qmbyeo",
+   "transition": "all",
+   "section": 2
+  },
+  {
+   "path": "div.framer-1l50w3b > div.framer-i85edc > div.framer-e8ybnc:nth-of-type(2) > div.framer-fk11xy > div.framer-1qmbyeo:nth-of-type(3)",
+   "classes": "framer-1qmbyeo",
+   "transition": "all",
+   "section": 2
+  },
+  {
+   "path": "div.framer-1l50w3b > div.framer-i85edc > div.framer-e8ybnc:nth-of-type(2) > div.framer-fk11xy > div.framer-1qmbyeo:nth-of-type(4)",
+   "classes": "framer-1qmbyeo",
+   "transition": "all",
+   "section": 2
+  },
+  {
+   "path": "section.framer-1cvbvj8:nth-of-type(3) > div.framer-zlk47g > div.framer-1tt5inq > div.framer-y9iuv6:nth-of-type(1) > div.framer-1p92mvk-container:nth-of-type(2)",
+   "classes": "framer-1p92mvk-container",
+   "transition": "all",
+   "section": 3
+  },
+  {
+   "path": "section.framer-9d011a:nth-of-type(5) > div.framer-a7hccw > div.framer-m6jfy4 > div.framer-1v43bn5:nth-of-type(2) > div.framer-9zr02w:nth-of-type(1)",
+   "classes": "framer-9zr02w",
+   "transition": "all",
+   "section": 5
+  },
+  {
+   "path": "section.framer-9d011a:nth-of-type(5) > div.framer-a7hccw > div.framer-m6jfy4 > div.framer-1v43bn5:nth-of-type(2) > div.framer-9zr02w:nth-of-type(2)",
+   "classes": "framer-9zr02w",
+   "transition": "all",
+   "section": 5
+  },
+  {
+   "path": "section.framer-9d011a:nth-of-type(5) > div.framer-a7hccw > div.framer-m6jfy4 > div.framer-1v43bn5:nth-of-type(2) > div.framer-9zr02w:nth-of-type(3)",
+   "classes": "framer-9zr02w",
+   "transition": "all",
+   "section": 5
+  },
+  {
+   "path": "section.framer-9d011a:nth-of-type(5) > div.framer-a7hccw > div.framer-m6jfy4 > div.framer-1v43bn5:nth-of-type(2) > div.framer-9zr02w:nth-of-type(4)",
+   "classes": "framer-9zr02w",
+   "transition": "all",
+   "section": 5
+  },
+  {
+   "path": "div.framer-1e42j99 > div.framer-1lc7zdx > div.framer-xq4lke:nth-of-type(2) > div.ssr-variant.hidden-bcge12:nth-of-type(1) > div.framer-j9451v-container",
+   "classes": "framer-j9451v-container",
+   "transition": "all",
+   "section": 6
+  },
+  {
+   "path": "div.framer-1e42j99 > div.framer-1lc7zdx > div.framer-xq4lke:nth-of-type(2) > div.ssr-variant.hidden-bcge12:nth-of-type(2) > div.framer-qrt1y9-container",
+   "classes": "framer-qrt1y9-container",
+   "transition": "all",
+   "section": 6
+  },
+  {
+   "path": "div.framer-1e42j99 > div.framer-1lc7zdx > div.framer-xq4lke:nth-of-type(2) > div.ssr-variant.hidden-bcge12:nth-of-type(3) > div.framer-74ve56-container",
+   "classes": "framer-74ve56-container",
+   "transition": "all",
+   "section": 6
+  },
+  {
+   "path": "div.framer-1e42j99 > div.framer-1lc7zdx > div.framer-xq4lke:nth-of-type(2) > div.ssr-variant.hidden-bcge12:nth-of-type(4) > div.framer-cji385-container",
+   "classes": "framer-cji385-container",
+   "transition": "all",
+   "section": 6
+  },
+  {
+   "path": "div.framer-4u0z68 > div.framer-cdae3m > div.framer-1chi0u0:nth-of-type(2) > div.ssr-variant.hidden-18afziw:nth-of-type(1) > div.framer-ugkfba-container",
+   "classes": "framer-ugkfba-container",
+   "transition": "all",
+   "section": 9
+  },
+  {
+   "path": "div.framer-4u0z68 > div.framer-cdae3m > div.framer-1chi0u0:nth-of-type(2) > div.ssr-variant.hidden-18afziw:nth-of-type(2) > div.framer-33d8oe-container",
+   "classes": "framer-33d8oe-container",
+   "transition": "all",
+   "section": 9
+  },
+  {
+   "path": "div.framer-4u0z68 > div.framer-cdae3m > div.framer-1chi0u0:nth-of-type(2) > div.ssr-variant.hidden-18afziw:nth-of-type(3) > div.framer-k4tec4-container",
+   "classes": "framer-k4tec4-container",
+   "transition": "all",
+   "section": 9
+  },
+  {
+   "path": "div.framer-127nd8z:nth-of-type(2) > div.ssr-variant.hidden-bcge12 > div.framer-14ab6j3-container > div.ssr-variant.hidden-18afziw > div.framer-cHRNI.framer-1eff5yd",
+   "classes": "framer-cHRNI framer-1eff5yd framer-v-1eff5yd",
+   "transition": "all",
+   "section": 10
+  }
+ ],
+ "recorded": [
+  {
+   "path": "div.ssr-variant.hidden-bcge12 > div > svg > text:nth-of-type(2) > textpath",
+   "tag": "textpath",
+   "property": "startOffset",
+   "samples": [
+    [
+     0,
+     "0",
+     0
+    ],
+    [
+     2231,
+     "2533.00",
+     3600
+    ],
+    [
+     3806,
+     "2532.30",
+     0
+    ],
+    [
+     4733,
+     "2531.94",
+     0
+    ],
+    [
+     5006,
+     "2531.24",
+     0
+    ],
+    [
+     5176,
+     "2530.54",
+     0
+    ],
+    [
+     5336,
+     "2529.83",
+     0
+    ],
+    [
+     5469,
+     "2529.13",
+     0
+    ],
+    [
+     5530,
+     "2528.78",
+     0
+    ],
+    [
+     5658,
+     "2528.07",
+     0
+    ],
+    [
+     5815,
+     "2527.37",
+     0
+    ],
+    [
+     5988,
+     "2526.67",
+     0
+    ],
+    [
+     6053,
+     "2526.31",
+     0
+    ],
+    [
+     6218,
+     "2525.61",
+     5250
+    ],
+    [
+     6398,
+     "2524.91",
+     5250
+    ],
+    [
+     6474,
+     "2524.20",
+     2969
+    ],
+    [
+     6731,
+     "2523.50",
+     2969
+    ],
+    [
+     6957,
+     "2523.15",
+     2969
+    ],
+    [
+     6995,
+     "2522.44",
+     7919
+    ],
+    [
+     7066,
+     "2521.74",
+     7919
+    ],
+    [
+     7117,
+     "2521.03",
+     7919
+    ],
+    [
+     7135,
+     "2520.33",
+     7919
+    ],
+    [
+     7152,
+     "2519.98",
+     7919
+    ],
+    [
+     7184,
+     "2519.28",
+     7919
+    ],
+    [
+     7217,
+     "2518.57",
+     7919
+    ],
+    [
+     7251,
+     "2517.87",
+     7919
+    ],
+    [
+     7278,
+     "2517.52",
+     7919
+    ],
+    [
+     7302,
+     "2516.81",
+     7919
+    ],
+    [
+     7386,
+     "2516.11",
+     7919
+    ],
+    [
+     7411,
+     "2515.40",
+     7919
+    ],
+    [
+     7459,
+     "2514.70",
+     7919
+    ],
+    [
+     7489,
+     "2514.35",
+     7919
+    ],
+    [
+     7545,
+     "2513.64",
+     7919
+    ],
+    [
+     7603,
+     "2512.94",
+     7919
+    ],
+    [
+     7658,
+     "2512.24",
+     7919
+    ],
+    [
+     7727,
+     "2511.53",
+     0
+    ],
+    [
+     7770,
+     "2511.18",
+     0
+    ],
+    [
+     7936,
+     "2510.48",
+     0
+    ],
+    [
+     8060,
+     "2509.77",
+     0
+    ],
+    [
+     8181,
+     "2509.07",
+     0
+    ],
+    [
+     8240,
+     "2508.72",
+     0
+    ],
+    [
+     8372,
+     "2508.01",
+     0
+    ],
+    [
+     8511,
+     "2507.31",
+     0
+    ],
+    [
+     8643,
+     "2506.61",
+     0
+    ],
+    [
+     8789,
+     "2505.90",
+     0
+    ],
+    [
+     8865,
+     "2505.55",
+     0
+    ],
+    [
+     9061,
+     "2504.85",
+     10349
+    ],
+    [
+     9230,
+     "2504.14",
+     10349
+    ]
+   ],
+   "changes": 85,
+   "startMs": 3057,
+   "durationMs": 9230,
+   "trigger": "load",
+   "section": 1
+  },
+  {
+   "path": "div.framer-ugkfba-container > div.framer-TNrt0.framer-g0owW > div.framer-3ycjh6:nth-of-type(2) > div.framer-aw3s9p-container > a.framer-3MKD0.framer-yZYSQ",
+   "tag": "a",
+   "property": "box-shadow",
+   "samples": [
+    [
+     0,
+     "0px 4px 0px 0px var(--token-a225ace6-638e-469b-9793",
+     0
+    ],
+    [
+     7063,
+     "0px 4.00003px 0px 0px var(--token-a225ace6-638e-469",
+     7919
+    ],
+    [
+     7063,
+     "0px 4.00003px 0px 0px var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     7919
+    ],
+    [
+     7077,
+     "0px 4.00847px 0px 0px var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     7919
+    ],
+    [
+     7107,
+     "0px 4.06651px 0px 0px var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     7919
+    ],
+    [
+     7142,
+     "0px 4.23104px 0px 0px var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     7919
+    ],
+    [
+     7162,
+     "0px 4.37011px 0px 0px var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     7919
+    ],
+    [
+     7176,
+     "0px 4.47785px 0px 0px var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     7919
+    ],
+    [
+     7187,
+     "0px 4.47709px 0px 0px var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     7919
+    ],
+    [
+     7209,
+     "0px 4.47159px 0px 0px var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     7919
+    ],
+    [
+     7234,
+     "0px 4.4583px 0px 0px var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     7919
+    ],
+    [
+     7265,
+     "0px 4.43171px 0px 0px var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     7919
+    ],
+    [
+     7295,
+     "0px 4.39145px 0px 0px var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     7919
+    ],
+    [
+     7321,
+     "0px 4.34838px 0px 0px var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     7919
+    ],
+    [
+     7353,
+     "0px 4.28951px 0px 0px var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     7919
+    ],
+    [
+     7379,
+     "0px 4.23035px 0px 0px var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     7919
+    ],
+    [
+     7411,
+     "0px 4.16395px 0px 0px var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     7919
+    ],
+    [
+     7433,
+     "0px 4.12259px 0px 0px var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     7919
+    ],
+    [
+     7470,
+     "0px 4.0691px 0px 0px var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     0
+    ],
+    [
+     7503,
+     "0px 4.02944px 0px 0px var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     0
+    ],
+    [
+     7546,
+     "0px 4.00454px 0px 0px var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     0
+    ],
+    [
+     7637,
+     "0px 4px 0px 0px var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     0
+    ],
+    [
+     7637,
+     "0px 4px 0px 0px var(--token-a225ace6-638e-469b-9793",
+     0
+    ]
+   ],
+   "changes": 23,
+   "startMs": 3281,
+   "durationMs": 7637,
+   "trigger": "load",
+   "section": 9
+  },
+  {
+   "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(3) > div.framer-rbt8o-container",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "translateY(30px) rotate(2deg)",
+     1440
+    ],
+    [
+     0,
+     "rotate(2deg)",
+     1440
+    ],
+    [
+     3845,
+     "none",
+     0
+    ],
+    [
+     3860,
+     "rotate(2deg)",
+     0
+    ],
+    [
+     3919,
+     "none",
+     0
+    ],
+    [
+     3924,
+     "rotate(2deg)",
+     0
+    ],
+    [
+     4324,
+     "none",
+     5250
+    ],
+    [
+     4331,
+     "rotate(2deg)",
+     5250
+    ],
+    [
+     4400,
+     "none",
+     5250
+    ],
+    [
+     4403,
+     "rotate(2deg)",
+     5250
+    ],
+    [
+     5345,
+     "none",
+     7919
+    ],
+    [
+     5348,
+     "rotate(2deg)",
+     7919
+    ],
+    [
+     5437,
+     "none",
+     7919
+    ],
+    [
+     5445,
+     "rotate(2deg)",
+     7919
+    ],
+    [
+     6611,
+     "none",
+     0
+    ],
+    [
+     6615,
+     "rotate(2deg)",
+     0
+    ],
+    [
+     6752,
+     "none",
+     0
+    ],
+    [
+     6757,
+     "rotate(2deg)",
+     0
+    ]
+   ],
+   "changes": 18,
+   "startMs": 4978,
+   "durationMs": 6757,
+   "trigger": "loop",
+   "section": 4
+  },
+  {
+   "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(2) > div.framer-1v4hp66-container",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "translateY(30px) rotate(-2deg)",
+     1440
+    ],
+    [
+     0,
+     "rotate(-2deg)",
+     1440
+    ],
+    [
+     3845,
+     "none",
+     0
+    ],
+    [
+     3860,
+     "rotate(-2deg)",
+     0
+    ],
+    [
+     3919,
+     "none",
+     0
+    ],
+    [
+     3924,
+     "rotate(-2deg)",
+     0
+    ],
+    [
+     4324,
+     "none",
+     5250
+    ],
+    [
+     4331,
+     "rotate(-2deg)",
+     5250
+    ],
+    [
+     4400,
+     "none",
+     5250
+    ],
+    [
+     4403,
+     "rotate(-2deg)",
+     5250
+    ],
+    [
+     5345,
+     "none",
+     7919
+    ],
+    [
+     5348,
+     "rotate(-2deg)",
+     7919
+    ],
+    [
+     5437,
+     "none",
+     7919
+    ],
+    [
+     5445,
+     "rotate(-2deg)",
+     7919
+    ],
+    [
+     6611,
+     "none",
+     0
+    ],
+    [
+     6615,
+     "rotate(-2deg)",
+     0
+    ],
+    [
+     6752,
+     "none",
+     0
+    ],
+    [
+     6757,
+     "rotate(-2deg)",
+     0
+    ]
+   ],
+   "changes": 18,
+   "startMs": 4978,
+   "durationMs": 6757,
+   "trigger": "loop",
+   "section": 4
+  },
+  {
+   "path": "div.framer-1fjdtnj > div.framer-1e9xds5 > div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(1) > div.framer-13p3dzp-container",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "translateY(30px) rotate(-6deg)",
+     1440
+    ],
+    [
+     0,
+     "rotate(-6deg)",
+     1440
+    ],
+    [
+     3845,
+     "none",
+     0
+    ],
+    [
+     3860,
+     "rotate(-6deg)",
+     0
+    ],
+    [
+     3919,
+     "none",
+     0
+    ],
+    [
+     3924,
+     "rotate(-6deg)",
+     0
+    ],
+    [
+     4324,
+     "none",
+     5250
+    ],
+    [
+     4331,
+     "rotate(-6deg)",
+     5250
+    ],
+    [
+     4400,
+     "none",
+     5250
+    ],
+    [
+     4403,
+     "rotate(-6deg)",
+     5250
+    ],
+    [
+     5345,
+     "none",
+     7919
+    ],
+    [
+     5348,
+     "rotate(-6deg)",
+     7919
+    ],
+    [
+     5437,
+     "none",
+     7919
+    ],
+    [
+     5445,
+     "rotate(-6deg)",
+     7919
+    ],
+    [
+     6611,
+     "none",
+     0
+    ],
+    [
+     6615,
+     "rotate(-6deg)",
+     0
+    ],
+    [
+     6752,
+     "none",
+     0
+    ],
+    [
+     6757,
+     "rotate(-6deg)",
+     0
+    ]
+   ],
+   "changes": 18,
+   "startMs": 4978,
+   "durationMs": 6757,
+   "trigger": "loop",
+   "section": 8
+  },
+  {
+   "path": "div.framer-1fjdtnj > div.framer-1e9xds5 > div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(3) > div.framer-16dcfc6-container",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "translateY(30px) rotate(6deg)",
+     1440
+    ],
+    [
+     0,
+     "rotate(6deg)",
+     1440
+    ],
+    [
+     3845,
+     "none",
+     0
+    ],
+    [
+     3860,
+     "rotate(6deg)",
+     0
+    ],
+    [
+     3919,
+     "none",
+     0
+    ],
+    [
+     3924,
+     "rotate(6deg)",
+     0
+    ],
+    [
+     4324,
+     "none",
+     5250
+    ],
+    [
+     4331,
+     "rotate(6deg)",
+     5250
+    ],
+    [
+     4400,
+     "none",
+     5250
+    ],
+    [
+     4403,
+     "rotate(6deg)",
+     5250
+    ],
+    [
+     5345,
+     "none",
+     7919
+    ],
+    [
+     5348,
+     "rotate(6deg)",
+     7919
+    ],
+    [
+     5437,
+     "none",
+     7919
+    ],
+    [
+     5445,
+     "rotate(6deg)",
+     7919
+    ],
+    [
+     6611,
+     "none",
+     0
+    ],
+    [
+     6615,
+     "rotate(6deg)",
+     0
+    ],
+    [
+     6752,
+     "none",
+     0
+    ],
+    [
+     6757,
+     "rotate(6deg)",
+     0
+    ]
+   ],
+   "changes": 18,
+   "startMs": 4978,
+   "durationMs": 6757,
+   "trigger": "loop",
+   "section": 8
+  },
+  {
+   "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(1) > div.framer-18tazs6-container",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "translateY(30px) rotate(2deg)",
+     1440
+    ],
+    [
+     0,
+     "rotate(2deg)",
+     1440
+    ],
+    [
+     3845,
+     "none",
+     0
+    ],
+    [
+     3860,
+     "rotate(2deg)",
+     0
+    ],
+    [
+     3919,
+     "none",
+     0
+    ],
+    [
+     3924,
+     "rotate(2deg)",
+     0
+    ],
+    [
+     4324,
+     "none",
+     5250
+    ],
+    [
+     4331,
+     "rotate(2deg)",
+     5250
+    ],
+    [
+     4400,
+     "none",
+     5250
+    ],
+    [
+     4403,
+     "rotate(2deg)",
+     5250
+    ],
+    [
+     5345,
+     "none",
+     7919
+    ],
+    [
+     5348,
+     "rotate(2deg)",
+     7919
+    ],
+    [
+     5437,
+     "none",
+     7919
+    ],
+    [
+     5445,
+     "rotate(2deg)",
+     7919
+    ],
+    [
+     6611,
+     "none",
+     0
+    ],
+    [
+     6615,
+     "rotate(2deg)",
+     0
+    ],
+    [
+     6752,
+     "none",
+     0
+    ],
+    [
+     6757,
+     "rotate(2deg)",
+     0
+    ]
+   ],
+   "changes": 18,
+   "startMs": 4978,
+   "durationMs": 6757,
+   "trigger": "loop",
+   "section": 4
+  },
+  {
+   "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(1) > div.framer-13p3dzp-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "rotate(-6deg)",
+     0
+    ],
+    [
+     5824,
+     "none",
+     0
+    ],
+    [
+     5839,
+     "rotate(-6deg)",
+     0
+    ],
+    [
+     5898,
+     "none",
+     0
+    ],
+    [
+     5903,
+     "rotate(-6deg)",
+     0
+    ],
+    [
+     6303,
+     "none",
+     5250
+    ],
+    [
+     6310,
+     "rotate(-6deg)",
+     5250
+    ],
+    [
+     6379,
+     "none",
+     5250
+    ],
+    [
+     6382,
+     "rotate(-6deg)",
+     5250
+    ],
+    [
+     7324,
+     "none",
+     7919
+    ],
+    [
+     7327,
+     "rotate(-6deg)",
+     7919
+    ],
+    [
+     7416,
+     "none",
+     7919
+    ],
+    [
+     7424,
+     "rotate(-6deg)",
+     7919
+    ],
+    [
+     8590,
+     "none",
+     0
+    ],
+    [
+     8594,
+     "rotate(-6deg)",
+     0
+    ],
+    [
+     8731,
+     "none",
+     0
+    ],
+    [
+     8736,
+     "rotate(-6deg)",
+     0
+    ]
+   ],
+   "changes": 17,
+   "startMs": 2999,
+   "durationMs": 8736,
+   "trigger": "loop",
+   "section": 8
+  },
+  {
+   "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(2) > div.framer-12mf2sx-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "rotate(-6deg)",
+     0
+    ],
+    [
+     5824,
+     "none",
+     0
+    ],
+    [
+     5839,
+     "rotate(-6deg)",
+     0
+    ],
+    [
+     5898,
+     "none",
+     0
+    ],
+    [
+     5903,
+     "rotate(-6deg)",
+     0
+    ],
+    [
+     6303,
+     "none",
+     5250
+    ],
+    [
+     6310,
+     "rotate(-6deg)",
+     5250
+    ],
+    [
+     6379,
+     "none",
+     5250
+    ],
+    [
+     6382,
+     "rotate(-6deg)",
+     5250
+    ],
+    [
+     7324,
+     "none",
+     7919
+    ],
+    [
+     7327,
+     "rotate(-6deg)",
+     7919
+    ],
+    [
+     7416,
+     "none",
+     7919
+    ],
+    [
+     7424,
+     "rotate(-6deg)",
+     7919
+    ],
+    [
+     8590,
+     "none",
+     0
+    ],
+    [
+     8594,
+     "rotate(-6deg)",
+     0
+    ],
+    [
+     8731,
+     "none",
+     0
+    ],
+    [
+     8736,
+     "rotate(-6deg)",
+     0
+    ]
+   ],
+   "changes": 17,
+   "startMs": 2999,
+   "durationMs": 8736,
+   "trigger": "loop",
+   "section": 8
+  },
+  {
+   "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(3) > div.framer-16dcfc6-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "rotate(-6deg)",
+     0
+    ],
+    [
+     5824,
+     "none",
+     0
+    ],
+    [
+     5839,
+     "rotate(-6deg)",
+     0
+    ],
+    [
+     5898,
+     "none",
+     0
+    ],
+    [
+     5903,
+     "rotate(-6deg)",
+     0
+    ],
+    [
+     6303,
+     "none",
+     5250
+    ],
+    [
+     6310,
+     "rotate(-6deg)",
+     5250
+    ],
+    [
+     6379,
+     "none",
+     5250
+    ],
+    [
+     6382,
+     "rotate(-6deg)",
+     5250
+    ],
+    [
+     7324,
+     "none",
+     7919
+    ],
+    [
+     7327,
+     "rotate(-6deg)",
+     7919
+    ],
+    [
+     7416,
+     "none",
+     7919
+    ],
+    [
+     7424,
+     "rotate(-6deg)",
+     7919
+    ],
+    [
+     8590,
+     "none",
+     0
+    ],
+    [
+     8594,
+     "rotate(-6deg)",
+     0
+    ],
+    [
+     8731,
+     "none",
+     0
+    ],
+    [
+     8736,
+     "rotate(-6deg)",
+     0
+    ]
+   ],
+   "changes": 17,
+   "startMs": 2999,
+   "durationMs": 8736,
+   "trigger": "loop",
+   "section": 8
+  },
+  {
+   "path": "div.framer-1voba55-container:nth-of-type(1) > div.framer-2Kaps.framer-xgT8x > div.framer-1frh9mr:nth-of-type(1) > div.framer-6qhlpq:nth-of-type(2) > div.framer-1xwpwo8:nth-of-type(1)",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "rotate(180deg)",
+     0
+    ],
+    [
+     5824,
+     "none",
+     0
+    ],
+    [
+     5839,
+     "rotate(180deg)",
+     0
+    ],
+    [
+     5898,
+     "none",
+     0
+    ],
+    [
+     5903,
+     "rotate(180deg)",
+     0
+    ],
+    [
+     6303,
+     "none",
+     5250
+    ],
+    [
+     6310,
+     "rotate(180deg)",
+     5250
+    ],
+    [
+     6379,
+     "none",
+     5250
+    ],
+    [
+     6382,
+     "rotate(180deg)",
+     5250
+    ],
+    [
+     7324,
+     "none",
+     7919
+    ],
+    [
+     7327,
+     "rotate(180deg)",
+     7919
+    ],
+    [
+     7416,
+     "none",
+     7919
+    ],
+    [
+     7424,
+     "rotate(180deg)",
+     7919
+    ],
+    [
+     8590,
+     "none",
+     0
+    ],
+    [
+     8594,
+     "rotate(180deg)",
+     0
+    ],
+    [
+     8731,
+     "none",
+     0
+    ],
+    [
+     8736,
+     "rotate(180deg)",
+     0
+    ]
+   ],
+   "changes": 17,
+   "startMs": 2999,
+   "durationMs": 8736,
+   "trigger": "loop",
+   "section": 10
+  },
+  {
+   "path": "div.framer-1voba55-container:nth-of-type(1) > div.framer-2Kaps.framer-xgT8x > div.framer-1frh9mr:nth-of-type(1) > div.framer-6qhlpq:nth-of-type(2) > div.framer-bna4yy:nth-of-type(2)",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "rotate(90deg)",
+     0
+    ],
+    [
+     5824,
+     "none",
+     0
+    ],
+    [
+     5839,
+     "rotate(90deg)",
+     0
+    ],
+    [
+     5898,
+     "none",
+     0
+    ],
+    [
+     5903,
+     "rotate(90deg)",
+     0
+    ],
+    [
+     6303,
+     "none",
+     5250
+    ],
+    [
+     6310,
+     "rotate(90deg)",
+     5250
+    ],
+    [
+     6379,
+     "none",
+     5250
+    ],
+    [
+     6382,
+     "rotate(90deg)",
+     5250
+    ],
+    [
+     7324,
+     "none",
+     7919
+    ],
+    [
+     7327,
+     "rotate(90deg)",
+     7919
+    ],
+    [
+     7416,
+     "none",
+     7919
+    ],
+    [
+     7424,
+     "rotate(90deg)",
+     7919
+    ],
+    [
+     8590,
+     "none",
+     0
+    ],
+    [
+     8594,
+     "rotate(90deg)",
+     0
+    ],
+    [
+     8731,
+     "none",
+     0
+    ],
+    [
+     8736,
+     "rotate(90deg)",
+     0
+    ]
+   ],
+   "changes": 17,
+   "startMs": 2999,
+   "durationMs": 8736,
+   "trigger": "loop",
+   "section": 10
+  },
+  {
+   "path": "div.framer-1m4mmul > div.framer-ixplj4:nth-of-type(1) > div.framer-1cfgdco:nth-of-type(2) > div.framer-a9gfjg:nth-of-type(4) > div.framer-n3foqy:nth-of-type(1)",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     5824,
+     "none",
+     0
+    ],
+    [
+     5839,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     5898,
+     "none",
+     0
+    ],
+    [
+     5903,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     6303,
+     "none",
+     5250
+    ],
+    [
+     6310,
+     "rotate(5deg)",
+     5250
+    ],
+    [
+     6379,
+     "none",
+     5250
+    ],
+    [
+     6382,
+     "rotate(5deg)",
+     5250
+    ],
+    [
+     7324,
+     "none",
+     7919
+    ],
+    [
+     7327,
+     "rotate(5deg)",
+     7919
+    ],
+    [
+     7416,
+     "none",
+     7919
+    ],
+    [
+     7424,
+     "rotate(5deg)",
+     7919
+    ],
+    [
+     8590,
+     "none",
+     0
+    ],
+    [
+     8594,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     8731,
+     "none",
+     0
+    ],
+    [
+     8736,
+     "rotate(5deg)",
+     0
+    ]
+   ],
+   "changes": 17,
+   "startMs": 2999,
+   "durationMs": 8736,
+   "trigger": "loop",
+   "section": 11
+  },
+  {
+   "path": "section.framer-zkyT3.framer-KrJS4 > div.framer-1xa4jnn:nth-of-type(2) > div.framer-513zc8:nth-of-type(1) > div.framer-ig3iao:nth-of-type(2) > div.framer-jbbf79:nth-of-type(2)",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "rotate(-40deg)",
+     0
+    ],
+    [
+     5824,
+     "none",
+     0
+    ],
+    [
+     5839,
+     "rotate(-40deg)",
+     0
+    ],
+    [
+     5898,
+     "none",
+     0
+    ],
+    [
+     5903,
+     "rotate(-40deg)",
+     0
+    ],
+    [
+     6303,
+     "none",
+     5250
+    ],
+    [
+     6310,
+     "rotate(-40deg)",
+     5250
+    ],
+    [
+     6379,
+     "none",
+     5250
+    ],
+    [
+     6382,
+     "rotate(-40deg)",
+     5250
+    ],
+    [
+     7324,
+     "none",
+     7919
+    ],
+    [
+     7327,
+     "rotate(-40deg)",
+     7919
+    ],
+    [
+     7416,
+     "none",
+     7919
+    ],
+    [
+     7424,
+     "rotate(-40deg)",
+     7919
+    ],
+    [
+     8590,
+     "none",
+     0
+    ],
+    [
+     8594,
+     "rotate(-40deg)",
+     0
+    ],
+    [
+     8731,
+     "none",
+     0
+    ],
+    [
+     8736,
+     "rotate(-40deg)",
+     0
+    ]
+   ],
+   "changes": 17,
+   "startMs": 2999,
+   "durationMs": 8736,
+   "trigger": "loop",
+   "section": 11
+  },
+  {
+   "path": "div.framer-ugkfba-container > div.framer-TNrt0.framer-g0owW > div.framer-3ycjh6:nth-of-type(2) > div.framer-aw3s9p-container > a.framer-3MKD0.framer-yZYSQ",
+   "tag": "a",
+   "property": "background-color",
+   "samples": [
+    [
+     0,
+     "var(--token-e079c459-c6e9-4577-8c52-a24b838cfa37, rgb(234, 228, 211))",
+     0
+    ],
+    [
+     7063,
+     "rgb(234, 228, 211)",
+     7919
+    ],
+    [
+     7107,
+     "rgb(234, 229, 212)",
+     7919
+    ],
+    [
+     7142,
+     "rgb(236, 230, 215)",
+     7919
+    ],
+    [
+     7162,
+     "rgb(237, 232, 217)",
+     7919
+    ],
+    [
+     7176,
+     "rgb(237, 233, 219)",
+     7919
+    ],
+    [
+     7265,
+     "rgb(237, 233, 218)",
+     7919
+    ],
+    [
+     7295,
+     "rgb(236, 232, 218)",
+     7919
+    ],
+    [
+     7321,
+     "rgb(236, 232, 217)",
+     7919
+    ],
+    [
+     7353,
+     "rgb(236, 231, 216)",
+     7919
+    ],
+    [
+     7379,
+     "rgb(235, 230, 215)",
+     7919
+    ],
+    [
+     7411,
+     "rgb(235, 230, 214)",
+     7919
+    ],
+    [
+     7433,
+     "rgb(235, 229, 213)",
+     7919
+    ],
+    [
+     7470,
+     "rgb(234, 229, 212)",
+     0
+    ],
+    [
+     7503,
+     "rgb(234, 228, 212)",
+     0
+    ],
+    [
+     7546,
+     "rgb(234, 228, 211)",
+     0
+    ],
+    [
+     7637,
+     "var(--token-e079c459-c6e9-4577-8c52-a24b838cfa37, rgb(234, 228, 211))",
+     0
+    ]
+   ],
+   "changes": 17,
+   "startMs": 3281,
+   "durationMs": 7637,
+   "trigger": "load",
+   "section": 9
+  },
+  {
+   "path": "div.framer-1pwx3yz > div.framer-1gycpy5:nth-of-type(1) > div.framer-1dksp2g:nth-of-type(2) > div.framer-3me2fc:nth-of-type(5) > div.framer-1jpu99j:nth-of-type(1)",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "none",
+     0
+    ],
+    [
+     15,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     74,
+     "none",
+     0
+    ],
+    [
+     79,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     479,
+     "none",
+     5250
+    ],
+    [
+     486,
+     "rotate(5deg)",
+     5250
+    ],
+    [
+     555,
+     "none",
+     5250
+    ],
+    [
+     558,
+     "rotate(5deg)",
+     5250
+    ],
+    [
+     1500,
+     "none",
+     7919
+    ],
+    [
+     1503,
+     "rotate(5deg)",
+     7919
+    ],
+    [
+     1592,
+     "none",
+     7919
+    ],
+    [
+     1600,
+     "rotate(5deg)",
+     7919
+    ],
+    [
+     2766,
+     "none",
+     0
+    ],
+    [
+     2770,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     2907,
+     "none",
+     0
+    ],
+    [
+     2912,
+     "rotate(5deg)",
+     0
+    ]
+   ],
+   "changes": 16,
+   "startMs": 8823,
+   "durationMs": 2912,
+   "trigger": "loop",
+   "section": 1
+  },
+  {
+   "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-16f0o6z:nth-of-type(1) > div.ssr-variant.hidden-bcge12:nth-of-type(1) > div.framer-qdx3pg",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "none",
+     0
+    ],
+    [
+     15,
+     "rotate(-4deg)",
+     0
+    ],
+    [
+     74,
+     "none",
+     0
+    ],
+    [
+     79,
+     "rotate(-4deg)",
+     0
+    ],
+    [
+     479,
+     "none",
+     5250
+    ],
+    [
+     486,
+     "rotate(-4deg)",
+     5250
+    ],
+    [
+     555,
+     "none",
+     5250
+    ],
+    [
+     558,
+     "rotate(-4deg)",
+     5250
+    ],
+    [
+     1500,
+     "none",
+     7919
+    ],
+    [
+     1503,
+     "rotate(-4deg)",
+     7919
+    ],
+    [
+     1592,
+     "none",
+     7919
+    ],
+    [
+     1600,
+     "rotate(-4deg)",
+     7919
+    ],
+    [
+     2766,
+     "none",
+     0
+    ],
+    [
+     2770,
+     "rotate(-4deg)",
+     0
+    ],
+    [
+     2907,
+     "none",
+     0
+    ],
+    [
+     2912,
+     "rotate(-4deg)",
+     0
+    ]
+   ],
+   "changes": 16,
+   "startMs": 8823,
+   "durationMs": 2912,
+   "trigger": "loop",
+   "section": 1
+  },
+  {
+   "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-5ivlul:nth-of-type(2) > div.ssr-variant > div.framer-ml63o3",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "none",
+     0
+    ],
+    [
+     15,
+     "rotate(-4deg)",
+     0
+    ],
+    [
+     74,
+     "none",
+     0
+    ],
+    [
+     79,
+     "rotate(-4deg)",
+     0
+    ],
+    [
+     479,
+     "none",
+     5250
+    ],
+    [
+     486,
+     "rotate(-4deg)",
+     5250
+    ],
+    [
+     555,
+     "none",
+     5250
+    ],
+    [
+     558,
+     "rotate(-4deg)",
+     5250
+    ],
+    [
+     1500,
+     "none",
+     7919
+    ],
+    [
+     1503,
+     "rotate(-4deg)",
+     7919
+    ],
+    [
+     1592,
+     "none",
+     7919
+    ],
+    [
+     1600,
+     "rotate(-4deg)",
+     7919
+    ],
+    [
+     2766,
+     "none",
+     0
+    ],
+    [
+     2770,
+     "rotate(-4deg)",
+     0
+    ],
+    [
+     2907,
+     "none",
+     0
+    ],
+    [
+     2912,
+     "rotate(-4deg)",
+     0
+    ]
+   ],
+   "changes": 16,
+   "startMs": 8823,
+   "durationMs": 2912,
+   "trigger": "loop",
+   "section": 1
+  },
+  {
+   "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-1ez819k:nth-of-type(3) > div.ssr-variant.hidden-bcge12 > div.framer-10tciei",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "none",
+     0
+    ],
+    [
+     15,
+     "rotate(-4deg)",
+     0
+    ],
+    [
+     74,
+     "none",
+     0
+    ],
+    [
+     79,
+     "rotate(-4deg)",
+     0
+    ],
+    [
+     479,
+     "none",
+     5250
+    ],
+    [
+     486,
+     "rotate(-4deg)",
+     5250
+    ],
+    [
+     555,
+     "none",
+     5250
+    ],
+    [
+     558,
+     "rotate(-4deg)",
+     5250
+    ],
+    [
+     1500,
+     "none",
+     7919
+    ],
+    [
+     1503,
+     "rotate(-4deg)",
+     7919
+    ],
+    [
+     1592,
+     "none",
+     7919
+    ],
+    [
+     1600,
+     "rotate(-4deg)",
+     7919
+    ],
+    [
+     2766,
+     "none",
+     0
+    ],
+    [
+     2770,
+     "rotate(-4deg)",
+     0
+    ],
+    [
+     2907,
+     "none",
+     0
+    ],
+    [
+     2912,
+     "rotate(-4deg)",
+     0
+    ]
+   ],
+   "changes": 16,
+   "startMs": 8823,
+   "durationMs": 2912,
+   "trigger": "loop",
+   "section": 1
+  },
+  {
+   "path": "main.framer-1pwritj > section.framer-horakz:nth-of-type(1) > div.framer-1z04r43:nth-of-type(2) > div.framer-1hw68xg:nth-of-type(2) > div.framer-t7n6sr-container",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "none",
+     0
+    ],
+    [
+     15,
+     "rotate(-4deg)",
+     0
+    ],
+    [
+     74,
+     "none",
+     0
+    ],
+    [
+     79,
+     "rotate(-4deg)",
+     0
+    ],
+    [
+     479,
+     "none",
+     5250
+    ],
+    [
+     486,
+     "rotate(-4deg)",
+     5250
+    ],
+    [
+     555,
+     "none",
+     5250
+    ],
+    [
+     558,
+     "rotate(-4deg)",
+     5250
+    ],
+    [
+     1500,
+     "none",
+     7919
+    ],
+    [
+     1503,
+     "rotate(-4deg)",
+     7919
+    ],
+    [
+     1592,
+     "none",
+     7919
+    ],
+    [
+     1600,
+     "rotate(-4deg)",
+     7919
+    ],
+    [
+     2766,
+     "none",
+     0
+    ],
+    [
+     2770,
+     "rotate(-4deg)",
+     0
+    ],
+    [
+     2907,
+     "none",
+     0
+    ],
+    [
+     2912,
+     "rotate(-4deg)",
+     0
+    ]
+   ],
+   "changes": 16,
+   "startMs": 8823,
+   "durationMs": 2912,
+   "trigger": "loop",
+   "section": 1
+  },
+  {
+   "path": "div.framer-i85edc > div.framer-t2zri2:nth-of-type(1) > div.framer-itwba7:nth-of-type(1) > div.framer-1e67fbm:nth-of-type(3) > div.framer-1ndmou2:nth-of-type(1)",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "none",
+     0
+    ],
+    [
+     15,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     74,
+     "none",
+     0
+    ],
+    [
+     79,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     479,
+     "none",
+     5250
+    ],
+    [
+     486,
+     "rotate(5deg)",
+     5250
+    ],
+    [
+     555,
+     "none",
+     5250
+    ],
+    [
+     558,
+     "rotate(5deg)",
+     5250
+    ],
+    [
+     1500,
+     "none",
+     7919
+    ],
+    [
+     1503,
+     "rotate(5deg)",
+     7919
+    ],
+    [
+     1592,
+     "none",
+     7919
+    ],
+    [
+     1600,
+     "rotate(5deg)",
+     7919
+    ],
+    [
+     2766,
+     "none",
+     0
+    ],
+    [
+     2770,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     2907,
+     "none",
+     0
+    ],
+    [
+     2912,
+     "rotate(5deg)",
+     0
+    ]
+   ],
+   "changes": 16,
+   "startMs": 8823,
+   "durationMs": 2912,
+   "trigger": "loop",
+   "section": 2
+  },
+  {
+   "path": "div.framer-1tt5inq > div.framer-qp82qt:nth-of-type(2) > div.framer-bps8x7:nth-of-type(2) > div.ssr-variant.hidden-18afziw > div.framer-1rvk88l",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "none",
+     0
+    ],
+    [
+     15,
+     "rotate(3deg)",
+     0
+    ],
+    [
+     74,
+     "none",
+     0
+    ],
+    [
+     79,
+     "rotate(3deg)",
+     0
+    ],
+    [
+     479,
+     "none",
+     5250
+    ],
+    [
+     486,
+     "rotate(3deg)",
+     5250
+    ],
+    [
+     555,
+     "none",
+     5250
+    ],
+    [
+     558,
+     "rotate(3deg)",
+     5250
+    ],
+    [
+     1500,
+     "none",
+     7919
+    ],
+    [
+     1503,
+     "rotate(3deg)",
+     7919
+    ],
+    [
+     1592,
+     "none",
+     7919
+    ],
+    [
+     1600,
+     "rotate(3deg)",
+     7919
+    ],
+    [
+     2766,
+     "none",
+     0
+    ],
+    [
+     2770,
+     "rotate(3deg)",
+     0
+    ],
+    [
+     2907,
+     "none",
+     0
+    ],
+    [
+     2912,
+     "rotate(3deg)",
+     0
+    ]
+   ],
+   "changes": 16,
+   "startMs": 8823,
+   "durationMs": 2912,
+   "trigger": "loop",
+   "section": 3
+  },
+  {
+   "path": "div.framer-nj1or > div.framer-10xczcq:nth-of-type(1) > div.framer-1u7fori:nth-of-type(1) > div.framer-1sq9c4d:nth-of-type(3) > div.framer-1ay52vm:nth-of-type(1)",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "none",
+     0
+    ],
+    [
+     15,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     74,
+     "none",
+     0
+    ],
+    [
+     79,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     479,
+     "none",
+     5250
+    ],
+    [
+     486,
+     "rotate(5deg)",
+     5250
+    ],
+    [
+     555,
+     "none",
+     5250
+    ],
+    [
+     558,
+     "rotate(5deg)",
+     5250
+    ],
+    [
+     1500,
+     "none",
+     7919
+    ],
+    [
+     1503,
+     "rotate(5deg)",
+     7919
+    ],
+    [
+     1592,
+     "none",
+     7919
+    ],
+    [
+     1600,
+     "rotate(5deg)",
+     7919
+    ],
+    [
+     2766,
+     "none",
+     0
+    ],
+    [
+     2770,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     2907,
+     "none",
+     0
+    ],
+    [
+     2912,
+     "rotate(5deg)",
+     0
+    ]
+   ],
+   "changes": 16,
+   "startMs": 8823,
+   "durationMs": 2912,
+   "trigger": "loop",
+   "section": 4
+  },
+  {
+   "path": "div.framer-a7hccw > div.framer-m6jfy4 > div.framer-4th0yu:nth-of-type(1) > div.framer-7ol6en:nth-of-type(3) > div.framer-cttg6j:nth-of-type(1)",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "none",
+     0
+    ],
+    [
+     15,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     74,
+     "none",
+     0
+    ],
+    [
+     79,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     479,
+     "none",
+     5250
+    ],
+    [
+     486,
+     "rotate(5deg)",
+     5250
+    ],
+    [
+     555,
+     "none",
+     5250
+    ],
+    [
+     558,
+     "rotate(5deg)",
+     5250
+    ],
+    [
+     1500,
+     "none",
+     7919
+    ],
+    [
+     1503,
+     "rotate(5deg)",
+     7919
+    ],
+    [
+     1592,
+     "none",
+     7919
+    ],
+    [
+     1600,
+     "rotate(5deg)",
+     7919
+    ],
+    [
+     2766,
+     "none",
+     0
+    ],
+    [
+     2770,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     2907,
+     "none",
+     0
+    ],
+    [
+     2912,
+     "rotate(5deg)",
+     0
+    ]
+   ],
+   "changes": 16,
+   "startMs": 8823,
+   "durationMs": 2912,
+   "trigger": "loop",
+   "section": 5
+  },
+  {
+   "path": "div.framer-14qs9fm:nth-of-type(1) > div.framer-1mz23uj:nth-of-type(1) > div.framer-buh3zj:nth-of-type(2) > div.framer-1t7jzm2:nth-of-type(3) > div.framer-tslpdh:nth-of-type(1)",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "none",
+     0
+    ],
+    [
+     15,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     74,
+     "none",
+     0
+    ],
+    [
+     79,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     479,
+     "none",
+     5250
+    ],
+    [
+     486,
+     "rotate(5deg)",
+     5250
+    ],
+    [
+     555,
+     "none",
+     5250
+    ],
+    [
+     558,
+     "rotate(5deg)",
+     5250
+    ],
+    [
+     1500,
+     "none",
+     7919
+    ],
+    [
+     1503,
+     "rotate(5deg)",
+     7919
+    ],
+    [
+     1592,
+     "none",
+     7919
+    ],
+    [
+     1600,
+     "rotate(5deg)",
+     7919
+    ],
+    [
+     2766,
+     "none",
+     0
+    ],
+    [
+     2770,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     2907,
+     "none",
+     0
+    ],
+    [
+     2912,
+     "rotate(5deg)",
+     0
+    ]
+   ],
+   "changes": 16,
+   "startMs": 8823,
+   "durationMs": 2912,
+   "trigger": "loop",
+   "section": 6
+  },
+  {
+   "path": "div.framer-13x0nho:nth-of-type(1) > div.framer-d2lpr2:nth-of-type(1) > div.framer-sj5y41:nth-of-type(2) > div.framer-1njdg5t:nth-of-type(4) > div.framer-1y8sjv2:nth-of-type(1)",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "none",
+     0
+    ],
+    [
+     15,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     74,
+     "none",
+     0
+    ],
+    [
+     79,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     479,
+     "none",
+     5250
+    ],
+    [
+     486,
+     "rotate(5deg)",
+     5250
+    ],
+    [
+     555,
+     "none",
+     5250
+    ],
+    [
+     558,
+     "rotate(5deg)",
+     5250
+    ],
+    [
+     1500,
+     "none",
+     7919
+    ],
+    [
+     1503,
+     "rotate(5deg)",
+     7919
+    ],
+    [
+     1592,
+     "none",
+     7919
+    ],
+    [
+     1600,
+     "rotate(5deg)",
+     7919
+    ],
+    [
+     2766,
+     "none",
+     0
+    ],
+    [
+     2770,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     2907,
+     "none",
+     0
+    ],
+    [
+     2912,
+     "rotate(5deg)",
+     0
+    ]
+   ],
+   "changes": 16,
+   "startMs": 8823,
+   "durationMs": 2912,
+   "trigger": "loop",
+   "section": 7
+  },
+  {
+   "path": "div.framer-1e9xds5 > div.framer-10p5lo:nth-of-type(1) > div.framer-14gtx4r > div.framer-1bsygp9:nth-of-type(3) > div.framer-b10oed:nth-of-type(1)",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "none",
+     0
+    ],
+    [
+     15,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     74,
+     "none",
+     0
+    ],
+    [
+     79,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     479,
+     "none",
+     5250
+    ],
+    [
+     486,
+     "rotate(5deg)",
+     5250
+    ],
+    [
+     555,
+     "none",
+     5250
+    ],
+    [
+     558,
+     "rotate(5deg)",
+     5250
+    ],
+    [
+     1500,
+     "none",
+     7919
+    ],
+    [
+     1503,
+     "rotate(5deg)",
+     7919
+    ],
+    [
+     1592,
+     "none",
+     7919
+    ],
+    [
+     1600,
+     "rotate(5deg)",
+     7919
+    ],
+    [
+     2766,
+     "none",
+     0
+    ],
+    [
+     2770,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     2907,
+     "none",
+     0
+    ],
+    [
+     2912,
+     "rotate(5deg)",
+     0
+    ]
+   ],
+   "changes": 16,
+   "startMs": 8823,
+   "durationMs": 2912,
+   "trigger": "loop",
+   "section": 8
+  },
+  {
+   "path": "div.framer-cdae3m > div.framer-vxgnum:nth-of-type(1) > div.framer-q0hrw2:nth-of-type(1) > div.framer-12s7x3j:nth-of-type(2) > div.framer-61ukli:nth-of-type(1)",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "none",
+     0
+    ],
+    [
+     15,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     74,
+     "none",
+     0
+    ],
+    [
+     79,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     479,
+     "none",
+     5250
+    ],
+    [
+     486,
+     "rotate(5deg)",
+     5250
+    ],
+    [
+     555,
+     "none",
+     5250
+    ],
+    [
+     558,
+     "rotate(5deg)",
+     5250
+    ],
+    [
+     1500,
+     "none",
+     7919
+    ],
+    [
+     1503,
+     "rotate(5deg)",
+     7919
+    ],
+    [
+     1592,
+     "none",
+     7919
+    ],
+    [
+     1600,
+     "rotate(5deg)",
+     7919
+    ],
+    [
+     2766,
+     "none",
+     0
+    ],
+    [
+     2770,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     2907,
+     "none",
+     0
+    ],
+    [
+     2912,
+     "rotate(5deg)",
+     0
+    ]
+   ],
+   "changes": 16,
+   "startMs": 8823,
+   "durationMs": 2912,
+   "trigger": "loop",
+   "section": 9
+  },
+  {
+   "path": "div.framer-1vrwac6 > div.framer-duiqzy:nth-of-type(1) > div.framer-1bjlxcd > div.framer-1hm2wn4:nth-of-type(4) > div.framer-usmh2b:nth-of-type(1)",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "none",
+     0
+    ],
+    [
+     15,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     74,
+     "none",
+     0
+    ],
+    [
+     79,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     479,
+     "none",
+     5250
+    ],
+    [
+     486,
+     "rotate(5deg)",
+     5250
+    ],
+    [
+     555,
+     "none",
+     5250
+    ],
+    [
+     558,
+     "rotate(5deg)",
+     5250
+    ],
+    [
+     1500,
+     "none",
+     7919
+    ],
+    [
+     1503,
+     "rotate(5deg)",
+     7919
+    ],
+    [
+     1592,
+     "none",
+     7919
+    ],
+    [
+     1600,
+     "rotate(5deg)",
+     7919
+    ],
+    [
+     2766,
+     "none",
+     0
+    ],
+    [
+     2770,
+     "rotate(5deg)",
+     0
+    ],
+    [
+     2907,
+     "none",
+     0
+    ],
+    [
+     2912,
+     "rotate(5deg)",
+     0
+    ]
+   ],
+   "changes": 16,
+   "startMs": 8823,
+   "durationMs": 2912,
+   "trigger": "loop",
+   "section": 10
+  },
+  {
+   "path": "div.framer-1lo7yl2:nth-of-type(1) > div.framer-1ez819k:nth-of-type(3) > div.ssr-variant.hidden-bcge12 > div.framer-10tciei > div.framer-apqfzb.hidden-bcge12:nth-of-type(2)",
+   "tag": "div",
+   "property": "transform",
+   "samples": [
+    [
+     0,
+     "none",
+     0
+    ],
+    [
+     15,
+     "rotate(4deg)",
+     0
+    ],
+    [
+     74,
+     "none",
+     0
+    ],
+    [
+     79,
+     "rotate(4deg)",
+     0
+    ],
+    [
+     479,
+     "none",
+     5250
+    ],
+    [
+     486,
+     "rotate(4deg)",
+     5250
+    ],
+    [
+     555,
+     "none",
+     5250
+    ],
+    [
+     558,
+     "rotate(4deg)",
+     5250
+    ],
+    [
+     1500,
+     "none",
+     7919
+    ],
+    [
+     1503,
+     "rotate(4deg)",
+     7919
+    ],
+    [
+     1592,
+     "none",
+     7919
+    ],
+    [
+     1600,
+     "rotate(4deg)",
+     7919
+    ],
+    [
+     2766,
+     "none",
+     0
+    ],
+    [
+     2770,
+     "rotate(4deg)",
+     0
+    ],
+    [
+     2907,
+     "none",
+     0
+    ],
+    [
+     2912,
+     "rotate(4deg)",
+     0
+    ]
+   ],
+   "changes": 16,
+   "startMs": 8823,
+   "durationMs": 2912,
+   "trigger": "loop",
+   "section": 1
+  },
+  {
+   "path": "div.framer-1pwx3yz > div.framer-1ff9vru:nth-of-type(2) > div.framer-15j656b-container:nth-of-type(1) > div.ssr-variant.hidden-18afziw > a.framer-vmrH1.framer-yZYSQ",
+   "tag": "a",
+   "property": "box-shadow",
+   "samples": [
+    [
+     0,
+     "0px 4px 0px 0px var(--token-23b59c71-bcd9-4239-8358-53b6c3cc209",
+     0
+    ],
+    [
+     5815,
+     "0px 4.02096px 0px 0px var(--token-23b59c71-bcd9-4239-8358-53b6c",
+     0
+    ],
+    [
+     5815,
+     "0px 4.02096px 0px 0px var(--token-23b59c71-bcd9-4239-8358-53b6c3cc209e, rgb(178, 110, 69))",
+     0
+    ],
+    [
+     5845,
+     "0px 4.12273px 0px 0px var(--token-23b59c71-bcd9-4239-8358-53b6c3cc209e, rgb(178, 110, 69))",
+     0
+    ],
+    [
+     5916,
+     "0px 4.14928px 0px 0px var(--token-23b59c71-bcd9-4239-8358-53b6c3cc209e, rgb(178, 110, 69))",
+     0
+    ],
+    [
+     5987,
+     "0px 4.14031px 0px 0px var(--token-23b59c71-bcd9-4239-8358-53b6c3cc209e, rgb(178, 110, 69))",
+     0
+    ],
+    [
+     6053,
+     "0px 4.11376px 0px 0px var(--token-23b59c71-bcd9-4239-8358-53b6c3cc209e, rgb(178, 110, 69))",
+     0
+    ],
+    [
+     6146,
+     "0px 4.055px 0px 0px var(--token-23b59c71-bcd9-4239-8358-53b6c3cc209e, rgb(178, 110, 69))",
+     0
+    ],
+    [
+     6218,
+     "0px 4.01842px 0px 0px var(--token-23b59c71-bcd9-4239-8358-53b6c3cc209e, rgb(178, 110, 69))",
+     5250
+    ],
+    [
+     6252,
+     "0px 4.00743px 0px 0px var(--token-23b59c71-bcd9-4239-8358-53b6c3cc209e, rgb(178, 110, 69))",
+     5250
+    ],
+    [
+     6306,
+     "0px 4.0002px 0px 0px var(--token-23b59c71-bcd9-4239-8358-53b6c3cc209e, rgb(178, 110, 69))",
+     5250
+    ],
+    [
+     6324,
+     "0px 4px 0px 0px var(--token-23b59c71-bcd9-4239-8358-53b6c3cc209e, rgb(178, 110, 69))",
+     5250
+    ],
+    [
+     6324,
+     "0px 4px 0px 0px var(--token-23b59c71-bcd9-4239-8358-53b6c3cc209",
+     5250
+    ]
+   ],
+   "changes": 13,
+   "startMs": 3057,
+   "durationMs": 6324,
+   "trigger": "load",
+   "section": 1
+  },
+  {
+   "path": "div.framer-1r5rn89:nth-of-type(1) > div.framer-1s4y7z3 > div.framer-1edkcy3:nth-of-type(3) > div.framer-wpvdnk-container > a.framer-vmrH1.framer-yZYSQ",
+   "tag": "a",
+   "property": "box-shadow",
+   "samples": [
+    [
+     0,
+     "0px 4px 0px 0px var(--token-1d403a9e-a47a-49fa-b259-3726165583a7,",
+     0
+    ],
+    [
+     8601,
+     "0px 4px 0px 0px var(--token-1d403a9e-a47a-49fa-b259-3726165583a7, rgb(73, 126, 100))",
+     0
+    ],
+    [
+     8656,
+     "0px 4.10988px 0px 0px var(--token-1d403a9e-a47a-49fa-b259-3726165583a7, rgb(73, 126, 100))",
+     0
+    ],
+    [
+     8692,
+     "0px 4.31045px 0px 0px var(--token-1d403a9e-a47a-49fa-b259-3726165583a7, rgb(73, 126, 100))",
+     0
+    ],
+    [
+     8741,
+     "0px 4.3537px 0px 0px var(--token-1d403a9e-a47a-49fa-b259-3726165583a7, rgb(73, 126, 100))",
+     0
+    ],
+    [
+     8803,
+     "0px 4.33776px 0px 0px var(--token-1d403a9e-a47a-49fa-b259-3726165583a7, rgb(73, 126, 100))",
+     0
+    ],
+    [
+     8879,
+     "0px 4.26706px 0px 0px var(--token-1d403a9e-a47a-49fa-b259-3726165583a7, rgb(73, 126, 100))",
+     0
+    ],
+    [
+     8982,
+     "0px 4.11252px 0px 0px var(--token-1d403a9e-a47a-49fa-b259-3726165583a7, rgb(73, 126, 100))",
+     0
+    ],
+    [
+     9075,
+     "0px 4.02314px 0px 0px var(--token-1d403a9e-a47a-49fa-b259-3726165583a7, rgb(73, 126, 100))",
+     10349
+    ],
+    [
+     9181,
+     "0px 4px 0px 0px var(--token-1d403a9e-a47a-49fa-b259-3726165583a7, rgb(73, 126, 100))",
+     10349
+    ],
+    [
+     9181,
+     "0px 4px 0px 0px var(--token-1d403a9e-a47a-49fa-b259-3726165583a7,",
+     10349
+    ]
+   ],
+   "changes": 11,
+   "startMs": 3043,
+   "durationMs": 9181,
+   "trigger": "load",
+   "section": 0
+  },
+  {
+   "path": "div.framer-j9451v-container > div.ssr-variant.hidden-18afziw > a.framer-5ZKE1.framer-ingnX > div.framer-140za1a:nth-of-type(2) > div.framer-11cpwsc",
+   "tag": "div",
+   "property": "background-color",
+   "samples": [
+    [
+     0,
+     "var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     0
+    ],
+    [
+     6146,
+     "rgb(27, 52, 40)",
+     5250
+    ],
+    [
+     6164,
+     "rgb(31, 52, 40)",
+     5250
+    ],
+    [
+     6237,
+     "rgb(32, 53, 40)",
+     5250
+    ],
+    [
+     6542,
+     "rgb(28, 52, 40)",
+     2969
+    ],
+    [
+     6571,
+     "rgb(27, 52, 40)",
+     2969
+    ],
+    [
+     6797,
+     "var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     2969
+    ]
+   ],
+   "changes": 7,
+   "startMs": 3217,
+   "durationMs": 6797,
+   "trigger": "load",
+   "section": 6
+  },
+  {
+   "path": "div.framer-1r5rn89:nth-of-type(1) > div.framer-1s4y7z3 > div.framer-1edkcy3:nth-of-type(3) > div.framer-wpvdnk-container > a.framer-vmrH1.framer-yZYSQ",
+   "tag": "a",
+   "property": "background-color",
+   "samples": [
+    [
+     0,
+     "var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     0
+    ],
+    [
+     8601,
+     "rgb(27, 52, 40)",
+     0
+    ],
+    [
+     8692,
+     "rgb(26, 51, 39)",
+     0
+    ],
+    [
+     8982,
+     "rgb(27, 52, 40)",
+     0
+    ],
+    [
+     9181,
+     "var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     10349
+    ]
+   ],
+   "changes": 5,
+   "startMs": 3043,
+   "durationMs": 9181,
+   "trigger": "load",
+   "section": 0
+  },
+  {
+   "path": "div.framer-1pwx3yz > div.framer-1ff9vru:nth-of-type(2) > div.framer-15j656b-container:nth-of-type(1) > div.ssr-variant.hidden-18afziw > a.framer-vmrH1.framer-yZYSQ",
+   "tag": "a",
+   "property": "background-color",
+   "samples": [
+    [
+     0,
+     "var(--token-9be2179a-d4c3-4b1c-a57e-66ad0ebb844d, rgb(232, 114, 44))",
+     0
+    ],
+    [
+     5815,
+     "rgb(232, 114, 44)",
+     0
+    ],
+    [
+     5845,
+     "rgb(231, 113, 43)",
+     0
+    ],
+    [
+     6146,
+     "rgb(232, 114, 44)",
+     0
+    ],
+    [
+     6324,
+     "var(--token-9be2179a-d4c3-4b1c-a57e-66ad0ebb844d, rgb(232, 114, 44))",
+     5250
+    ]
+   ],
+   "changes": 5,
+   "startMs": 3057,
+   "durationMs": 6324,
+   "trigger": "load",
+   "section": 1
+  },
+  {
+   "path": "div.framer-1r5rn89:nth-of-type(1) > div.framer-1s4y7z3 > div.framer-1edkcy3:nth-of-type(3) > div.framer-wpvdnk-container > a.framer-vmrH1.framer-yZYSQ",
+   "tag": "a",
+   "property": "will-change",
+   "samples": [
+    [
+     0,
+     "auto",
+     0
+    ],
+    [
+     55,
+     "",
+     0
+    ],
+    [
+     580,
+     "auto",
+     10349
+    ],
+    [
+     580,
+     "",
+     10349
+    ]
+   ],
+   "changes": 4,
+   "startMs": 11644,
+   "durationMs": 580,
+   "trigger": "loop",
+   "section": 0
+  }
+ ],
+ "classChanges": [
+  {
+   "path": "div.framer-1pwx3yz > div.framer-1ff9vru:nth-of-type(2) > div.framer-15j656b-container:nth-of-type(1) > div.ssr-variant.hidden-18afziw > a.framer-vmrH1.framer-yZYSQ",
+   "added": [],
+   "removed": [
+    "hover"
+   ],
+   "atMs": 8897,
+   "scrollY": 0,
+   "section": 1
+  },
+  {
+   "path": "div.framer-xq4lke:nth-of-type(2) > div.ssr-variant.hidden-bcge12:nth-of-type(1) > div.framer-j9451v-container > div.ssr-variant.hidden-18afziw > a.framer-5ZKE1.framer-ingnX",
+   "added": [],
+   "removed": [
+    "hover"
+   ],
+   "atMs": 9378,
+   "scrollY": 5250,
+   "section": 6
+  },
+  {
+   "path": "div.framer-ugkfba-container > div.framer-TNrt0.framer-g0owW > div.framer-3ycjh6:nth-of-type(2) > div.framer-aw3s9p-container > a.framer-3MKD0.framer-yZYSQ",
+   "added": [],
+   "removed": [
+    "hover"
+   ],
+   "atMs": 10415,
+   "scrollY": 7919,
+   "section": 9
+  },
+  {
+   "path": "div.framer-1r5rn89:nth-of-type(1) > div.framer-1s4y7z3 > div.framer-1edkcy3:nth-of-type(3) > div.framer-wpvdnk-container > a.framer-vmrH1.framer-yZYSQ",
+   "added": [],
+   "removed": [
+    "hover"
+   ],
+   "atMs": 11730,
+   "scrollY": 0,
+   "section": 0
+  }
+ ],
+ "films": [
+  {
+   "file": "reference/motion/films/01-scripted-testimonial.jpg",
+   "kind": "scripted",
+   "label": "Looping div: 12 moving parts (transform)",
+   "section": "09-testimonial",
+   "element": "div.framer-tGarp.framer-Qa4tV:nth-of-type(2) > main.framer-1pwritj > section.framer-1qz9sya:nth-of-type(8) > div.framer-1fjdtnj > div.framer-1e9xds5",
+   "frameTimesMs": [
+    0,
+    749,
+    1501,
+    2250,
+    3000,
+    3750,
+    4501,
+    5249,
+    5999
+   ]
+  },
+  {
+   "file": "reference/motion/films/02-scripted-hero.jpg",
+   "kind": "scripted",
+   "label": "Looping div: 12 moving parts (transform, startOffset)",
+   "section": "02-hero",
+   "element": "div.framer-Kxk9R.framer-1at5jdz:nth-of-type(1) > div.framer-tGarp.framer-Qa4tV:nth-of-type(2) > main.framer-1pwritj > section.framer-horakz:nth-of-type(1) > div.framer-1z04r43:nth-of-type(2)",
+   "frameTimesMs": [
+    0,
+    749,
+    1500,
+    2250,
+    2999,
+    3750,
+    4500,
+    5251,
+    6001
+   ]
+  },
+  {
+   "file": "reference/motion/films/03-scripted-step.jpg",
+   "kind": "scripted",
+   "label": "Looping div: 8 moving parts (transform)",
+   "section": "05-step",
+   "element": "main.framer-1pwritj > section.framer-1v54aht:nth-of-type(4) > div.framer-m7x2m1 > div.framer-1288zei > div.framer-1ky5bq3:nth-of-type(1)",
+   "frameTimesMs": [
+    0,
+    751,
+    1499,
+    2251,
+    3000,
+    3750,
+    4501,
+    5251,
+    6001
+   ]
+  }
+ ],
+ "states": [
+  {
+   "file": "reference/components/01-nav-link.jpg",
+   "kind": "nav-link",
+   "label": "nav-link a.framer-text.framer-styles-preset-eke6e",
+   "section": "01-nav"
+  },
+  {
+   "file": "reference/components/02-nav-link.jpg",
+   "kind": "nav-link",
+   "label": "nav-link a.framer-text.framer-styles-preset-eke6e",
+   "section": "01-nav"
+  },
+  {
+   "file": "reference/components/03-button.jpg",
+   "kind": "button",
+   "label": "button a.framer-vmrH1.framer-yZYSQ",
+   "section": "01-nav"
+  },
+  {
+   "file": "reference/components/04-button.jpg",
+   "kind": "button",
+   "label": "button a.framer-vmrH1.framer-yZYSQ",
+   "section": "02-hero"
+  },
+  {
+   "file": "reference/components/05-card.jpg",
+   "kind": "card",
+   "label": "card a.framer-nX3Fq.framer-ingnX",
+   "section": "03-program"
+  },
+  {
+   "file": "reference/components/06-card.jpg",
+   "kind": "card",
+   "label": "card a.framer-nX3Fq.framer-ingnX",
+   "section": "03-program"
+  }
+ ],
+ "lottie": []
+}

@@ -7,3 +7,4 @@
 | [ADR-003](./003-backend-nestjs-and-worker.md) | Backend Architecture: NestJS API & BullMQ Worker | **Confirmed** | 2026-10-28 |
 | [ADR-004](./004-database-postgresql-pgvector.md) | Data Store: PostgreSQL, Prisma ORM 7.x, and pgvector | **Confirmed** | 2026-10-28 |
 | [ADR-005](./005-provisional-storage-and-ai.md) | Provisional Choices: Cloudinary Storage & Gemini AI | **Provisional** | 2026-10-28 |
+| [ADR-006](./006-authentication-and-session-strategy.md) | Authentication & Session Strategy: NestJS Passport & Token Rotation | **Confirmed** | 2026-10-29 |

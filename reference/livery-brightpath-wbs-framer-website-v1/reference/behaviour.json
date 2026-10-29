@@ -1,0 +1,3994 @@
+{
+ "url": "https://brightpath-wbs.framer.website/",
+ "idle": [
+  {
+   "path": "div.ssr-variant.hidden-bcge12 > div > svg > text:nth-of-type(2) > textpath",
+   "property": "startOffset",
+   "changes": 21,
+   "from": "2524.55",
+   "to": "2517.52",
+   "settleMs": 1225,
+   "lerp": 0.093,
+   "range": 7.03
+  }
+ ],
+ "scroll": {
+  "movers": [],
+  "settleMs": null,
+  "lerp": null
+ },
+ "pointer": [],
+ "header": null,
+ "navigation": [
+  {
+   "label": "About",
+   "from": "/",
+   "to": "/about",
+   "mechanism": "pushState",
+   "durationMs": 1975,
+   "changes": [
+    {
+     "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(1) > div.framer-18tazs6-container",
+     "property": "transform",
+     "from": "rotate(2deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(2) > div.framer-1v4hp66-container",
+     "property": "transform",
+     "from": "rotate(-2deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(3) > div.framer-rbt8o-container",
+     "property": "transform",
+     "from": "rotate(2deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1fjdtnj > div.framer-1e9xds5 > div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(1) > div.framer-13p3dzp-container",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1fjdtnj > div.framer-1e9xds5 > div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(3) > div.framer-16dcfc6-container",
+     "property": "transform",
+     "from": "rotate(6deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1pwx3yz > div.framer-1gycpy5:nth-of-type(1) > div.framer-1dksp2g:nth-of-type(2) > div.framer-3me2fc:nth-of-type(5) > div.framer-1jpu99j:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-16f0o6z:nth-of-type(1) > div.ssr-variant.hidden-bcge12:nth-of-type(1) > div.framer-qdx3pg",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-5ivlul:nth-of-type(2) > div.ssr-variant > div.framer-ml63o3",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-1ez819k:nth-of-type(3) > div.ssr-variant.hidden-bcge12 > div.framer-10tciei",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "main.framer-1pwritj > section.framer-horakz:nth-of-type(1) > div.framer-1z04r43:nth-of-type(2) > div.framer-1hw68xg:nth-of-type(2) > div.framer-t7n6sr-container",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-i85edc > div.framer-t2zri2:nth-of-type(1) > div.framer-itwba7:nth-of-type(1) > div.framer-1e67fbm:nth-of-type(3) > div.framer-1ndmou2:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1tt5inq > div.framer-qp82qt:nth-of-type(2) > div.framer-bps8x7:nth-of-type(2) > div.ssr-variant.hidden-18afziw > div.framer-1rvk88l",
+     "property": "transform",
+     "from": "rotate(3deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-nj1or > div.framer-10xczcq:nth-of-type(1) > div.framer-1u7fori:nth-of-type(1) > div.framer-1sq9c4d:nth-of-type(3) > div.framer-1ay52vm:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-a7hccw > div.framer-m6jfy4 > div.framer-4th0yu:nth-of-type(1) > div.framer-7ol6en:nth-of-type(3) > div.framer-cttg6j:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-14qs9fm:nth-of-type(1) > div.framer-1mz23uj:nth-of-type(1) > div.framer-buh3zj:nth-of-type(2) > div.framer-1t7jzm2:nth-of-type(3) > div.framer-tslpdh:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-13x0nho:nth-of-type(1) > div.framer-d2lpr2:nth-of-type(1) > div.framer-sj5y41:nth-of-type(2) > div.framer-1njdg5t:nth-of-type(4) > div.framer-1y8sjv2:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1e9xds5 > div.framer-10p5lo:nth-of-type(1) > div.framer-14gtx4r > div.framer-1bsygp9:nth-of-type(3) > div.framer-b10oed:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-cdae3m > div.framer-vxgnum:nth-of-type(1) > div.framer-q0hrw2:nth-of-type(1) > div.framer-12s7x3j:nth-of-type(2) > div.framer-61ukli:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1vrwac6 > div.framer-duiqzy:nth-of-type(1) > div.framer-1bjlxcd > div.framer-1hm2wn4:nth-of-type(4) > div.framer-usmh2b:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1lo7yl2:nth-of-type(1) > div.framer-1ez819k:nth-of-type(3) > div.ssr-variant.hidden-bcge12 > div.framer-10tciei > div.framer-apqfzb.hidden-bcge12:nth-of-type(2)",
+     "property": "transform",
+     "from": "rotate(4deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(1) > div.framer-13p3dzp-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(2) > div.framer-12mf2sx-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(3) > div.framer-16dcfc6-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "section.framer-zkyT3.framer-KrJS4 > div.framer-1xa4jnn:nth-of-type(2) > div.framer-513zc8:nth-of-type(1) > div.framer-ig3iao:nth-of-type(2) > div.framer-jbbf79:nth-of-type(2)",
+     "property": "transform",
+     "from": "rotate(-40deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1voba55-container:nth-of-type(1) > div.framer-2Kaps.framer-xgT8x > div.framer-1frh9mr:nth-of-type(1) > div.framer-6qhlpq:nth-of-type(2) > div.framer-1xwpwo8:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(180deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1voba55-container:nth-of-type(1) > div.framer-2Kaps.framer-xgT8x > div.framer-1frh9mr:nth-of-type(1) > div.framer-6qhlpq:nth-of-type(2) > div.framer-bna4yy:nth-of-type(2)",
+     "property": "transform",
+     "from": "rotate(90deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1m4mmul > div.framer-ixplj4:nth-of-type(1) > div.framer-1cfgdco:nth-of-type(2) > div.framer-a9gfjg:nth-of-type(4) > div.framer-n3foqy:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "none",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1r5rn89:nth-of-type(1) > div.framer-1s4y7z3 > div.framer-82g7t8:nth-of-type(1) > div.framer-33h2jm-container > a.framer-T03Q1.framer-19lng7z",
+     "property": "data-framer-page-link-current",
+     "from": "",
+     "to": "",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1s4y7z3 > div.framer-mtbx3v:nth-of-type(2) > div.framer-1gmb2ft:nth-of-type(1) > p.framer-text.framer-styles-preset-bzg784 > a.framer-text.framer-styles-preset-eke6e",
+     "property": "data-framer-page-link-current",
+     "from": "",
+     "to": "",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1s4y7z3 > div.framer-mtbx3v:nth-of-type(2) > div.framer-16vhzhe:nth-of-type(2) > p.framer-text.framer-styles-preset-bzg784 > a.framer-text.framer-styles-preset-eke6e",
+     "property": "data-framer-page-link-current",
+     "from": "true",
+     "to": "true",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "head > meta:nth-of-type(2)",
+     "property": "content",
+     "from": "width=device-width",
+     "to": "width=device-width",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1rjns0g > div.framer-1rrgc3w:nth-of-type(1) > div.framer-tn092d:nth-of-type(1) > div.framer-1xtooac-container:nth-of-type(1) > a.framer-T03Q1.framer-19lng7z",
+     "property": "data-framer-page-link-current",
+     "from": "",
+     "to": "",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-y5offa:nth-of-type(2) > div.framer-12ettlo:nth-of-type(1) > div.framer-1yfe4:nth-of-type(1) > p.framer-text.framer-styles-preset-7580yq > a.framer-text.framer-styles-preset-xtze3j",
+     "property": "data-framer-page-link-current",
+     "from": "",
+     "to": "",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-y5offa:nth-of-type(2) > div.framer-12ettlo:nth-of-type(1) > div.framer-x4b8h:nth-of-type(2) > p.framer-text.framer-styles-preset-7580yq > a.framer-text.framer-styles-preset-xtze3j",
+     "property": "data-framer-page-link-current",
+     "from": "true",
+     "to": "true",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1vrwac6 > div.framer-127nd8z:nth-of-type(2) > div.ssr-variant.hidden-bcge12 > div.framer-14ab6j3-container > div.ssr-variant.hidden-18afziw",
+     "property": "height",
+     "from": "585.22px",
+     "to": "",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "div.framer-ppoljm-container.hidden-d34g1y:nth-of-type(2) > div > svg > text:nth-of-type(2) > textpath",
+     "property": "startOffset",
+     "from": "0",
+     "to": "2531.94",
+     "atMs": 833,
+     "count": 7
+    },
+    {
+     "path": "head > meta:nth-of-type(16)",
+     "property": "content",
+     "from": "max-image-preview:large",
+     "to": "max-image-preview:large",
+     "atMs": 833,
+     "count": 1
+    },
+    {
+     "path": "main.framer-492ptd > section.framer-1imgzda:nth-of-type(1) > div.framer-1tj0mv0:nth-of-type(1) > div.framer-1heq79x > div.framer-10w0dc5:nth-of-type(1)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "none",
+     "atMs": 854,
+     "count": 5
+    },
+    {
+     "path": "main.framer-492ptd > section.framer-1imgzda:nth-of-type(1) > div.framer-1tj0mv0:nth-of-type(1) > div.framer-1heq79x > div.framer-1uab6yr:nth-of-type(2)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "none",
+     "atMs": 854,
+     "count": 6
+    },
+    {
+     "path": "main.framer-492ptd > section.framer-scq1s3:nth-of-type(2) > div.framer-1fqcske > div.framer-yookyw > div.framer-1508lk7-container:nth-of-type(1)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "translateY(30px)",
+     "atMs": 854,
+     "count": 2
+    }
+   ],
+   "animations": [
+    {
+     "path": "div.framer-mtbx3v > div.framer-16vhzhe > p.framer-text.framer-styles-preset-bzg784 > a.framer-text.framer-styles-preset-eke6e",
+     "kind": "transition",
+     "name": "color",
+     "property": "color",
+     "durationMs": 400,
+     "delayMs": 0,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":0,\"easing\":\"linear\",\"color\":\"rgb(20, 38, 29)\"},{\"offset\":1,\"easing\":\"linear\",\"color\":\"rgb(232, 114, 44)\"}]",
+     "infinite": false,
+     "startedAt": 22
+    },
+    {
+     "path": "div.framer-mtbx3v > div.framer-16vhzhe > p.framer-text.framer-styles-preset-bzg784 > a.framer-text.framer-styles-preset-eke6e",
+     "kind": "transition",
+     "name": "text-decoration-color",
+     "property": "textDecorationColor",
+     "durationMs": 400,
+     "delayMs": 0,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":0,\"easing\":\"linear\",\"textDecorationColor\":\"rgba(0, 0, 0, 0)\"},{\"offset\":1,\"easing\":\"linear\",\"textDecorationColor\":\"rgb(232, 114, 44)\"}]",
+     "infinite": false,
+     "startedAt": 22
+    },
+    {
+     "path": "div.framer-mtbx3v > div.framer-1gmb2ft > p.framer-text.framer-styles-preset-bzg784 > a.framer-text.framer-styles-preset-eke6e",
+     "kind": "transition",
+     "name": "color",
+     "property": "color",
+     "durationMs": 400,
+     "delayMs": 0,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":0,\"easing\":\"linear\",\"color\":\"rgb(232, 114, 44)\"},{\"offset\":1,\"easing\":\"linear\",\"color\":\"rgb(20, 38, 29)\"}]",
+     "infinite": false,
+     "startedAt": 900
+    },
+    {
+     "path": "div.framer-mtbx3v > div.framer-1gmb2ft > p.framer-text.framer-styles-preset-bzg784 > a.framer-text.framer-styles-preset-eke6e",
+     "kind": "transition",
+     "name": "text-decoration-color",
+     "property": "textDecorationColor",
+     "durationMs": 400,
+     "delayMs": 0,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":0,\"easing\":\"linear\",\"textDecorationColor\":\"rgb(232, 114, 44)\"},{\"offset\":1,\"easing\":\"linear\",\"textDecorationColor\":\"rgba(0, 0, 0, 0)\"}]",
+     "infinite": false,
+     "startedAt": 900
+    },
+    {
+     "path": "div.framer-12ettlo > div.framer-1yfe4 > p.framer-text.framer-styles-preset-7580yq > a.framer-text.framer-styles-preset-xtze3j",
+     "kind": "transition",
+     "name": "color",
+     "property": "color",
+     "durationMs": 400,
+     "delayMs": 0,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":0,\"easing\":\"linear\",\"color\":\"rgb(232, 114, 44)\"},{\"offset\":1,\"easing\":\"linear\",\"color\":\"rgb(244, 240, 229)\"}]",
+     "infinite": false,
+     "startedAt": 900
+    },
+    {
+     "path": "div.framer-12ettlo > div.framer-x4b8h > p.framer-text.framer-styles-preset-7580yq > a.framer-text.framer-styles-preset-xtze3j",
+     "kind": "transition",
+     "name": "color",
+     "property": "color",
+     "durationMs": 400,
+     "delayMs": 0,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":0,\"easing\":\"linear\",\"color\":\"rgb(244, 240, 229)\"},{\"offset\":1,\"easing\":\"linear\",\"color\":\"rgb(232, 114, 44)\"}]",
+     "infinite": false,
+     "startedAt": 900
+    },
+    {
+     "path": "div.framer-1tj0mv0 > div.framer-1heq79x > div.framer-10w0dc5 > div.framer-18nkot",
+     "kind": "script",
+     "name": "",
+     "property": "opacity",
+     "durationMs": 400,
+     "delayMs": 200,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"0.001\"},{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"1\"}]",
+     "infinite": false,
+     "startedAt": 1180
+    },
+    {
+     "path": "div.framer-1tj0mv0 > div.framer-1heq79x > div.framer-10w0dc5 > div.framer-19aidst",
+     "kind": "script",
+     "name": "",
+     "property": "opacity",
+     "durationMs": 400,
+     "delayMs": 350,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"0.001\"},{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"1\"}]",
+     "infinite": false,
+     "startedAt": 1330
+    },
+    {
+     "path": "section.framer-1imgzda > div.framer-1tj0mv0 > div.framer-1heq79x > div.framer-10w0dc5",
+     "kind": "script",
+     "name": "",
+     "property": "opacity",
+     "durationMs": 400,
+     "delayMs": 200,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"0.001\"},{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"1\"}]",
+     "infinite": false,
+     "startedAt": 1180
+    },
+    {
+     "path": "section.framer-1imgzda > div.framer-1tj0mv0 > div.framer-1heq79x > div.framer-1uab6yr",
+     "kind": "script",
+     "name": "",
+     "property": "opacity",
+     "durationMs": 400,
+     "delayMs": 400,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"0.001\"},{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"1\"}]",
+     "infinite": false,
+     "startedAt": 1380
+    },
+    {
+     "path": "div.framer-mSQ22.framer-Qa4tV > main.framer-492ptd > section.framer-1imgzda > div.framer-ppoljm-container.hidden-d34g1y",
+     "kind": "script",
+     "name": "",
+     "property": "opacity",
+     "durationMs": 400,
+     "delayMs": 400,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"0.001\"},{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"1\"}]",
+     "infinite": false,
+     "startedAt": 1380
+    }
+   ],
+   "film": {
+    "frames": [
+     0,
+     310,
+     808
+    ]
+   }
+  },
+  {
+   "label": "Program",
+   "from": "/about",
+   "to": "/program",
+   "mechanism": "pushState",
+   "durationMs": 1692,
+   "changes": [
+    {
+     "path": "div.framer-ppoljm-container.hidden-d34g1y:nth-of-type(2) > div > svg > text:nth-of-type(2) > textpath",
+     "property": "startOffset",
+     "from": "2525.96",
+     "to": "2524.91",
+     "atMs": 31,
+     "count": 4
+    },
+    {
+     "path": "main.framer-492ptd > section.framer-1jx7tdf:nth-of-type(3) > div.framer-23yp > div.framer-1mu7d2f:nth-of-type(2) > div.framer-p0exyh-container:nth-of-type(1)",
+     "property": "transform",
+     "from": "translateY(30px) rotate(-6deg)",
+     "to": "translateY(30px)",
+     "atMs": 465,
+     "count": 1
+    },
+    {
+     "path": "main.framer-492ptd > section.framer-1jx7tdf:nth-of-type(3) > div.framer-23yp > div.framer-1mu7d2f:nth-of-type(2) > div.framer-ogfy18-container:nth-of-type(3)",
+     "property": "transform",
+     "from": "translateY(30px) rotate(6deg)",
+     "to": "translateY(30px)",
+     "atMs": 465,
+     "count": 1
+    },
+    {
+     "path": "section.framer-1jx7tdf:nth-of-type(3) > div.framer-23yp > div.framer-j1o6sy:nth-of-type(1) > div.framer-48wyyh:nth-of-type(3) > div.framer-13hu69z:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "none",
+     "atMs": 465,
+     "count": 1
+    },
+    {
+     "path": "div.framer-83t744:nth-of-type(1) > div.framer-1uocsi3:nth-of-type(1) > div.framer-302c1b:nth-of-type(2) > div.framer-gfd225:nth-of-type(4) > div.framer-kkp75x:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "none",
+     "atMs": 465,
+     "count": 1
+    },
+    {
+     "path": "div.framer-s1l5jc > div.framer-1i4nrva > div.framer-dg7rtb:nth-of-type(1) > div.framer-jyx90g:nth-of-type(3) > div.framer-d3qhkk:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "none",
+     "atMs": 465,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1a3imkb > div.framer-12o96rm > div.framer-swg57y:nth-of-type(1) > div.framer-19pgfca:nth-of-type(3) > div.framer-1eql6mx:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "none",
+     "atMs": 465,
+     "count": 1
+    },
+    {
+     "path": "div.framer-10w0dc5:nth-of-type(1) > div.framer-18nkot:nth-of-type(1) > div.framer-rch2s2:nth-of-type(2) > div.framer-1urc8ri:nth-of-type(6) > div.framer-lfyd5:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "none",
+     "atMs": 465,
+     "count": 1
+    },
+    {
+     "path": "div.framer-v8ybv9 > div.framer-1jp107b:nth-of-type(1) > div.framer-14jffb6:nth-of-type(2) > div.framer-1901v0o:nth-of-type(5) > div.framer-61dcxc:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "none",
+     "atMs": 465,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1s4y7z3 > div.framer-mtbx3v:nth-of-type(2) > div.framer-16vhzhe:nth-of-type(2) > p.framer-text.framer-styles-preset-bzg784 > a.framer-text.framer-styles-preset-eke6e",
+     "property": "data-framer-page-link-current",
+     "from": "",
+     "to": "",
+     "atMs": 465,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1s4y7z3 > div.framer-mtbx3v:nth-of-type(2) > div.framer-r7lwo6:nth-of-type(3) > p.framer-text.framer-styles-preset-bzg784 > a.framer-text.framer-styles-preset-eke6e",
+     "property": "data-framer-page-link-current",
+     "from": "true",
+     "to": "true",
+     "atMs": 465,
+     "count": 1
+    },
+    {
+     "path": "head > meta:nth-of-type(2)",
+     "property": "content",
+     "from": "width=device-width",
+     "to": "width=device-width",
+     "atMs": 465,
+     "count": 1
+    },
+    {
+     "path": "div.framer-y5offa:nth-of-type(2) > div.framer-12ettlo:nth-of-type(1) > div.framer-x4b8h:nth-of-type(2) > p.framer-text.framer-styles-preset-7580yq > a.framer-text.framer-styles-preset-xtze3j",
+     "property": "data-framer-page-link-current",
+     "from": "",
+     "to": "",
+     "atMs": 465,
+     "count": 1
+    },
+    {
+     "path": "div.framer-y5offa:nth-of-type(2) > div.framer-12ettlo:nth-of-type(1) > div.framer-ww2634:nth-of-type(3) > p.framer-text.framer-styles-preset-7580yq > a.framer-text.framer-styles-preset-xtze3j",
+     "property": "data-framer-page-link-current",
+     "from": "true",
+     "to": "true",
+     "atMs": 465,
+     "count": 1
+    },
+    {
+     "path": "head > meta:nth-of-type(16)",
+     "property": "content",
+     "from": "max-image-preview:large",
+     "to": "max-image-preview:large",
+     "atMs": 465,
+     "count": 1
+    },
+    {
+     "path": "section.framer-17snapa > div.framer-7aiddv > div.framer-umsn1w > div.framer-rd32wh:nth-of-type(1) > div.framer-138rhtp:nth-of-type(1)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "none",
+     "atMs": 481,
+     "count": 4
+    },
+    {
+     "path": "div.framer-7aiddv > div.framer-umsn1w > div.framer-m1sme0:nth-of-type(2) > div.framer-1fzw7jo > div.framer-blh4nb:nth-of-type(1)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "none",
+     "atMs": 481,
+     "count": 18
+    },
+    {
+     "path": "div.framer-7aiddv > div.framer-umsn1w > div.framer-m1sme0:nth-of-type(2) > div.framer-1fzw7jo > div.framer-blh4nb:nth-of-type(2)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "none",
+     "atMs": 481,
+     "count": 21
+    },
+    {
+     "path": "div.framer-7aiddv > div.framer-umsn1w > div.framer-m1sme0:nth-of-type(2) > div.framer-1fzw7jo > div.framer-blh4nb:nth-of-type(3)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "none",
+     "atMs": 481,
+     "count": 21
+    },
+    {
+     "path": "div.framer-7aiddv > div.framer-umsn1w > div.framer-m1sme0:nth-of-type(2) > div.framer-1fzw7jo > div.framer-blh4nb:nth-of-type(4)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "none",
+     "atMs": 481,
+     "count": 22
+    },
+    {
+     "path": "div.framer-79hu38-container > section.framer-kfGgV.framer-KrJS4 > div.framer-g8gsp1:nth-of-type(1) > div.framer-8rh265 > div.framer-1uc7ule:nth-of-type(2)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "translateY(30px)",
+     "atMs": 481,
+     "count": 2
+    },
+    {
+     "path": "section.framer-kfGgV.framer-KrJS4 > div.framer-g8gsp1:nth-of-type(1) > div.framer-8rh265 > div.framer-18d5zt6:nth-of-type(1) > div.framer-glw0ry:nth-of-type(2)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "translateY(30px)",
+     "atMs": 481,
+     "count": 2
+    },
+    {
+     "path": "div.framer-g8gsp1:nth-of-type(1) > div.framer-8rh265 > div.framer-18d5zt6:nth-of-type(1) > div.framer-1maj4ac:nth-of-type(1) > div.framer-2jn6wu-container:nth-of-type(1)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "translateY(30px)",
+     "atMs": 481,
+     "count": 2
+    },
+    {
+     "path": "div.framer-g8gsp1:nth-of-type(1) > div.framer-8rh265 > div.framer-18d5zt6:nth-of-type(1) > div.framer-1maj4ac:nth-of-type(1) > div.framer-epwxiy:nth-of-type(2)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "translateY(30px)",
+     "atMs": 481,
+     "count": 2
+    },
+    {
+     "path": "div.framer-18d5zt6:nth-of-type(1) > div.framer-1maj4ac:nth-of-type(1) > div.framer-epwxiy:nth-of-type(2) > div.framer-oei5cq:nth-of-type(5) > div.framer-1u0hnko:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 481,
+     "count": 2
+    },
+    {
+     "path": "div.framer-Kxk9R.framer-1at5jdz:nth-of-type(1) > div.framer-1rs71ji-container:nth-of-type(6) > a.framer-fxasn.framer-1yv5043 > div.framer-108wwvz:nth-of-type(1) > div.framer-etuony:nth-of-type(2)",
+     "property": "transform",
+     "from": "translateX(-50%) scale(1.2, 1.2)",
+     "to": "translateX(-50%) scale(1.2, 1.2)",
+     "atMs": 481,
+     "count": 4
+    },
+    {
+     "path": "div.framer-138rhtp:nth-of-type(1) > div.framer-1sd3lph-container:nth-of-type(1) > div.framer-gEQe4.framer-YAjoW > div.framer-dz3s5m:nth-of-type(1) > div.framer-191arh4",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 481,
+     "count": 1
+    },
+    {
+     "path": "div.framer-rd32wh:nth-of-type(1) > div.framer-138rhtp:nth-of-type(1) > div.framer-1sd3lph-container:nth-of-type(1) > div.framer-gEQe4.framer-YAjoW > div.framer-dz3s5m:nth-of-type(1)",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 481,
+     "count": 1
+    },
+    {
+     "path": "div.framer-rd32wh:nth-of-type(1) > div.framer-138rhtp:nth-of-type(1) > div.framer-1sd3lph-container:nth-of-type(1) > div.framer-gEQe4.framer-YAjoW > div.framer-1h7o27l:nth-of-type(2)",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 481,
+     "count": 1
+    },
+    {
+     "path": "div.framer-umsn1w > div.framer-rd32wh:nth-of-type(1) > div.framer-138rhtp:nth-of-type(1) > div.framer-1sd3lph-container:nth-of-type(1) > div.framer-gEQe4.framer-YAjoW",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 481,
+     "count": 1
+    },
+    {
+     "path": "section.framer-17snapa > div.framer-7aiddv > div.framer-umsn1w > div.framer-rd32wh:nth-of-type(1) > div.framer-1d72dob:nth-of-type(2)",
+     "property": "will-change",
+     "from": "",
+     "to": "transform",
+     "atMs": 481,
+     "count": 1
+    },
+    {
+     "path": "a.framer-nX3Fq.framer-ingnX > div.framer-hglix9:nth-of-type(1) > div.framer-rafrtj:nth-of-type(1) > div.framer-7mpllf > div.framer-27chuu",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 481,
+     "count": 4
+    },
+    {
+     "path": "div.framer-hilbap-container > a.framer-nX3Fq.framer-ingnX > div.framer-hglix9:nth-of-type(1) > div.framer-rafrtj:nth-of-type(1) > div.framer-7mpllf",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 481,
+     "count": 4
+    },
+    {
+     "path": "div.framer-blh4nb:nth-of-type(1) > div.framer-hilbap-container > a.framer-nX3Fq.framer-ingnX > div.framer-hglix9:nth-of-type(1) > div.framer-rafrtj:nth-of-type(1)",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 481,
+     "count": 1
+    },
+    {
+     "path": "div.framer-hilbap-container > a.framer-nX3Fq.framer-ingnX > div.framer-hglix9:nth-of-type(1) > div.framer-3ufrqc:nth-of-type(2) > div.framer-18ng2a2:nth-of-type(1)",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 481,
+     "count": 4
+    },
+    {
+     "path": "div.framer-hilbap-container > a.framer-nX3Fq.framer-ingnX > div.framer-hglix9:nth-of-type(1) > div.framer-3ufrqc:nth-of-type(2) > div.framer-dj7om4:nth-of-type(2)",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 481,
+     "count": 4
+    },
+    {
+     "path": "div.framer-blh4nb:nth-of-type(1) > div.framer-hilbap-container > a.framer-nX3Fq.framer-ingnX > div.framer-hglix9:nth-of-type(1) > div.framer-3ufrqc:nth-of-type(2)",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 481,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1fzw7jo > div.framer-blh4nb:nth-of-type(1) > div.framer-hilbap-container > a.framer-nX3Fq.framer-ingnX > div.framer-hglix9:nth-of-type(1)",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 481,
+     "count": 1
+    },
+    {
+     "path": "div.framer-blh4nb:nth-of-type(1) > div.framer-hilbap-container > a.framer-nX3Fq.framer-ingnX > div.framer-1cfkl1n:nth-of-type(2) > div.framer-1ljowsp",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 481,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1fzw7jo > div.framer-blh4nb:nth-of-type(1) > div.framer-hilbap-container > a.framer-nX3Fq.framer-ingnX > div.framer-1cfkl1n:nth-of-type(2)",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 481,
+     "count": 1
+    }
+   ],
+   "animations": [
+    {
+     "path": "div.framer-mtbx3v > div.framer-r7lwo6 > p.framer-text.framer-styles-preset-bzg784 > a.framer-text.framer-styles-preset-eke6e",
+     "kind": "transition",
+     "name": "color",
+     "property": "color",
+     "durationMs": 400,
+     "delayMs": 0,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":0,\"easing\":\"linear\",\"color\":\"rgb(20, 38, 29)\"},{\"offset\":1,\"easing\":\"linear\",\"color\":\"rgb(232, 114, 44)\"}]",
+     "infinite": false,
+     "startedAt": 28
+    },
+    {
+     "path": "div.framer-mtbx3v > div.framer-r7lwo6 > p.framer-text.framer-styles-preset-bzg784 > a.framer-text.framer-styles-preset-eke6e",
+     "kind": "transition",
+     "name": "text-decoration-color",
+     "property": "textDecorationColor",
+     "durationMs": 400,
+     "delayMs": 0,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":0,\"easing\":\"linear\",\"textDecorationColor\":\"rgba(0, 0, 0, 0)\"},{\"offset\":1,\"easing\":\"linear\",\"textDecorationColor\":\"rgb(232, 114, 44)\"}]",
+     "infinite": false,
+     "startedAt": 28
+    },
+    {
+     "path": "div.framer-mtbx3v > div.framer-16vhzhe > p.framer-text.framer-styles-preset-bzg784 > a.framer-text.framer-styles-preset-eke6e",
+     "kind": "transition",
+     "name": "color",
+     "property": "color",
+     "durationMs": 400,
+     "delayMs": 0,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":0,\"easing\":\"linear\",\"color\":\"rgb(232, 114, 44)\"},{\"offset\":1,\"easing\":\"linear\",\"color\":\"rgb(20, 38, 29)\"}]",
+     "infinite": false,
+     "startedAt": 507
+    },
+    {
+     "path": "div.framer-mtbx3v > div.framer-16vhzhe > p.framer-text.framer-styles-preset-bzg784 > a.framer-text.framer-styles-preset-eke6e",
+     "kind": "transition",
+     "name": "text-decoration-color",
+     "property": "textDecorationColor",
+     "durationMs": 400,
+     "delayMs": 0,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":0,\"easing\":\"linear\",\"textDecorationColor\":\"rgb(232, 114, 44)\"},{\"offset\":1,\"easing\":\"linear\",\"textDecorationColor\":\"rgba(0, 0, 0, 0)\"}]",
+     "infinite": false,
+     "startedAt": 507
+    },
+    {
+     "path": "div.framer-12ettlo > div.framer-x4b8h > p.framer-text.framer-styles-preset-7580yq > a.framer-text.framer-styles-preset-xtze3j",
+     "kind": "transition",
+     "name": "color",
+     "property": "color",
+     "durationMs": 400,
+     "delayMs": 0,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":0,\"easing\":\"linear\",\"color\":\"rgb(232, 114, 44)\"},{\"offset\":1,\"easing\":\"linear\",\"color\":\"rgb(244, 240, 229)\"}]",
+     "infinite": false,
+     "startedAt": 507
+    },
+    {
+     "path": "div.framer-12ettlo > div.framer-ww2634 > p.framer-text.framer-styles-preset-7580yq > a.framer-text.framer-styles-preset-xtze3j",
+     "kind": "transition",
+     "name": "color",
+     "property": "color",
+     "durationMs": 400,
+     "delayMs": 0,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":0,\"easing\":\"linear\",\"color\":\"rgb(244, 240, 229)\"},{\"offset\":1,\"easing\":\"linear\",\"color\":\"rgb(232, 114, 44)\"}]",
+     "infinite": false,
+     "startedAt": 507
+    },
+    {
+     "path": "div.framer-7aiddv > div.framer-umsn1w > div.framer-rd32wh > div.framer-138rhtp",
+     "kind": "script",
+     "name": "",
+     "property": "opacity",
+     "durationMs": 400,
+     "delayMs": 200,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"0.001\"},{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"1\"}]",
+     "infinite": false,
+     "startedAt": 786
+    },
+    {
+     "path": "div.framer-7aiddv > div.framer-umsn1w > div.framer-rd32wh > div.framer-1d72dob",
+     "kind": "script",
+     "name": "",
+     "property": "opacity",
+     "durationMs": 400,
+     "delayMs": 350,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"0.001\"},{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"1\"}]",
+     "infinite": false,
+     "startedAt": 936
+    },
+    {
+     "path": "div.framer-umsn1w > div.framer-m1sme0 > div.framer-1fzw7jo > div.framer-blh4nb",
+     "kind": "script",
+     "name": "",
+     "property": "opacity",
+     "durationMs": 400,
+     "delayMs": 500,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"0.001\"},{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"1\"}]",
+     "infinite": false,
+     "startedAt": 1086
+    },
+    {
+     "path": "div.framer-umsn1w > div.framer-m1sme0 > div.framer-1fzw7jo > div.framer-blh4nb",
+     "kind": "script",
+     "name": "",
+     "property": "opacity",
+     "durationMs": 400,
+     "delayMs": 600,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"0.001\"},{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"1\"}]",
+     "infinite": false,
+     "startedAt": 1186
+    },
+    {
+     "path": "div.framer-umsn1w > div.framer-m1sme0 > div.framer-1fzw7jo > div.framer-blh4nb",
+     "kind": "script",
+     "name": "",
+     "property": "opacity",
+     "durationMs": 400,
+     "delayMs": 700,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"0.001\"},{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"1\"}]",
+     "infinite": false,
+     "startedAt": 1286
+    },
+    {
+     "path": "div.framer-umsn1w > div.framer-m1sme0 > div.framer-1fzw7jo > div.framer-blh4nb",
+     "kind": "script",
+     "name": "",
+     "property": "opacity",
+     "durationMs": 400,
+     "delayMs": 800,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"0.001\"},{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"1\"}]",
+     "infinite": false,
+     "startedAt": 1386
+    }
+   ],
+   "film": {
+    "frames": [
+     0,
+     449,
+     1075,
+     1211
+    ]
+   }
+  },
+  {
+   "label": "Mentor",
+   "from": "/program",
+   "to": "/mentor",
+   "mechanism": "pushState",
+   "durationMs": 1128,
+   "changes": [
+    {
+     "path": "div.framer-rd32wh:nth-of-type(1) > div.framer-138rhtp:nth-of-type(1) > div.framer-3y3hmx:nth-of-type(2) > div.framer-la2tps:nth-of-type(5) > div.framer-15sxjn5:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "none",
+     "atMs": 327,
+     "count": 1
+    },
+    {
+     "path": "div.framer-18d5zt6:nth-of-type(1) > div.framer-1maj4ac:nth-of-type(1) > div.framer-epwxiy:nth-of-type(2) > div.framer-oei5cq:nth-of-type(5) > div.framer-1u0hnko:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "none",
+     "atMs": 327,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1s4y7z3 > div.framer-mtbx3v:nth-of-type(2) > div.framer-r7lwo6:nth-of-type(3) > p.framer-text.framer-styles-preset-bzg784 > a.framer-text.framer-styles-preset-eke6e",
+     "property": "data-framer-page-link-current",
+     "from": "",
+     "to": "",
+     "atMs": 327,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1s4y7z3 > div.framer-mtbx3v:nth-of-type(2) > div.framer-4zh0jl:nth-of-type(4) > p.framer-text.framer-styles-preset-bzg784 > a.framer-text.framer-styles-preset-eke6e",
+     "property": "data-framer-page-link-current",
+     "from": "true",
+     "to": "true",
+     "atMs": 327,
+     "count": 1
+    },
+    {
+     "path": "head > meta:nth-of-type(2)",
+     "property": "content",
+     "from": "width=device-width",
+     "to": "width=device-width",
+     "atMs": 327,
+     "count": 1
+    },
+    {
+     "path": "div.framer-y5offa:nth-of-type(2) > div.framer-12ettlo:nth-of-type(1) > div.framer-ww2634:nth-of-type(3) > p.framer-text.framer-styles-preset-7580yq > a.framer-text.framer-styles-preset-xtze3j",
+     "property": "data-framer-page-link-current",
+     "from": "",
+     "to": "",
+     "atMs": 327,
+     "count": 1
+    },
+    {
+     "path": "div.framer-y5offa:nth-of-type(2) > div.framer-12ettlo:nth-of-type(1) > div.framer-19am20h:nth-of-type(4) > p.framer-text.framer-styles-preset-7580yq > a.framer-text.framer-styles-preset-xtze3j",
+     "property": "data-framer-page-link-current",
+     "from": "true",
+     "to": "true",
+     "atMs": 327,
+     "count": 1
+    },
+    {
+     "path": "head > meta:nth-of-type(16)",
+     "property": "content",
+     "from": "max-image-preview:large",
+     "to": "max-image-preview:large",
+     "atMs": 327,
+     "count": 1
+    },
+    {
+     "path": "main.framer-auoxfv > section.framer-7rxg2t:nth-of-type(1) > div.framer-n9x8i4 > div.framer-1x3d2x5 > div.framer-xfbb6q:nth-of-type(1)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "none",
+     "atMs": 334,
+     "count": 11
+    },
+    {
+     "path": "section.framer-15965p3:nth-of-type(2) > div.framer-y7tbpv > div.framer-putvph > div.framer-mb8igo > div.framer-u02ja0:nth-of-type(1)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "none",
+     "atMs": 334,
+     "count": 11
+    },
+    {
+     "path": "section.framer-15965p3:nth-of-type(2) > div.framer-y7tbpv > div.framer-putvph > div.framer-mb8igo > div.framer-u02ja0:nth-of-type(2)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "none",
+     "atMs": 334,
+     "count": 12
+    },
+    {
+     "path": "section.framer-15965p3:nth-of-type(2) > div.framer-y7tbpv > div.framer-putvph > div.framer-mb8igo > div.framer-u02ja0:nth-of-type(3)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "translateY(30px)",
+     "atMs": 334,
+     "count": 2
+    },
+    {
+     "path": "section.framer-15965p3:nth-of-type(2) > div.framer-y7tbpv > div.framer-putvph > div.framer-mb8igo > div.framer-u02ja0:nth-of-type(4)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "translateY(30px)",
+     "atMs": 334,
+     "count": 2
+    },
+    {
+     "path": "section.framer-15965p3:nth-of-type(2) > div.framer-y7tbpv > div.framer-putvph > div.framer-mb8igo > div.framer-19js942:nth-of-type(5)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "translateY(30px)",
+     "atMs": 334,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1xpkpt0-container > section.framer-fLY7v.framer-KrJS4 > div.framer-18nf041:nth-of-type(1) > div.framer-xy79ny > div.framer-6u7ipj:nth-of-type(2)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "translateY(30px)",
+     "atMs": 334,
+     "count": 2
+    },
+    {
+     "path": "section.framer-fLY7v.framer-KrJS4 > div.framer-18nf041:nth-of-type(1) > div.framer-xy79ny > div.framer-19o8lku:nth-of-type(1) > div.framer-vhve7i:nth-of-type(2)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "translateY(30px)",
+     "atMs": 334,
+     "count": 2
+    },
+    {
+     "path": "div.framer-18nf041:nth-of-type(1) > div.framer-xy79ny > div.framer-19o8lku:nth-of-type(1) > div.framer-1qg7ern:nth-of-type(1) > div.framer-u8h2tx-container:nth-of-type(1)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "translateY(30px)",
+     "atMs": 334,
+     "count": 2
+    },
+    {
+     "path": "div.framer-18nf041:nth-of-type(1) > div.framer-xy79ny > div.framer-19o8lku:nth-of-type(1) > div.framer-1qg7ern:nth-of-type(1) > div.framer-1xtf8ag:nth-of-type(2)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "translateY(30px)",
+     "atMs": 334,
+     "count": 2
+    },
+    {
+     "path": "div.framer-19o8lku:nth-of-type(1) > div.framer-1qg7ern:nth-of-type(1) > div.framer-1xtf8ag:nth-of-type(2) > div.framer-1b2evln:nth-of-type(4) > div.framer-8uvcru:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 334,
+     "count": 2
+    },
+    {
+     "path": "div.framer-Kxk9R.framer-1at5jdz:nth-of-type(1) > div.framer-1rs71ji-container:nth-of-type(6) > a.framer-fxasn.framer-1yv5043 > div.framer-108wwvz:nth-of-type(1) > div.framer-etuony:nth-of-type(2)",
+     "property": "transform",
+     "from": "translateX(-50%) scale(1.2, 1.2)",
+     "to": "translateX(-50%) scale(1.2, 1.2)",
+     "atMs": 334,
+     "count": 4
+    },
+    {
+     "path": "div.framer-xfbb6q:nth-of-type(1) > div.framer-n8dlja-container:nth-of-type(1) > div.framer-gEQe4.framer-YAjoW > div.framer-dz3s5m:nth-of-type(1) > div.framer-191arh4",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 334,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1x3d2x5 > div.framer-xfbb6q:nth-of-type(1) > div.framer-n8dlja-container:nth-of-type(1) > div.framer-gEQe4.framer-YAjoW > div.framer-dz3s5m:nth-of-type(1)",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 334,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1x3d2x5 > div.framer-xfbb6q:nth-of-type(1) > div.framer-n8dlja-container:nth-of-type(1) > div.framer-gEQe4.framer-YAjoW > div.framer-1h7o27l:nth-of-type(2)",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 334,
+     "count": 1
+    },
+    {
+     "path": "div.framer-n9x8i4 > div.framer-1x3d2x5 > div.framer-xfbb6q:nth-of-type(1) > div.framer-n8dlja-container:nth-of-type(1) > div.framer-gEQe4.framer-YAjoW",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 334,
+     "count": 1
+    },
+    {
+     "path": "main.framer-auoxfv > section.framer-7rxg2t:nth-of-type(1) > div.framer-n9x8i4 > div.framer-1x3d2x5 > div.framer-1pd9qrz:nth-of-type(2)",
+     "property": "will-change",
+     "from": "",
+     "to": "transform",
+     "atMs": 334,
+     "count": 1
+    },
+    {
+     "path": "div.framer-u02ja0:nth-of-type(1) > div.framer-wpg8pm-container > a.framer-W7S0V.framer-YAjoW > div.framer-8bkz5h:nth-of-type(1) > div.framer-1r2p27b",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 334,
+     "count": 1
+    },
+    {
+     "path": "div.framer-mb8igo > div.framer-u02ja0:nth-of-type(1) > div.framer-wpg8pm-container > a.framer-W7S0V.framer-YAjoW > div.framer-8bkz5h:nth-of-type(1)",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 334,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1j5ni4p:nth-of-type(1) > div.framer-1l2a321:nth-of-type(1) > div.framer-1whpxx9:nth-of-type(1) > div.framer-aww3vz:nth-of-type(1) > div.framer-1137tlv",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 334,
+     "count": 1
+    },
+    {
+     "path": "div.framer-8gtirr:nth-of-type(2) > div.framer-1j5ni4p:nth-of-type(1) > div.framer-1l2a321:nth-of-type(1) > div.framer-1whpxx9:nth-of-type(1) > div.framer-aww3vz:nth-of-type(1)",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 334,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1j5ni4p:nth-of-type(1) > div.framer-1l2a321:nth-of-type(1) > div.framer-1whpxx9:nth-of-type(1) > div.framer-z4xezn:nth-of-type(2) > div.framer-4pxy5z:nth-of-type(1)",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 334,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1j5ni4p:nth-of-type(1) > div.framer-1l2a321:nth-of-type(1) > div.framer-1whpxx9:nth-of-type(1) > div.framer-z4xezn:nth-of-type(2) > div.framer-mw2ycz:nth-of-type(2)",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 334,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1j5ni4p:nth-of-type(1) > div.framer-1l2a321:nth-of-type(1) > div.framer-1whpxx9:nth-of-type(1) > div.framer-z4xezn:nth-of-type(2) > div.framer-1kmq6sd:nth-of-type(3)",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 334,
+     "count": 1
+    },
+    {
+     "path": "div.framer-8gtirr:nth-of-type(2) > div.framer-1j5ni4p:nth-of-type(1) > div.framer-1l2a321:nth-of-type(1) > div.framer-1whpxx9:nth-of-type(1) > div.framer-z4xezn:nth-of-type(2)",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 334,
+     "count": 1
+    },
+    {
+     "path": "a.framer-W7S0V.framer-YAjoW > div.framer-8gtirr:nth-of-type(2) > div.framer-1j5ni4p:nth-of-type(1) > div.framer-1l2a321:nth-of-type(1) > div.framer-1whpxx9:nth-of-type(1)",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 334,
+     "count": 1
+    },
+    {
+     "path": "a.framer-W7S0V.framer-YAjoW > div.framer-8gtirr:nth-of-type(2) > div.framer-1j5ni4p:nth-of-type(1) > div.framer-1l2a321:nth-of-type(1) > div.framer-144b3vg:nth-of-type(2)",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 334,
+     "count": 1
+    },
+    {
+     "path": "div.framer-wpg8pm-container > a.framer-W7S0V.framer-YAjoW > div.framer-8gtirr:nth-of-type(2) > div.framer-1j5ni4p:nth-of-type(1) > div.framer-1l2a321:nth-of-type(1)",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 334,
+     "count": 1
+    },
+    {
+     "path": "a.framer-W7S0V.framer-YAjoW > div.framer-8gtirr:nth-of-type(2) > div.framer-1j5ni4p:nth-of-type(1) > div.framer-azc33l:nth-of-type(2) > div.framer-hvphg4",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 334,
+     "count": 1
+    },
+    {
+     "path": "div.framer-wpg8pm-container > a.framer-W7S0V.framer-YAjoW > div.framer-8gtirr:nth-of-type(2) > div.framer-1j5ni4p:nth-of-type(1) > div.framer-azc33l:nth-of-type(2)",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 334,
+     "count": 1
+    },
+    {
+     "path": "div.framer-u02ja0:nth-of-type(1) > div.framer-wpg8pm-container > a.framer-W7S0V.framer-YAjoW > div.framer-8gtirr:nth-of-type(2) > div.framer-1j5ni4p:nth-of-type(1)",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 334,
+     "count": 1
+    },
+    {
+     "path": "a.framer-W7S0V.framer-YAjoW > div.framer-8gtirr:nth-of-type(2) > div.framer-1pmjfuk:nth-of-type(2) > div.framer-kdlxu8 > div.framer-17eoizj",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 334,
+     "count": 1
+    }
+   ],
+   "animations": [
+    {
+     "path": "div.framer-mtbx3v > div.framer-4zh0jl > p.framer-text.framer-styles-preset-bzg784 > a.framer-text.framer-styles-preset-eke6e",
+     "kind": "transition",
+     "name": "color",
+     "property": "color",
+     "durationMs": 400,
+     "delayMs": 0,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":0,\"easing\":\"linear\",\"color\":\"rgb(20, 38, 29)\"},{\"offset\":1,\"easing\":\"linear\",\"color\":\"rgb(232, 114, 44)\"}]",
+     "infinite": false,
+     "startedAt": 16
+    },
+    {
+     "path": "div.framer-mtbx3v > div.framer-4zh0jl > p.framer-text.framer-styles-preset-bzg784 > a.framer-text.framer-styles-preset-eke6e",
+     "kind": "transition",
+     "name": "text-decoration-color",
+     "property": "textDecorationColor",
+     "durationMs": 400,
+     "delayMs": 0,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":0,\"easing\":\"linear\",\"textDecorationColor\":\"rgba(0, 0, 0, 0)\"},{\"offset\":1,\"easing\":\"linear\",\"textDecorationColor\":\"rgb(232, 114, 44)\"}]",
+     "infinite": false,
+     "startedAt": 19
+    },
+    {
+     "path": "div.framer-mtbx3v > div.framer-r7lwo6 > p.framer-text.framer-styles-preset-bzg784 > a.framer-text.framer-styles-preset-eke6e",
+     "kind": "transition",
+     "name": "color",
+     "property": "color",
+     "durationMs": 400,
+     "delayMs": 0,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":0,\"easing\":\"linear\",\"color\":\"rgb(232, 114, 44)\"},{\"offset\":1,\"easing\":\"linear\",\"color\":\"rgb(20, 38, 29)\"}]",
+     "infinite": false,
+     "startedAt": 348
+    },
+    {
+     "path": "div.framer-mtbx3v > div.framer-r7lwo6 > p.framer-text.framer-styles-preset-bzg784 > a.framer-text.framer-styles-preset-eke6e",
+     "kind": "transition",
+     "name": "text-decoration-color",
+     "property": "textDecorationColor",
+     "durationMs": 400,
+     "delayMs": 0,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":0,\"easing\":\"linear\",\"textDecorationColor\":\"rgb(232, 114, 44)\"},{\"offset\":1,\"easing\":\"linear\",\"textDecorationColor\":\"rgba(0, 0, 0, 0)\"}]",
+     "infinite": false,
+     "startedAt": 348
+    },
+    {
+     "path": "div.framer-12ettlo > div.framer-ww2634 > p.framer-text.framer-styles-preset-7580yq > a.framer-text.framer-styles-preset-xtze3j",
+     "kind": "transition",
+     "name": "color",
+     "property": "color",
+     "durationMs": 400,
+     "delayMs": 0,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":0,\"easing\":\"linear\",\"color\":\"rgb(232, 114, 44)\"},{\"offset\":1,\"easing\":\"linear\",\"color\":\"rgb(244, 240, 229)\"}]",
+     "infinite": false,
+     "startedAt": 348
+    },
+    {
+     "path": "div.framer-12ettlo > div.framer-19am20h > p.framer-text.framer-styles-preset-7580yq > a.framer-text.framer-styles-preset-xtze3j",
+     "kind": "transition",
+     "name": "color",
+     "property": "color",
+     "durationMs": 400,
+     "delayMs": 0,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":0,\"easing\":\"linear\",\"color\":\"rgb(244, 240, 229)\"},{\"offset\":1,\"easing\":\"linear\",\"color\":\"rgb(232, 114, 44)\"}]",
+     "infinite": false,
+     "startedAt": 348
+    },
+    {
+     "path": "section.framer-7rxg2t > div.framer-n9x8i4 > div.framer-1x3d2x5 > div.framer-xfbb6q",
+     "kind": "script",
+     "name": "",
+     "property": "opacity",
+     "durationMs": 400,
+     "delayMs": 200,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"0.001\"},{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"1\"}]",
+     "infinite": false,
+     "startedAt": 601
+    },
+    {
+     "path": "section.framer-7rxg2t > div.framer-n9x8i4 > div.framer-1x3d2x5 > div.framer-1pd9qrz",
+     "kind": "script",
+     "name": "",
+     "property": "opacity",
+     "durationMs": 400,
+     "delayMs": 350,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"0.001\"},{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"1\"}]",
+     "infinite": false,
+     "startedAt": 751
+    }
+   ],
+   "film": {
+    "frames": [
+     0,
+     245,
+     434,
+     545,
+     842,
+     967,
+     1105,
+     1206,
+     1263
+    ]
+   }
+  },
+  {
+   "label": "Contact",
+   "from": "/mentor",
+   "to": "/contact",
+   "mechanism": "pushState",
+   "durationMs": 1083,
+   "changes": [
+    {
+     "path": "div.framer-1x3d2x5 > div.framer-xfbb6q:nth-of-type(1) > div.framer-bdxvhu:nth-of-type(2) > div.framer-1yiqv2b:nth-of-type(5) > div.framer-bbbbbo:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "none",
+     "atMs": 237,
+     "count": 1
+    },
+    {
+     "path": "div.framer-19o8lku:nth-of-type(1) > div.framer-1qg7ern:nth-of-type(1) > div.framer-1xtf8ag:nth-of-type(2) > div.framer-1b2evln:nth-of-type(4) > div.framer-8uvcru:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "none",
+     "atMs": 237,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1s4y7z3 > div.framer-mtbx3v:nth-of-type(2) > div.framer-4zh0jl:nth-of-type(4) > p.framer-text.framer-styles-preset-bzg784 > a.framer-text.framer-styles-preset-eke6e",
+     "property": "data-framer-page-link-current",
+     "from": "",
+     "to": "",
+     "atMs": 237,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1s4y7z3 > div.framer-mtbx3v:nth-of-type(2) > div.framer-hx7r5v:nth-of-type(5) > p.framer-text.framer-styles-preset-bzg784 > a.framer-text.framer-styles-preset-eke6e",
+     "property": "data-framer-page-link-current",
+     "from": "true",
+     "to": "true",
+     "atMs": 237,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1r5rn89:nth-of-type(1) > div.framer-1s4y7z3 > div.framer-1edkcy3:nth-of-type(3) > div.framer-wpvdnk-container > a.framer-vmrH1.framer-yZYSQ",
+     "property": "data-framer-page-link-current",
+     "from": "true",
+     "to": "true",
+     "atMs": 237,
+     "count": 1
+    },
+    {
+     "path": "head > meta:nth-of-type(2)",
+     "property": "content",
+     "from": "width=device-width",
+     "to": "width=device-width",
+     "atMs": 237,
+     "count": 1
+    },
+    {
+     "path": "div.framer-y5offa:nth-of-type(2) > div.framer-12ettlo:nth-of-type(1) > div.framer-19am20h:nth-of-type(4) > p.framer-text.framer-styles-preset-7580yq > a.framer-text.framer-styles-preset-xtze3j",
+     "property": "data-framer-page-link-current",
+     "from": "",
+     "to": "",
+     "atMs": 237,
+     "count": 1
+    },
+    {
+     "path": "div.framer-y5offa:nth-of-type(2) > div.framer-183hcoh:nth-of-type(2) > div.framer-1l9hgmu:nth-of-type(2) > p.framer-text.framer-styles-preset-7580yq > a.framer-text.framer-styles-preset-xtze3j",
+     "property": "data-framer-page-link-current",
+     "from": "true",
+     "to": "true",
+     "atMs": 237,
+     "count": 1
+    },
+    {
+     "path": "head > meta:nth-of-type(16)",
+     "property": "content",
+     "from": "max-image-preview:large",
+     "to": "max-image-preview:large",
+     "atMs": 237,
+     "count": 1
+    },
+    {
+     "path": "section.framer-1tzev6y:nth-of-type(1) > div.framer-ru1x5z:nth-of-type(1) > div.framer-vbtyo5 > div.framer-30td5f:nth-of-type(1) > div.framer-c07j8:nth-of-type(1)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "none",
+     "atMs": 244,
+     "count": 4
+    },
+    {
+     "path": "section.framer-1tzev6y:nth-of-type(1) > div.framer-ru1x5z:nth-of-type(1) > div.framer-vbtyo5 > div.framer-30td5f:nth-of-type(1) > div.framer-fcc3g7:nth-of-type(2)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "none",
+     "atMs": 244,
+     "count": 9
+    },
+    {
+     "path": "main.framer-1hvnfzr > section.framer-1tzev6y:nth-of-type(1) > div.framer-ru1x5z:nth-of-type(1) > div.framer-vbtyo5 > div.framer-1i262e7:nth-of-type(2)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "none",
+     "atMs": 244,
+     "count": 7
+    },
+    {
+     "path": "main.framer-1hvnfzr > section.framer-11tcqkc:nth-of-type(2) > div.framer-16y9vo9 > div.framer-1djm1xq > div.framer-1eyv443:nth-of-type(1)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "translateY(30px)",
+     "atMs": 244,
+     "count": 2
+    },
+    {
+     "path": "section.framer-11tcqkc:nth-of-type(2) > div.framer-16y9vo9 > div.framer-1djm1xq > div.framer-2rsa00:nth-of-type(2) > div.framer-btr609-container:nth-of-type(1)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "translateY(30px)",
+     "atMs": 244,
+     "count": 2
+    },
+    {
+     "path": "section.framer-11tcqkc:nth-of-type(2) > div.framer-16y9vo9 > div.framer-1djm1xq > div.framer-2rsa00:nth-of-type(2) > div.framer-iwe7vr-container:nth-of-type(2)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "translateY(30px)",
+     "atMs": 244,
+     "count": 2
+    },
+    {
+     "path": "section.framer-11tcqkc:nth-of-type(2) > div.framer-16y9vo9 > div.framer-1djm1xq > div.framer-2rsa00:nth-of-type(2) > div.framer-t20n2p-container:nth-of-type(3)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "translateY(30px)",
+     "atMs": 244,
+     "count": 2
+    },
+    {
+     "path": "section.framer-11tcqkc:nth-of-type(2) > div.framer-16y9vo9 > div.framer-1djm1xq > div.framer-2rsa00:nth-of-type(2) > div.framer-84ca1c-container:nth-of-type(4)",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "translateY(30px)",
+     "atMs": 244,
+     "count": 2
+    },
+    {
+     "path": "section.framer-9p18jh:nth-of-type(3) > div.framer-1kya9qj > div.framer-18v1c96 > div.framer-fq1kob:nth-of-type(1) > div.framer-kdrszn",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "translateY(30px)",
+     "atMs": 244,
+     "count": 2
+    },
+    {
+     "path": "section.framer-9p18jh:nth-of-type(3) > div.framer-1kya9qj > div.framer-18v1c96 > div.framer-17eb1np:nth-of-type(2) > div.framer-1qi0jb7-container",
+     "property": "transform",
+     "from": "translateY(30px)",
+     "to": "translateY(30px)",
+     "atMs": 244,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1voba55-container:nth-of-type(1) > div.framer-2Kaps.framer-xgT8x > div.framer-1frh9mr:nth-of-type(1) > div.framer-6qhlpq:nth-of-type(2) > div.framer-1xwpwo8:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(180deg)",
+     "to": "rotate(180deg)",
+     "atMs": 244,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1voba55-container:nth-of-type(1) > div.framer-2Kaps.framer-xgT8x > div.framer-1frh9mr:nth-of-type(1) > div.framer-6qhlpq:nth-of-type(2) > div.framer-bna4yy:nth-of-type(2)",
+     "property": "transform",
+     "from": "rotate(90deg)",
+     "to": "rotate(90deg)",
+     "atMs": 244,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1voba55-container:nth-of-type(1) > div.framer-2Kaps.framer-xgT8x > div.framer-12z30u5:nth-of-type(2) > div.framer-13ctqaf > div.framer-11rlmyw",
+     "property": "transform",
+     "from": "translateY(20px)",
+     "to": "translateY(20px)",
+     "atMs": 244,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1m0kezk-container:nth-of-type(2) > div.framer-2Kaps.framer-xgT8x > div.framer-12z30u5:nth-of-type(2) > div.framer-13ctqaf > div.framer-11rlmyw",
+     "property": "transform",
+     "from": "translateY(20px)",
+     "to": "translateY(20px)",
+     "atMs": 244,
+     "count": 2
+    },
+    {
+     "path": "div.framer-t3whst-container:nth-of-type(3) > div.framer-2Kaps.framer-xgT8x > div.framer-12z30u5:nth-of-type(2) > div.framer-13ctqaf > div.framer-11rlmyw",
+     "property": "transform",
+     "from": "translateY(20px)",
+     "to": "translateY(20px)",
+     "atMs": 244,
+     "count": 2
+    },
+    {
+     "path": "div.framer-g3izwq-container:nth-of-type(4) > div.framer-2Kaps.framer-xgT8x > div.framer-12z30u5:nth-of-type(2) > div.framer-13ctqaf > div.framer-11rlmyw",
+     "property": "transform",
+     "from": "translateY(20px)",
+     "to": "translateY(20px)",
+     "atMs": 244,
+     "count": 2
+    },
+    {
+     "path": "div.framer-wdcd03-container:nth-of-type(5) > div.framer-2Kaps.framer-xgT8x > div.framer-12z30u5:nth-of-type(2) > div.framer-13ctqaf > div.framer-11rlmyw",
+     "property": "transform",
+     "from": "translateY(20px)",
+     "to": "translateY(20px)",
+     "atMs": 244,
+     "count": 2
+    },
+    {
+     "path": "div.framer-Kxk9R.framer-1at5jdz:nth-of-type(1) > div.framer-1rs71ji-container:nth-of-type(6) > a.framer-fxasn.framer-1yv5043 > div.framer-108wwvz:nth-of-type(1) > div.framer-etuony:nth-of-type(2)",
+     "property": "transform",
+     "from": "translateX(-50%) scale(1.2, 1.2)",
+     "to": "translateX(-50%) scale(1.2, 1.2)",
+     "atMs": 244,
+     "count": 4
+    },
+    {
+     "path": "div.framer-kx3dyn:nth-of-type(1) > div.framer-9hyuzl-container:nth-of-type(1) > div.framer-gEQe4.framer-YAjoW > div.framer-dz3s5m:nth-of-type(1) > div.framer-191arh4",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 244,
+     "count": 1
+    },
+    {
+     "path": "div.framer-c07j8:nth-of-type(1) > div.framer-kx3dyn:nth-of-type(1) > div.framer-9hyuzl-container:nth-of-type(1) > div.framer-gEQe4.framer-YAjoW > div.framer-dz3s5m:nth-of-type(1)",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 244,
+     "count": 1
+    },
+    {
+     "path": "div.framer-c07j8:nth-of-type(1) > div.framer-kx3dyn:nth-of-type(1) > div.framer-9hyuzl-container:nth-of-type(1) > div.framer-gEQe4.framer-YAjoW > div.framer-1h7o27l:nth-of-type(2)",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 244,
+     "count": 1
+    },
+    {
+     "path": "div.framer-30td5f:nth-of-type(1) > div.framer-c07j8:nth-of-type(1) > div.framer-kx3dyn:nth-of-type(1) > div.framer-9hyuzl-container:nth-of-type(1) > div.framer-gEQe4.framer-YAjoW",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 244,
+     "count": 1
+    },
+    {
+     "path": "div.framer-aqclt2:nth-of-type(2) > div.framer-1lx9j5f-container:nth-of-type(1) > button.framer-DEeGN.framer-yZYSQ > div.framer-sxdkud > div.framer-1ocdhwz",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 244,
+     "count": 1
+    },
+    {
+     "path": "form.framer-1dbrmy8 > div.framer-aqclt2:nth-of-type(2) > div.framer-1lx9j5f-container:nth-of-type(1) > button.framer-DEeGN.framer-yZYSQ > div.framer-sxdkud",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 244,
+     "count": 1
+    },
+    {
+     "path": "main.framer-1hvnfzr > section.framer-1tzev6y:nth-of-type(1) > div.framer-1xzaq56-container:nth-of-type(2) > div.framer-EnyBe.framer-15nax4p > div.framer-1o95fpx",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 244,
+     "count": 1
+    },
+    {
+     "path": "div.framer-DWn28.framer-Qa4tV:nth-of-type(2) > main.framer-1hvnfzr > section.framer-1tzev6y:nth-of-type(1) > div.framer-1xzaq56-container:nth-of-type(2) > div.framer-EnyBe.framer-15nax4p",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 244,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1ltg6ba:nth-of-type(1) > div.framer-1kvxf8b-container:nth-of-type(1) > div.framer-gEQe4.framer-YAjoW > div.framer-dz3s5m:nth-of-type(1) > div.framer-191arh4",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 244,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1eyv443:nth-of-type(1) > div.framer-1ltg6ba:nth-of-type(1) > div.framer-1kvxf8b-container:nth-of-type(1) > div.framer-gEQe4.framer-YAjoW > div.framer-dz3s5m:nth-of-type(1)",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 244,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1eyv443:nth-of-type(1) > div.framer-1ltg6ba:nth-of-type(1) > div.framer-1kvxf8b-container:nth-of-type(1) > div.framer-gEQe4.framer-YAjoW > div.framer-1h7o27l:nth-of-type(2)",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 244,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1djm1xq > div.framer-1eyv443:nth-of-type(1) > div.framer-1ltg6ba:nth-of-type(1) > div.framer-1kvxf8b-container:nth-of-type(1) > div.framer-gEQe4.framer-YAjoW",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 244,
+     "count": 1
+    },
+    {
+     "path": "div.framer-2rsa00:nth-of-type(2) > div.framer-btr609-container:nth-of-type(1) > div.framer-yfewN.framer-YAjoW > div.framer-1p1rbqx:nth-of-type(1) > div.framer-1cffdl9",
+     "property": "opacity",
+     "from": "",
+     "to": "1",
+     "atMs": 244,
+     "count": 1
+    }
+   ],
+   "animations": [
+    {
+     "path": "div.framer-mtbx3v > div.framer-hx7r5v > p.framer-text.framer-styles-preset-bzg784 > a.framer-text.framer-styles-preset-eke6e",
+     "kind": "transition",
+     "name": "color",
+     "property": "color",
+     "durationMs": 400,
+     "delayMs": 0,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":0,\"easing\":\"linear\",\"color\":\"rgb(20, 38, 29)\"},{\"offset\":1,\"easing\":\"linear\",\"color\":\"rgb(232, 114, 44)\"}]",
+     "infinite": false,
+     "startedAt": 23
+    },
+    {
+     "path": "div.framer-mtbx3v > div.framer-hx7r5v > p.framer-text.framer-styles-preset-bzg784 > a.framer-text.framer-styles-preset-eke6e",
+     "kind": "transition",
+     "name": "text-decoration-color",
+     "property": "textDecorationColor",
+     "durationMs": 400,
+     "delayMs": 0,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":0,\"easing\":\"linear\",\"textDecorationColor\":\"rgba(0, 0, 0, 0)\"},{\"offset\":1,\"easing\":\"linear\",\"textDecorationColor\":\"rgb(232, 114, 44)\"}]",
+     "infinite": false,
+     "startedAt": 23
+    },
+    {
+     "path": "div.framer-mtbx3v > div.framer-4zh0jl > p.framer-text.framer-styles-preset-bzg784 > a.framer-text.framer-styles-preset-eke6e",
+     "kind": "transition",
+     "name": "color",
+     "property": "color",
+     "durationMs": 400,
+     "delayMs": 0,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":0,\"easing\":\"linear\",\"color\":\"rgb(232, 114, 44)\"},{\"offset\":1,\"easing\":\"linear\",\"color\":\"rgb(20, 38, 29)\"}]",
+     "infinite": false,
+     "startedAt": 276
+    },
+    {
+     "path": "div.framer-mtbx3v > div.framer-4zh0jl > p.framer-text.framer-styles-preset-bzg784 > a.framer-text.framer-styles-preset-eke6e",
+     "kind": "transition",
+     "name": "text-decoration-color",
+     "property": "textDecorationColor",
+     "durationMs": 400,
+     "delayMs": 0,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":0,\"easing\":\"linear\",\"textDecorationColor\":\"rgb(232, 114, 44)\"},{\"offset\":1,\"easing\":\"linear\",\"textDecorationColor\":\"rgba(0, 0, 0, 0)\"}]",
+     "infinite": false,
+     "startedAt": 276
+    },
+    {
+     "path": "div.framer-12ettlo > div.framer-19am20h > p.framer-text.framer-styles-preset-7580yq > a.framer-text.framer-styles-preset-xtze3j",
+     "kind": "transition",
+     "name": "color",
+     "property": "color",
+     "durationMs": 400,
+     "delayMs": 0,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":0,\"easing\":\"linear\",\"color\":\"rgb(232, 114, 44)\"},{\"offset\":1,\"easing\":\"linear\",\"color\":\"rgb(244, 240, 229)\"}]",
+     "infinite": false,
+     "startedAt": 276
+    },
+    {
+     "path": "div.framer-183hcoh > div.framer-1l9hgmu > p.framer-text.framer-styles-preset-7580yq > a.framer-text.framer-styles-preset-xtze3j",
+     "kind": "transition",
+     "name": "color",
+     "property": "color",
+     "durationMs": 400,
+     "delayMs": 0,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":0,\"easing\":\"linear\",\"color\":\"rgb(244, 240, 229)\"},{\"offset\":1,\"easing\":\"linear\",\"color\":\"rgb(232, 114, 44)\"}]",
+     "infinite": false,
+     "startedAt": 276
+    },
+    {
+     "path": "div.framer-ru1x5z > div.framer-vbtyo5 > div.framer-30td5f > div.framer-c07j8",
+     "kind": "script",
+     "name": "",
+     "property": "opacity",
+     "durationMs": 400,
+     "delayMs": 200,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"0.001\"},{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"1\"}]",
+     "infinite": false,
+     "startedAt": 560
+    },
+    {
+     "path": "div.framer-ru1x5z > div.framer-vbtyo5 > div.framer-30td5f > div.framer-fcc3g7",
+     "kind": "script",
+     "name": "",
+     "property": "opacity",
+     "durationMs": 400,
+     "delayMs": 400,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"0.001\"},{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"1\"}]",
+     "infinite": false,
+     "startedAt": 760
+    },
+    {
+     "path": "section.framer-1tzev6y > div.framer-ru1x5z > div.framer-vbtyo5 > div.framer-1i262e7",
+     "kind": "script",
+     "name": "",
+     "property": "opacity",
+     "durationMs": 400,
+     "delayMs": 300,
+     "easing": "cubic-bezier(0.44, 0, 0.56, 1)",
+     "keyframes": "[{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"0.001\"},{\"offset\":null,\"easing\":\"linear\",\"opacity\":\"1\"}]",
+     "infinite": false,
+     "startedAt": 660
+    }
+   ],
+   "film": {
+    "frames": [
+     0,
+     177,
+     881,
+     1073
+    ]
+   }
+  }
+ ],
+ "menu": null,
+ "hovers": [
+  {
+   "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(1) > div.framer-18tazs6-container",
+   "label": "a.framer-vmrh1.framer-yzysq",
+   "changes": [
+    {
+     "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(1) > div.framer-18tazs6-container",
+     "property": "transform",
+     "from": "rotate(2deg)",
+     "to": "rotate(2deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(2) > div.framer-1v4hp66-container",
+     "property": "transform",
+     "from": "rotate(-2deg)",
+     "to": "rotate(-2deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(3) > div.framer-rbt8o-container",
+     "property": "transform",
+     "from": "rotate(2deg)",
+     "to": "rotate(2deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1fjdtnj > div.framer-1e9xds5 > div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(1) > div.framer-13p3dzp-container",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1fjdtnj > div.framer-1e9xds5 > div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(3) > div.framer-16dcfc6-container",
+     "property": "transform",
+     "from": "rotate(6deg)",
+     "to": "rotate(6deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1pwx3yz > div.framer-1gycpy5:nth-of-type(1) > div.framer-1dksp2g:nth-of-type(2) > div.framer-3me2fc:nth-of-type(5) > div.framer-1jpu99j:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-16f0o6z:nth-of-type(1) > div.ssr-variant.hidden-bcge12:nth-of-type(1) > div.framer-qdx3pg",
+     "property": "aspect-ratio",
+     "from": "0.8274760383386581",
+     "to": "0.827476 / 1",
+     "atMs": 71,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-16f0o6z:nth-of-type(1) > div.ssr-variant.hidden-bcge12:nth-of-type(1) > div.framer-qdx3pg",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-5ivlul:nth-of-type(2) > div.ssr-variant > div.framer-ml63o3",
+     "property": "aspect-ratio",
+     "from": "0.8353474320241692",
+     "to": "0.835347 / 1",
+     "atMs": 71,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-5ivlul:nth-of-type(2) > div.ssr-variant > div.framer-ml63o3",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-1ez819k:nth-of-type(3) > div.ssr-variant.hidden-bcge12 > div.framer-10tciei",
+     "property": "aspect-ratio",
+     "from": "0.8274760383386581",
+     "to": "0.827476 / 1",
+     "atMs": 71,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-1ez819k:nth-of-type(3) > div.ssr-variant.hidden-bcge12 > div.framer-10tciei",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "main.framer-1pwritj > section.framer-horakz:nth-of-type(1) > div.framer-1z04r43:nth-of-type(2) > div.framer-1hw68xg:nth-of-type(2) > div.framer-t7n6sr-container",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "div.framer-i85edc > div.framer-t2zri2:nth-of-type(1) > div.framer-itwba7:nth-of-type(1) > div.framer-1e67fbm:nth-of-type(3) > div.framer-1ndmou2:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1tt5inq > div.framer-qp82qt:nth-of-type(2) > div.framer-bps8x7:nth-of-type(2) > div.ssr-variant.hidden-18afziw > div.framer-1rvk88l",
+     "property": "transform",
+     "from": "rotate(3deg)",
+     "to": "rotate(3deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "div.framer-nj1or > div.framer-10xczcq:nth-of-type(1) > div.framer-1u7fori:nth-of-type(1) > div.framer-1sq9c4d:nth-of-type(3) > div.framer-1ay52vm:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "div.framer-a7hccw > div.framer-m6jfy4 > div.framer-4th0yu:nth-of-type(1) > div.framer-7ol6en:nth-of-type(3) > div.framer-cttg6j:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "div.framer-14qs9fm:nth-of-type(1) > div.framer-1mz23uj:nth-of-type(1) > div.framer-buh3zj:nth-of-type(2) > div.framer-1t7jzm2:nth-of-type(3) > div.framer-tslpdh:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "div.framer-13x0nho:nth-of-type(1) > div.framer-d2lpr2:nth-of-type(1) > div.framer-sj5y41:nth-of-type(2) > div.framer-1njdg5t:nth-of-type(4) > div.framer-1y8sjv2:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1e9xds5 > div.framer-10p5lo:nth-of-type(1) > div.framer-14gtx4r > div.framer-1bsygp9:nth-of-type(3) > div.framer-b10oed:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "div.framer-cdae3m > div.framer-vxgnum:nth-of-type(1) > div.framer-q0hrw2:nth-of-type(1) > div.framer-12s7x3j:nth-of-type(2) > div.framer-61ukli:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1vrwac6 > div.framer-duiqzy:nth-of-type(1) > div.framer-1bjlxcd > div.framer-1hm2wn4:nth-of-type(4) > div.framer-usmh2b:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1lo7yl2:nth-of-type(1) > div.framer-1ez819k:nth-of-type(3) > div.ssr-variant.hidden-bcge12 > div.framer-10tciei > div.framer-apqfzb.hidden-bcge12:nth-of-type(2)",
+     "property": "aspect-ratio",
+     "from": "1",
+     "to": "1 / 1",
+     "atMs": 71,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1lo7yl2:nth-of-type(1) > div.framer-1ez819k:nth-of-type(3) > div.ssr-variant.hidden-bcge12 > div.framer-10tciei > div.framer-apqfzb.hidden-bcge12:nth-of-type(2)",
+     "property": "transform",
+     "from": "rotate(4deg)",
+     "to": "rotate(4deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(1) > div.framer-13p3dzp-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(2) > div.framer-12mf2sx-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(3) > div.framer-16dcfc6-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "section.framer-zkyT3.framer-KrJS4 > div.framer-1xa4jnn:nth-of-type(2) > div.framer-513zc8:nth-of-type(1) > div.framer-ig3iao:nth-of-type(2) > div.framer-jbbf79:nth-of-type(2)",
+     "property": "transform",
+     "from": "rotate(-40deg)",
+     "to": "rotate(-40deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1voba55-container:nth-of-type(1) > div.framer-2Kaps.framer-xgT8x > div.framer-1frh9mr:nth-of-type(1) > div.framer-6qhlpq:nth-of-type(2) > div.framer-1xwpwo8:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(180deg)",
+     "to": "rotate(180deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1voba55-container:nth-of-type(1) > div.framer-2Kaps.framer-xgT8x > div.framer-1frh9mr:nth-of-type(1) > div.framer-6qhlpq:nth-of-type(2) > div.framer-bna4yy:nth-of-type(2)",
+     "property": "transform",
+     "from": "rotate(90deg)",
+     "to": "rotate(90deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1m4mmul > div.framer-ixplj4:nth-of-type(1) > div.framer-1cfgdco:nth-of-type(2) > div.framer-a9gfjg:nth-of-type(4) > div.framer-n3foqy:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 71,
+     "count": 2
+    },
+    {
+     "path": "div.framer-i85edc > div.framer-t2zri2:nth-of-type(1) > div.framer-17nqq3s-container:nth-of-type(2) > div.ssr-variant.hidden-18afziw > a.framer-vmrH1.framer-yZYSQ",
+     "property": "class",
+     "from": "+hover",
+     "to": "+hover",
+     "atMs": 71,
+     "count": 1
+    },
+    {
+     "path": "div.framer-i85edc > div.framer-t2zri2:nth-of-type(1) > div.framer-17nqq3s-container:nth-of-type(2) > div.ssr-variant.hidden-18afziw > a.framer-vmrH1.framer-yZYSQ",
+     "property": "data-framer-name",
+     "from": "",
+     "to": "",
+     "atMs": 71,
+     "count": 1
+    },
+    {
+     "path": "div.framer-Kxk9R.framer-1at5jdz:nth-of-type(1) > div.framer-1rs71ji-container:nth-of-type(6) > a.framer-fxasn.framer-1yv5043 > div.framer-108wwvz:nth-of-type(1) > div.framer-etuony:nth-of-type(2)",
+     "property": "transform",
+     "from": "translateX(-50%) scale(1.2)",
+     "to": "translateX(-50%) scale(1.2)",
+     "atMs": 79,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1m0kezk-container:nth-of-type(2) > div.framer-2Kaps.framer-xgT8x > div.framer-12z30u5:nth-of-type(2) > div.framer-13ctqaf > div.framer-11rlmyw",
+     "property": "transform",
+     "from": "translateY(20px)",
+     "to": "translateY(20px)",
+     "atMs": 79,
+     "count": 2
+    },
+    {
+     "path": "div.framer-t3whst-container:nth-of-type(3) > div.framer-2Kaps.framer-xgT8x > div.framer-12z30u5:nth-of-type(2) > div.framer-13ctqaf > div.framer-11rlmyw",
+     "property": "transform",
+     "from": "translateY(20px)",
+     "to": "translateY(20px)",
+     "atMs": 79,
+     "count": 2
+    },
+    {
+     "path": "div.framer-g3izwq-container:nth-of-type(4) > div.framer-2Kaps.framer-xgT8x > div.framer-12z30u5:nth-of-type(2) > div.framer-13ctqaf > div.framer-11rlmyw",
+     "property": "transform",
+     "from": "translateY(20px)",
+     "to": "translateY(20px)",
+     "atMs": 79,
+     "count": 2
+    },
+    {
+     "path": "div.framer-wdcd03-container:nth-of-type(5) > div.framer-2Kaps.framer-xgT8x > div.framer-12z30u5:nth-of-type(2) > div.framer-13ctqaf > div.framer-11rlmyw",
+     "property": "transform",
+     "from": "translateY(20px)",
+     "to": "translateY(20px)",
+     "atMs": 79,
+     "count": 2
+    },
+    {
+     "path": "div.framer-i85edc > div.framer-t2zri2:nth-of-type(1) > div.framer-17nqq3s-container:nth-of-type(2) > div.ssr-variant.hidden-18afziw > a.framer-vmrH1.framer-yZYSQ",
+     "property": "box-shadow",
+     "from": "0px 4px 0px 0px var(--token-23b59c71-bcd9-4239-8358-53b6c3cc209e, rgb(178, 110, 69))",
+     "to": "0px 7px 0px 0px var(--token-23b59c71-bcd9-4239-8358-53b6c3cc209e, rgb(178, 110, 69))",
+     "atMs": 107,
+     "count": 17
+    },
+    {
+     "path": "div.framer-i85edc > div.framer-t2zri2:nth-of-type(1) > div.framer-17nqq3s-container:nth-of-type(2) > div.ssr-variant.hidden-18afziw > a.framer-vmrH1.framer-yZYSQ",
+     "property": "background-color",
+     "from": "var(--token-9be2179a-d4c3-4b1c-a57e-66ad0ebb844d, rgb(232, 114, 44))",
+     "to": "var(--token-225c056c-536e-4289-9276-3f52376896b4, rgb(200, 95, 32))",
+     "atMs": 107,
+     "count": 15
+    }
+   ],
+   "text": [],
+   "animations": [],
+   "film": {
+    "frames": [
+     0,
+     141,
+     469,
+     571,
+     749,
+     850
+    ]
+   }
+  },
+  {
+   "path": "div.framer-i85edc > div.framer-t2zri2:nth-of-type(1) > div.framer-17nqq3s-container:nth-of-type(2) > div.ssr-variant.hidden-18afziw > a.framer-vmrH1.framer-yZYSQ",
+   "label": "a.framer-nx3fq.framer-ingnx",
+   "changes": [
+    {
+     "path": "div.framer-i85edc > div.framer-t2zri2:nth-of-type(1) > div.framer-17nqq3s-container:nth-of-type(2) > div.ssr-variant.hidden-18afziw > a.framer-vmrH1.framer-yZYSQ",
+     "property": "box-shadow",
+     "from": "0px 5.94548px 0px 0px var(--token-23b59c71-bcd9-4239-8358-53b6c3cc209e, rgb(178, 110, 69))",
+     "to": "0px 4px 0px 0px var(--token-23b59c71-bcd9-4239-8358-53b6c3cc209e, rgb(178, 110, 69))",
+     "atMs": 3,
+     "count": 10
+    },
+    {
+     "path": "div.framer-i85edc > div.framer-t2zri2:nth-of-type(1) > div.framer-17nqq3s-container:nth-of-type(2) > div.ssr-variant.hidden-18afziw > a.framer-vmrH1.framer-yZYSQ",
+     "property": "background-color",
+     "from": "rgb(216, 103, 28)",
+     "to": "var(--token-9be2179a-d4c3-4b1c-a57e-66ad0ebb844d, rgb(232, 114, 44))",
+     "atMs": 3,
+     "count": 9
+    },
+    {
+     "path": "div.ssr-variant.hidden-18afziw > div.framer-3vkpoh-container > a.framer-nX3Fq.framer-ingnX > div.framer-1cfkl1n:nth-of-type(2) > div.framer-1ljowsp",
+     "property": "transform",
+     "from": "scale(1.00024)",
+     "to": "scale(1.05)",
+     "atMs": 3,
+     "count": 30
+    },
+    {
+     "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(1) > div.framer-18tazs6-container",
+     "property": "transform",
+     "from": "rotate(2deg)",
+     "to": "rotate(2deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(2) > div.framer-1v4hp66-container",
+     "property": "transform",
+     "from": "rotate(-2deg)",
+     "to": "rotate(-2deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(3) > div.framer-rbt8o-container",
+     "property": "transform",
+     "from": "rotate(2deg)",
+     "to": "rotate(2deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1fjdtnj > div.framer-1e9xds5 > div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(1) > div.framer-13p3dzp-container",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1fjdtnj > div.framer-1e9xds5 > div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(3) > div.framer-16dcfc6-container",
+     "property": "transform",
+     "from": "rotate(6deg)",
+     "to": "rotate(6deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1pwx3yz > div.framer-1gycpy5:nth-of-type(1) > div.framer-1dksp2g:nth-of-type(2) > div.framer-3me2fc:nth-of-type(5) > div.framer-1jpu99j:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-16f0o6z:nth-of-type(1) > div.ssr-variant.hidden-bcge12:nth-of-type(1) > div.framer-qdx3pg",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-5ivlul:nth-of-type(2) > div.ssr-variant > div.framer-ml63o3",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-1ez819k:nth-of-type(3) > div.ssr-variant.hidden-bcge12 > div.framer-10tciei",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "main.framer-1pwritj > section.framer-horakz:nth-of-type(1) > div.framer-1z04r43:nth-of-type(2) > div.framer-1hw68xg:nth-of-type(2) > div.framer-t7n6sr-container",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "div.framer-i85edc > div.framer-t2zri2:nth-of-type(1) > div.framer-itwba7:nth-of-type(1) > div.framer-1e67fbm:nth-of-type(3) > div.framer-1ndmou2:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1tt5inq > div.framer-qp82qt:nth-of-type(2) > div.framer-bps8x7:nth-of-type(2) > div.ssr-variant.hidden-18afziw > div.framer-1rvk88l",
+     "property": "transform",
+     "from": "rotate(3deg)",
+     "to": "rotate(3deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "div.framer-nj1or > div.framer-10xczcq:nth-of-type(1) > div.framer-1u7fori:nth-of-type(1) > div.framer-1sq9c4d:nth-of-type(3) > div.framer-1ay52vm:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "div.framer-a7hccw > div.framer-m6jfy4 > div.framer-4th0yu:nth-of-type(1) > div.framer-7ol6en:nth-of-type(3) > div.framer-cttg6j:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "div.framer-14qs9fm:nth-of-type(1) > div.framer-1mz23uj:nth-of-type(1) > div.framer-buh3zj:nth-of-type(2) > div.framer-1t7jzm2:nth-of-type(3) > div.framer-tslpdh:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "div.framer-13x0nho:nth-of-type(1) > div.framer-d2lpr2:nth-of-type(1) > div.framer-sj5y41:nth-of-type(2) > div.framer-1njdg5t:nth-of-type(4) > div.framer-1y8sjv2:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1e9xds5 > div.framer-10p5lo:nth-of-type(1) > div.framer-14gtx4r > div.framer-1bsygp9:nth-of-type(3) > div.framer-b10oed:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "div.framer-cdae3m > div.framer-vxgnum:nth-of-type(1) > div.framer-q0hrw2:nth-of-type(1) > div.framer-12s7x3j:nth-of-type(2) > div.framer-61ukli:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1vrwac6 > div.framer-duiqzy:nth-of-type(1) > div.framer-1bjlxcd > div.framer-1hm2wn4:nth-of-type(4) > div.framer-usmh2b:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1lo7yl2:nth-of-type(1) > div.framer-1ez819k:nth-of-type(3) > div.ssr-variant.hidden-bcge12 > div.framer-10tciei > div.framer-apqfzb.hidden-bcge12:nth-of-type(2)",
+     "property": "transform",
+     "from": "rotate(4deg)",
+     "to": "rotate(4deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(1) > div.framer-13p3dzp-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(2) > div.framer-12mf2sx-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(3) > div.framer-16dcfc6-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "section.framer-zkyT3.framer-KrJS4 > div.framer-1xa4jnn:nth-of-type(2) > div.framer-513zc8:nth-of-type(1) > div.framer-ig3iao:nth-of-type(2) > div.framer-jbbf79:nth-of-type(2)",
+     "property": "transform",
+     "from": "rotate(-40deg)",
+     "to": "rotate(-40deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1voba55-container:nth-of-type(1) > div.framer-2Kaps.framer-xgT8x > div.framer-1frh9mr:nth-of-type(1) > div.framer-6qhlpq:nth-of-type(2) > div.framer-1xwpwo8:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(180deg)",
+     "to": "rotate(180deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1voba55-container:nth-of-type(1) > div.framer-2Kaps.framer-xgT8x > div.framer-1frh9mr:nth-of-type(1) > div.framer-6qhlpq:nth-of-type(2) > div.framer-bna4yy:nth-of-type(2)",
+     "property": "transform",
+     "from": "rotate(90deg)",
+     "to": "rotate(90deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1m4mmul > div.framer-ixplj4:nth-of-type(1) > div.framer-1cfgdco:nth-of-type(2) > div.framer-a9gfjg:nth-of-type(4) > div.framer-n3foqy:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 60,
+     "count": 2
+    },
+    {
+     "path": "div.framer-fk11xy > div.framer-1qmbyeo:nth-of-type(1) > div.ssr-variant.hidden-18afziw > div.framer-3vkpoh-container > a.framer-nX3Fq.framer-ingnX",
+     "property": "class",
+     "from": "+hover",
+     "to": "+hover",
+     "atMs": 60,
+     "count": 1
+    },
+    {
+     "path": "div.framer-fk11xy > div.framer-1qmbyeo:nth-of-type(1) > div.ssr-variant.hidden-18afziw > div.framer-3vkpoh-container > a.framer-nX3Fq.framer-ingnX",
+     "property": "data-framer-name",
+     "from": "",
+     "to": "",
+     "atMs": 60,
+     "count": 1
+    },
+    {
+     "path": "div.ssr-variant.hidden-18afziw > div.framer-3vkpoh-container > a.framer-nX3Fq.framer-ingnX > div.framer-1cfkl1n:nth-of-type(2) > div.framer-1ljowsp",
+     "property": "will-change",
+     "from": "",
+     "to": "transform",
+     "atMs": 85,
+     "count": 1
+    }
+   ],
+   "text": [],
+   "animations": [],
+   "film": {
+    "frames": [
+     0,
+     224,
+     443,
+     570,
+     704,
+     837
+    ]
+   }
+  },
+  {
+   "path": "div.ssr-variant.hidden-18afziw > div.framer-3vkpoh-container > a.framer-nX3Fq.framer-ingnX > div.framer-1cfkl1n:nth-of-type(2) > div.framer-1ljowsp",
+   "label": "a.framer-0uxln.framer-xgt8x",
+   "changes": [
+    {
+     "path": "div.ssr-variant.hidden-18afziw > div.framer-3vkpoh-container > a.framer-nX3Fq.framer-ingnX > div.framer-1cfkl1n:nth-of-type(2) > div.framer-1ljowsp",
+     "property": "transform",
+     "from": "scale(1.04049)",
+     "to": "none",
+     "atMs": 6,
+     "count": 8
+    },
+    {
+     "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(1) > div.framer-18tazs6-container",
+     "property": "transform",
+     "from": "rotate(2deg)",
+     "to": "rotate(2deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(2) > div.framer-1v4hp66-container",
+     "property": "transform",
+     "from": "rotate(-2deg)",
+     "to": "rotate(-2deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(3) > div.framer-rbt8o-container",
+     "property": "transform",
+     "from": "rotate(2deg)",
+     "to": "rotate(2deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1fjdtnj > div.framer-1e9xds5 > div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(1) > div.framer-13p3dzp-container",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1fjdtnj > div.framer-1e9xds5 > div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(3) > div.framer-16dcfc6-container",
+     "property": "transform",
+     "from": "rotate(6deg)",
+     "to": "rotate(6deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1pwx3yz > div.framer-1gycpy5:nth-of-type(1) > div.framer-1dksp2g:nth-of-type(2) > div.framer-3me2fc:nth-of-type(5) > div.framer-1jpu99j:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-16f0o6z:nth-of-type(1) > div.ssr-variant.hidden-bcge12:nth-of-type(1) > div.framer-qdx3pg",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-5ivlul:nth-of-type(2) > div.ssr-variant > div.framer-ml63o3",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-1ez819k:nth-of-type(3) > div.ssr-variant.hidden-bcge12 > div.framer-10tciei",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "main.framer-1pwritj > section.framer-horakz:nth-of-type(1) > div.framer-1z04r43:nth-of-type(2) > div.framer-1hw68xg:nth-of-type(2) > div.framer-t7n6sr-container",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "div.framer-i85edc > div.framer-t2zri2:nth-of-type(1) > div.framer-itwba7:nth-of-type(1) > div.framer-1e67fbm:nth-of-type(3) > div.framer-1ndmou2:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1tt5inq > div.framer-qp82qt:nth-of-type(2) > div.framer-bps8x7:nth-of-type(2) > div.ssr-variant.hidden-18afziw > div.framer-1rvk88l",
+     "property": "transform",
+     "from": "rotate(3deg)",
+     "to": "rotate(3deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "div.framer-nj1or > div.framer-10xczcq:nth-of-type(1) > div.framer-1u7fori:nth-of-type(1) > div.framer-1sq9c4d:nth-of-type(3) > div.framer-1ay52vm:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "div.framer-a7hccw > div.framer-m6jfy4 > div.framer-4th0yu:nth-of-type(1) > div.framer-7ol6en:nth-of-type(3) > div.framer-cttg6j:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "div.framer-14qs9fm:nth-of-type(1) > div.framer-1mz23uj:nth-of-type(1) > div.framer-buh3zj:nth-of-type(2) > div.framer-1t7jzm2:nth-of-type(3) > div.framer-tslpdh:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "div.framer-13x0nho:nth-of-type(1) > div.framer-d2lpr2:nth-of-type(1) > div.framer-sj5y41:nth-of-type(2) > div.framer-1njdg5t:nth-of-type(4) > div.framer-1y8sjv2:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1e9xds5 > div.framer-10p5lo:nth-of-type(1) > div.framer-14gtx4r > div.framer-1bsygp9:nth-of-type(3) > div.framer-b10oed:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "div.framer-cdae3m > div.framer-vxgnum:nth-of-type(1) > div.framer-q0hrw2:nth-of-type(1) > div.framer-12s7x3j:nth-of-type(2) > div.framer-61ukli:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1vrwac6 > div.framer-duiqzy:nth-of-type(1) > div.framer-1bjlxcd > div.framer-1hm2wn4:nth-of-type(4) > div.framer-usmh2b:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1lo7yl2:nth-of-type(1) > div.framer-1ez819k:nth-of-type(3) > div.ssr-variant.hidden-bcge12 > div.framer-10tciei > div.framer-apqfzb.hidden-bcge12:nth-of-type(2)",
+     "property": "transform",
+     "from": "rotate(4deg)",
+     "to": "rotate(4deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(1) > div.framer-13p3dzp-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(2) > div.framer-12mf2sx-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(3) > div.framer-16dcfc6-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "section.framer-zkyT3.framer-KrJS4 > div.framer-1xa4jnn:nth-of-type(2) > div.framer-513zc8:nth-of-type(1) > div.framer-ig3iao:nth-of-type(2) > div.framer-jbbf79:nth-of-type(2)",
+     "property": "transform",
+     "from": "rotate(-40deg)",
+     "to": "rotate(-40deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1voba55-container:nth-of-type(1) > div.framer-2Kaps.framer-xgT8x > div.framer-1frh9mr:nth-of-type(1) > div.framer-6qhlpq:nth-of-type(2) > div.framer-1xwpwo8:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(180deg)",
+     "to": "rotate(180deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1voba55-container:nth-of-type(1) > div.framer-2Kaps.framer-xgT8x > div.framer-1frh9mr:nth-of-type(1) > div.framer-6qhlpq:nth-of-type(2) > div.framer-bna4yy:nth-of-type(2)",
+     "property": "transform",
+     "from": "rotate(90deg)",
+     "to": "rotate(90deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1m4mmul > div.framer-ixplj4:nth-of-type(1) > div.framer-1cfgdco:nth-of-type(2) > div.framer-a9gfjg:nth-of-type(4) > div.framer-n3foqy:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 32,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1v43bn5:nth-of-type(2) > div.framer-9zr02w:nth-of-type(1) > div.ssr-variant.hidden-bcge12 > div.framer-1t99w32-container > a.framer-0uXLN.framer-xgT8x",
+     "property": "class",
+     "from": "+hover",
+     "to": "+hover",
+     "atMs": 32,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1v43bn5:nth-of-type(2) > div.framer-9zr02w:nth-of-type(1) > div.ssr-variant.hidden-bcge12 > div.framer-1t99w32-container > a.framer-0uXLN.framer-xgT8x",
+     "property": "data-framer-name",
+     "from": "",
+     "to": "",
+     "atMs": 32,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1t99w32-container > a.framer-0uXLN.framer-xgT8x > div.framer-77cf9r:nth-of-type(1) > div.framer-1504cxp:nth-of-type(2) > div.framer-1fo1dtb",
+     "property": "will-change",
+     "from": "",
+     "to": "transform",
+     "atMs": 60,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1t99w32-container > a.framer-0uXLN.framer-xgT8x > div.framer-77cf9r:nth-of-type(1) > div.framer-1504cxp:nth-of-type(2) > div.framer-1fo1dtb",
+     "property": "transform",
+     "from": "none",
+     "to": "scale(1.1)",
+     "atMs": 72,
+     "count": 4
+    }
+   ],
+   "text": [],
+   "animations": [],
+   "film": {
+    "frames": [
+     0,
+     246,
+     475,
+     625,
+     759,
+     891
+    ]
+   }
+  },
+  {
+   "path": "div.framer-1t99w32-container > a.framer-0uXLN.framer-xgT8x > div.framer-77cf9r:nth-of-type(1) > div.framer-1504cxp:nth-of-type(2) > div.framer-1fo1dtb",
+   "label": "a.framer-eaxl2.framer-g0oww",
+   "changes": [
+    {
+     "path": "div.framer-1t99w32-container > a.framer-0uXLN.framer-xgT8x > div.framer-77cf9r:nth-of-type(1) > div.framer-1504cxp:nth-of-type(2) > div.framer-1fo1dtb",
+     "property": "transform",
+     "from": "scale(1.04463)",
+     "to": "none",
+     "atMs": 1,
+     "count": 37
+    },
+    {
+     "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(1) > div.framer-18tazs6-container",
+     "property": "transform",
+     "from": "rotate(2deg)",
+     "to": "rotate(2deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(2) > div.framer-1v4hp66-container",
+     "property": "transform",
+     "from": "rotate(-2deg)",
+     "to": "rotate(-2deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(3) > div.framer-rbt8o-container",
+     "property": "transform",
+     "from": "rotate(2deg)",
+     "to": "rotate(2deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "div.framer-1fjdtnj > div.framer-1e9xds5 > div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(1) > div.framer-13p3dzp-container",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "div.framer-1fjdtnj > div.framer-1e9xds5 > div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(3) > div.framer-16dcfc6-container",
+     "property": "transform",
+     "from": "rotate(6deg)",
+     "to": "rotate(6deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "div.framer-1pwx3yz > div.framer-1gycpy5:nth-of-type(1) > div.framer-1dksp2g:nth-of-type(2) > div.framer-3me2fc:nth-of-type(5) > div.framer-1jpu99j:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-16f0o6z:nth-of-type(1) > div.ssr-variant.hidden-bcge12:nth-of-type(1) > div.framer-qdx3pg",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-5ivlul:nth-of-type(2) > div.ssr-variant > div.framer-ml63o3",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-1ez819k:nth-of-type(3) > div.ssr-variant.hidden-bcge12 > div.framer-10tciei",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "main.framer-1pwritj > section.framer-horakz:nth-of-type(1) > div.framer-1z04r43:nth-of-type(2) > div.framer-1hw68xg:nth-of-type(2) > div.framer-t7n6sr-container",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "div.framer-i85edc > div.framer-t2zri2:nth-of-type(1) > div.framer-itwba7:nth-of-type(1) > div.framer-1e67fbm:nth-of-type(3) > div.framer-1ndmou2:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "div.framer-1tt5inq > div.framer-qp82qt:nth-of-type(2) > div.framer-bps8x7:nth-of-type(2) > div.ssr-variant.hidden-18afziw > div.framer-1rvk88l",
+     "property": "transform",
+     "from": "rotate(3deg)",
+     "to": "rotate(3deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "div.framer-nj1or > div.framer-10xczcq:nth-of-type(1) > div.framer-1u7fori:nth-of-type(1) > div.framer-1sq9c4d:nth-of-type(3) > div.framer-1ay52vm:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "div.framer-a7hccw > div.framer-m6jfy4 > div.framer-4th0yu:nth-of-type(1) > div.framer-7ol6en:nth-of-type(3) > div.framer-cttg6j:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "div.framer-14qs9fm:nth-of-type(1) > div.framer-1mz23uj:nth-of-type(1) > div.framer-buh3zj:nth-of-type(2) > div.framer-1t7jzm2:nth-of-type(3) > div.framer-tslpdh:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "div.framer-13x0nho:nth-of-type(1) > div.framer-d2lpr2:nth-of-type(1) > div.framer-sj5y41:nth-of-type(2) > div.framer-1njdg5t:nth-of-type(4) > div.framer-1y8sjv2:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "div.framer-1e9xds5 > div.framer-10p5lo:nth-of-type(1) > div.framer-14gtx4r > div.framer-1bsygp9:nth-of-type(3) > div.framer-b10oed:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "div.framer-cdae3m > div.framer-vxgnum:nth-of-type(1) > div.framer-q0hrw2:nth-of-type(1) > div.framer-12s7x3j:nth-of-type(2) > div.framer-61ukli:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "div.framer-1vrwac6 > div.framer-duiqzy:nth-of-type(1) > div.framer-1bjlxcd > div.framer-1hm2wn4:nth-of-type(4) > div.framer-usmh2b:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "div.framer-1lo7yl2:nth-of-type(1) > div.framer-1ez819k:nth-of-type(3) > div.ssr-variant.hidden-bcge12 > div.framer-10tciei > div.framer-apqfzb.hidden-bcge12:nth-of-type(2)",
+     "property": "transform",
+     "from": "rotate(4deg)",
+     "to": "rotate(4deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(1) > div.framer-13p3dzp-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(2) > div.framer-12mf2sx-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(3) > div.framer-16dcfc6-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "section.framer-zkyT3.framer-KrJS4 > div.framer-1xa4jnn:nth-of-type(2) > div.framer-513zc8:nth-of-type(1) > div.framer-ig3iao:nth-of-type(2) > div.framer-jbbf79:nth-of-type(2)",
+     "property": "transform",
+     "from": "rotate(-40deg)",
+     "to": "rotate(-40deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "div.framer-1voba55-container:nth-of-type(1) > div.framer-2Kaps.framer-xgT8x > div.framer-1frh9mr:nth-of-type(1) > div.framer-6qhlpq:nth-of-type(2) > div.framer-1xwpwo8:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(180deg)",
+     "to": "rotate(180deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "div.framer-1voba55-container:nth-of-type(1) > div.framer-2Kaps.framer-xgT8x > div.framer-1frh9mr:nth-of-type(1) > div.framer-6qhlpq:nth-of-type(2) > div.framer-bna4yy:nth-of-type(2)",
+     "property": "transform",
+     "from": "rotate(90deg)",
+     "to": "rotate(90deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "div.framer-1m4mmul > div.framer-ixplj4:nth-of-type(1) > div.framer-1cfgdco:nth-of-type(2) > div.framer-a9gfjg:nth-of-type(4) > div.framer-n3foqy:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 50,
+     "count": 6
+    },
+    {
+     "path": "div.framer-1v43bn5:nth-of-type(2) > div.framer-9zr02w:nth-of-type(1) > div.ssr-variant.hidden-bcge12 > div.framer-1t99w32-container > a.framer-0uXLN.framer-xgT8x",
+     "property": "class",
+     "from": "+hover",
+     "to": "+hover",
+     "atMs": 50,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1v43bn5:nth-of-type(2) > div.framer-9zr02w:nth-of-type(1) > div.ssr-variant.hidden-bcge12 > div.framer-1t99w32-container > a.framer-0uXLN.framer-xgT8x",
+     "property": "data-framer-name",
+     "from": "",
+     "to": "Default",
+     "atMs": 50,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1v43bn5:nth-of-type(2) > div.framer-9zr02w:nth-of-type(1) > div.ssr-variant.hidden-bcge12 > div.framer-1t99w32-container > a.framer-0uXLN.framer-xgT8x",
+     "property": "class",
+     "from": "-hover",
+     "to": "-hover",
+     "atMs": 131,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1v43bn5:nth-of-type(2) > div.framer-9zr02w:nth-of-type(2) > div.ssr-variant.hidden-bcge12 > div.framer-1t99w32-container > a.framer-0uXLN.framer-xgT8x",
+     "property": "class",
+     "from": "+hover",
+     "to": "+hover",
+     "atMs": 131,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1v43bn5:nth-of-type(2) > div.framer-9zr02w:nth-of-type(2) > div.ssr-variant.hidden-bcge12 > div.framer-1t99w32-container > a.framer-0uXLN.framer-xgT8x",
+     "property": "data-framer-name",
+     "from": "",
+     "to": "Default",
+     "atMs": 131,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1t99w32-container > a.framer-0uXLN.framer-xgT8x > div.framer-77cf9r:nth-of-type(1) > div.framer-1504cxp:nth-of-type(2) > div.framer-1fo1dtb",
+     "property": "will-change",
+     "from": "",
+     "to": "transform",
+     "atMs": 214,
+     "count": 1
+    },
+    {
+     "path": "div.framer-1v43bn5:nth-of-type(2) > div.framer-9zr02w:nth-of-type(2) > div.ssr-variant.hidden-bcge12 > div.framer-1t99w32-container > a.framer-0uXLN.framer-xgT8x",
+     "property": "class",
+     "from": "-hover",
+     "to": "-hover",
+     "atMs": 243,
+     "count": 1
+    },
+    {
+     "path": "a.framer-EAXl2.framer-g0owW > div.framer-hxuuql > div.framer-l4d6cz:nth-of-type(1) > div.framer-4lz8as:nth-of-type(1) > div.framer-text.framer-styles-preset-1fxd4ok",
+     "property": "--framer-text-color",
+     "from": "var(--extracted-tcooor, var(--token-e7e6c389-54de-40d3-bd41-8072dc4a41a5, rgb(69, 86, 75)))",
+     "to": "var(--extracted-tcooor, var(--token-ba50d2e5-600e-4acb-b91c-6cca2f86f1d6, rgb(20, 38, 29)))",
+     "atMs": 243,
+     "count": 1
+    },
+    {
+     "path": "div.framer-m6jfy4 > div.framer-12f3a3v:nth-of-type(3) > div.framer-1ro5p9p-container:nth-of-type(2) > div.ssr-variant.hidden-18afziw > a.framer-EAXl2.framer-g0owW",
+     "property": "class",
+     "from": "+hover",
+     "to": "+hover",
+     "atMs": 243,
+     "count": 1
+    },
+    {
+     "path": "div.framer-m6jfy4 > div.framer-12f3a3v:nth-of-type(3) > div.framer-1ro5p9p-container:nth-of-type(2) > div.ssr-variant.hidden-18afziw > a.framer-EAXl2.framer-g0owW",
+     "property": "data-framer-name",
+     "from": "",
+     "to": "",
+     "atMs": 243,
+     "count": 1
+    },
+    {
+     "path": "div.ssr-variant.hidden-18afziw > a.framer-EAXl2.framer-g0owW > div.framer-hxuuql > div.framer-c5nwyy:nth-of-type(2) > div.framer-taet1b",
+     "property": "transform",
+     "from": "",
+     "to": "none",
+     "atMs": 261,
+     "count": 11
+    },
+    {
+     "path": "div.ssr-variant.hidden-18afziw > a.framer-EAXl2.framer-g0owW > div.framer-hxuuql > div.framer-c5nwyy:nth-of-type(2) > div.framer-taet1b",
+     "property": "transform-origin",
+     "from": "",
+     "to": "50% 50% 0px",
+     "atMs": 261,
+     "count": 1
+    }
+   ],
+   "text": [],
+   "animations": [],
+   "film": null
+  },
+  {
+   "path": "div.ssr-variant.hidden-18afziw > a.framer-EAXl2.framer-g0owW > div.framer-hxuuql > div.framer-c5nwyy:nth-of-type(2) > div.framer-taet1b",
+   "label": "a.framer-5zke1.framer-ingnx",
+   "changes": [
+    {
+     "path": "div.ssr-variant.hidden-18afziw > a.framer-EAXl2.framer-g0owW > div.framer-hxuuql > div.framer-c5nwyy:nth-of-type(2) > div.framer-taet1b",
+     "property": "transform",
+     "from": "translate3d(1.40603px, 0px, 0px)",
+     "to": "none",
+     "atMs": 4,
+     "count": 6
+    },
+    {
+     "path": "div.ssr-variant.hidden-18afziw > a.framer-EAXl2.framer-g0owW > div.framer-hxuuql > div.framer-l4d6cz:nth-of-type(1) > div.framer-4lz8as:nth-of-type(1)",
+     "property": "--extracted-tcooor",
+     "from": "rgba(52, 68, 59, 1)",
+     "to": "var(--token-e7e6c389-54de-40d3-bd41-8072dc4a41a5, rgb(69, 86, 75))",
+     "atMs": 4,
+     "count": 7
+    },
+    {
+     "path": "div.ssr-variant.hidden-18afziw > a.framer-EAXl2.framer-g0owW > div.framer-hxuuql > div.framer-l4d6cz:nth-of-type(1) > div.framer-qhfbb1:nth-of-type(2)",
+     "property": "background-color",
+     "from": "rgb(52, 68, 59)",
+     "to": "var(--token-e7e6c389-54de-40d3-bd41-8072dc4a41a5, rgb(69, 86, 75))",
+     "atMs": 4,
+     "count": 7
+    },
+    {
+     "path": "div.framer-qrt1y9-container > div.ssr-variant.hidden-18afziw > a.framer-5ZKE1.framer-ingnX > div.framer-140za1a:nth-of-type(2) > div.framer-11cpwsc",
+     "property": "background-color",
+     "from": "rgb(56, 57, 40)",
+     "to": "var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     "atMs": 4,
+     "count": 11
+    },
+    {
+     "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(1) > div.framer-18tazs6-container",
+     "property": "transform",
+     "from": "rotate(2deg)",
+     "to": "rotate(2deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(2) > div.framer-1v4hp66-container",
+     "property": "transform",
+     "from": "rotate(-2deg)",
+     "to": "rotate(-2deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(3) > div.framer-rbt8o-container",
+     "property": "transform",
+     "from": "rotate(2deg)",
+     "to": "rotate(2deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1fjdtnj > div.framer-1e9xds5 > div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(1) > div.framer-13p3dzp-container",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1fjdtnj > div.framer-1e9xds5 > div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(3) > div.framer-16dcfc6-container",
+     "property": "transform",
+     "from": "rotate(6deg)",
+     "to": "rotate(6deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1pwx3yz > div.framer-1gycpy5:nth-of-type(1) > div.framer-1dksp2g:nth-of-type(2) > div.framer-3me2fc:nth-of-type(5) > div.framer-1jpu99j:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-16f0o6z:nth-of-type(1) > div.ssr-variant.hidden-bcge12:nth-of-type(1) > div.framer-qdx3pg",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-5ivlul:nth-of-type(2) > div.ssr-variant > div.framer-ml63o3",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-1ez819k:nth-of-type(3) > div.ssr-variant.hidden-bcge12 > div.framer-10tciei",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "main.framer-1pwritj > section.framer-horakz:nth-of-type(1) > div.framer-1z04r43:nth-of-type(2) > div.framer-1hw68xg:nth-of-type(2) > div.framer-t7n6sr-container",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "div.framer-i85edc > div.framer-t2zri2:nth-of-type(1) > div.framer-itwba7:nth-of-type(1) > div.framer-1e67fbm:nth-of-type(3) > div.framer-1ndmou2:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1tt5inq > div.framer-qp82qt:nth-of-type(2) > div.framer-bps8x7:nth-of-type(2) > div.ssr-variant.hidden-18afziw > div.framer-1rvk88l",
+     "property": "transform",
+     "from": "rotate(3deg)",
+     "to": "rotate(3deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "div.framer-nj1or > div.framer-10xczcq:nth-of-type(1) > div.framer-1u7fori:nth-of-type(1) > div.framer-1sq9c4d:nth-of-type(3) > div.framer-1ay52vm:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "div.framer-a7hccw > div.framer-m6jfy4 > div.framer-4th0yu:nth-of-type(1) > div.framer-7ol6en:nth-of-type(3) > div.framer-cttg6j:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "div.framer-14qs9fm:nth-of-type(1) > div.framer-1mz23uj:nth-of-type(1) > div.framer-buh3zj:nth-of-type(2) > div.framer-1t7jzm2:nth-of-type(3) > div.framer-tslpdh:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "div.framer-13x0nho:nth-of-type(1) > div.framer-d2lpr2:nth-of-type(1) > div.framer-sj5y41:nth-of-type(2) > div.framer-1njdg5t:nth-of-type(4) > div.framer-1y8sjv2:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1e9xds5 > div.framer-10p5lo:nth-of-type(1) > div.framer-14gtx4r > div.framer-1bsygp9:nth-of-type(3) > div.framer-b10oed:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "div.framer-cdae3m > div.framer-vxgnum:nth-of-type(1) > div.framer-q0hrw2:nth-of-type(1) > div.framer-12s7x3j:nth-of-type(2) > div.framer-61ukli:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1vrwac6 > div.framer-duiqzy:nth-of-type(1) > div.framer-1bjlxcd > div.framer-1hm2wn4:nth-of-type(4) > div.framer-usmh2b:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1lo7yl2:nth-of-type(1) > div.framer-1ez819k:nth-of-type(3) > div.ssr-variant.hidden-bcge12 > div.framer-10tciei > div.framer-apqfzb.hidden-bcge12:nth-of-type(2)",
+     "property": "transform",
+     "from": "rotate(4deg)",
+     "to": "rotate(4deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(1) > div.framer-13p3dzp-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(2) > div.framer-12mf2sx-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(3) > div.framer-16dcfc6-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "section.framer-zkyT3.framer-KrJS4 > div.framer-1xa4jnn:nth-of-type(2) > div.framer-513zc8:nth-of-type(1) > div.framer-ig3iao:nth-of-type(2) > div.framer-jbbf79:nth-of-type(2)",
+     "property": "transform",
+     "from": "rotate(-40deg)",
+     "to": "rotate(-40deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1voba55-container:nth-of-type(1) > div.framer-2Kaps.framer-xgT8x > div.framer-1frh9mr:nth-of-type(1) > div.framer-6qhlpq:nth-of-type(2) > div.framer-1xwpwo8:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(180deg)",
+     "to": "rotate(180deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1voba55-container:nth-of-type(1) > div.framer-2Kaps.framer-xgT8x > div.framer-1frh9mr:nth-of-type(1) > div.framer-6qhlpq:nth-of-type(2) > div.framer-bna4yy:nth-of-type(2)",
+     "property": "transform",
+     "from": "rotate(90deg)",
+     "to": "rotate(90deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1m4mmul > div.framer-ixplj4:nth-of-type(1) > div.framer-1cfgdco:nth-of-type(2) > div.framer-a9gfjg:nth-of-type(4) > div.framer-n3foqy:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 99,
+     "count": 2
+    },
+    {
+     "path": "div.framer-xq4lke:nth-of-type(2) > div.ssr-variant.hidden-bcge12:nth-of-type(1) > div.framer-j9451v-container > div.ssr-variant.hidden-18afziw > a.framer-5ZKE1.framer-ingnX",
+     "property": "class",
+     "from": "+hover",
+     "to": "+hover",
+     "atMs": 99,
+     "count": 1
+    },
+    {
+     "path": "div.framer-xq4lke:nth-of-type(2) > div.ssr-variant.hidden-bcge12:nth-of-type(1) > div.framer-j9451v-container > div.ssr-variant.hidden-18afziw > a.framer-5ZKE1.framer-ingnX",
+     "property": "data-framer-name",
+     "from": "",
+     "to": "",
+     "atMs": 99,
+     "count": 1
+    },
+    {
+     "path": "div.framer-j9451v-container > div.ssr-variant.hidden-18afziw > a.framer-5ZKE1.framer-ingnX > div.framer-140za1a:nth-of-type(2) > div.framer-11cpwsc",
+     "property": "background-color",
+     "from": "var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     "to": "var(--token-9be2179a-d4c3-4b1c-a57e-66ad0ebb844d, rgb(232, 114, 44))",
+     "atMs": 140,
+     "count": 23
+    },
+    {
+     "path": "div.framer-j9451v-container > div.ssr-variant.hidden-18afziw > a.framer-5ZKE1.framer-ingnX > div.framer-140za1a:nth-of-type(2) > div.framer-11cpwsc",
+     "property": "will-change",
+     "from": "",
+     "to": "auto",
+     "atMs": 140,
+     "count": 1
+    }
+   ],
+   "text": [],
+   "animations": [],
+   "film": null
+  },
+  {
+   "path": "div.framer-j9451v-container > div.ssr-variant.hidden-18afziw > a.framer-5ZKE1.framer-ingnX > div.framer-140za1a:nth-of-type(2) > div.framer-11cpwsc",
+   "label": "a.framer-3mkd0.framer-yzysq",
+   "changes": [
+    {
+     "path": "div.framer-j9451v-container > div.ssr-variant.hidden-18afziw > a.framer-5ZKE1.framer-ingnX > div.framer-140za1a:nth-of-type(2) > div.framer-11cpwsc",
+     "property": "background-color",
+     "from": "rgb(194, 99, 43)",
+     "to": "var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     "atMs": 3,
+     "count": 14
+    },
+    {
+     "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(1) > div.framer-18tazs6-container",
+     "property": "transform",
+     "from": "rotate(2deg)",
+     "to": "rotate(2deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(2) > div.framer-1v4hp66-container",
+     "property": "transform",
+     "from": "rotate(-2deg)",
+     "to": "rotate(-2deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(3) > div.framer-rbt8o-container",
+     "property": "transform",
+     "from": "rotate(2deg)",
+     "to": "rotate(2deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1fjdtnj > div.framer-1e9xds5 > div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(1) > div.framer-13p3dzp-container",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1fjdtnj > div.framer-1e9xds5 > div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(3) > div.framer-16dcfc6-container",
+     "property": "transform",
+     "from": "rotate(6deg)",
+     "to": "rotate(6deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1pwx3yz > div.framer-1gycpy5:nth-of-type(1) > div.framer-1dksp2g:nth-of-type(2) > div.framer-3me2fc:nth-of-type(5) > div.framer-1jpu99j:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-16f0o6z:nth-of-type(1) > div.ssr-variant.hidden-bcge12:nth-of-type(1) > div.framer-qdx3pg",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-5ivlul:nth-of-type(2) > div.ssr-variant > div.framer-ml63o3",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-1ez819k:nth-of-type(3) > div.ssr-variant.hidden-bcge12 > div.framer-10tciei",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "main.framer-1pwritj > section.framer-horakz:nth-of-type(1) > div.framer-1z04r43:nth-of-type(2) > div.framer-1hw68xg:nth-of-type(2) > div.framer-t7n6sr-container",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "div.framer-i85edc > div.framer-t2zri2:nth-of-type(1) > div.framer-itwba7:nth-of-type(1) > div.framer-1e67fbm:nth-of-type(3) > div.framer-1ndmou2:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1tt5inq > div.framer-qp82qt:nth-of-type(2) > div.framer-bps8x7:nth-of-type(2) > div.ssr-variant.hidden-18afziw > div.framer-1rvk88l",
+     "property": "transform",
+     "from": "rotate(3deg)",
+     "to": "rotate(3deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "div.framer-nj1or > div.framer-10xczcq:nth-of-type(1) > div.framer-1u7fori:nth-of-type(1) > div.framer-1sq9c4d:nth-of-type(3) > div.framer-1ay52vm:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "div.framer-a7hccw > div.framer-m6jfy4 > div.framer-4th0yu:nth-of-type(1) > div.framer-7ol6en:nth-of-type(3) > div.framer-cttg6j:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "div.framer-14qs9fm:nth-of-type(1) > div.framer-1mz23uj:nth-of-type(1) > div.framer-buh3zj:nth-of-type(2) > div.framer-1t7jzm2:nth-of-type(3) > div.framer-tslpdh:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "div.framer-13x0nho:nth-of-type(1) > div.framer-d2lpr2:nth-of-type(1) > div.framer-sj5y41:nth-of-type(2) > div.framer-1njdg5t:nth-of-type(4) > div.framer-1y8sjv2:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1e9xds5 > div.framer-10p5lo:nth-of-type(1) > div.framer-14gtx4r > div.framer-1bsygp9:nth-of-type(3) > div.framer-b10oed:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "div.framer-cdae3m > div.framer-vxgnum:nth-of-type(1) > div.framer-q0hrw2:nth-of-type(1) > div.framer-12s7x3j:nth-of-type(2) > div.framer-61ukli:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1vrwac6 > div.framer-duiqzy:nth-of-type(1) > div.framer-1bjlxcd > div.framer-1hm2wn4:nth-of-type(4) > div.framer-usmh2b:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1lo7yl2:nth-of-type(1) > div.framer-1ez819k:nth-of-type(3) > div.ssr-variant.hidden-bcge12 > div.framer-10tciei > div.framer-apqfzb.hidden-bcge12:nth-of-type(2)",
+     "property": "transform",
+     "from": "rotate(4deg)",
+     "to": "rotate(4deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(1) > div.framer-13p3dzp-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(2) > div.framer-12mf2sx-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(3) > div.framer-16dcfc6-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "section.framer-zkyT3.framer-KrJS4 > div.framer-1xa4jnn:nth-of-type(2) > div.framer-513zc8:nth-of-type(1) > div.framer-ig3iao:nth-of-type(2) > div.framer-jbbf79:nth-of-type(2)",
+     "property": "transform",
+     "from": "rotate(-40deg)",
+     "to": "rotate(-40deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1voba55-container:nth-of-type(1) > div.framer-2Kaps.framer-xgT8x > div.framer-1frh9mr:nth-of-type(1) > div.framer-6qhlpq:nth-of-type(2) > div.framer-1xwpwo8:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(180deg)",
+     "to": "rotate(180deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1voba55-container:nth-of-type(1) > div.framer-2Kaps.framer-xgT8x > div.framer-1frh9mr:nth-of-type(1) > div.framer-6qhlpq:nth-of-type(2) > div.framer-bna4yy:nth-of-type(2)",
+     "property": "transform",
+     "from": "rotate(90deg)",
+     "to": "rotate(90deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1m4mmul > div.framer-ixplj4:nth-of-type(1) > div.framer-1cfgdco:nth-of-type(2) > div.framer-a9gfjg:nth-of-type(4) > div.framer-n3foqy:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 61,
+     "count": 2
+    },
+    {
+     "path": "div.framer-ugkfba-container > div.framer-TNrt0.framer-g0owW > div.framer-3ycjh6:nth-of-type(2) > div.framer-aw3s9p-container > a.framer-3MKD0.framer-yZYSQ",
+     "property": "class",
+     "from": "+hover",
+     "to": "+hover",
+     "atMs": 61,
+     "count": 1
+    },
+    {
+     "path": "div.framer-ugkfba-container > div.framer-TNrt0.framer-g0owW > div.framer-3ycjh6:nth-of-type(2) > div.framer-aw3s9p-container > a.framer-3MKD0.framer-yZYSQ",
+     "property": "data-framer-name",
+     "from": "",
+     "to": "",
+     "atMs": 61,
+     "count": 1
+    },
+    {
+     "path": "div.framer-ugkfba-container > div.framer-TNrt0.framer-g0owW > div.framer-3ycjh6:nth-of-type(2) > div.framer-aw3s9p-container > a.framer-3MKD0.framer-yZYSQ",
+     "property": "will-change",
+     "from": "",
+     "to": "auto",
+     "atMs": 64,
+     "count": 1
+    },
+    {
+     "path": "div.framer-ugkfba-container > div.framer-TNrt0.framer-g0owW > div.framer-3ycjh6:nth-of-type(2) > div.framer-aw3s9p-container > a.framer-3MKD0.framer-yZYSQ",
+     "property": "box-shadow",
+     "from": "0px 4px 0px 0px var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     "to": "0px 7px 0px 0px var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     "atMs": 82,
+     "count": 20
+    },
+    {
+     "path": "div.framer-ugkfba-container > div.framer-TNrt0.framer-g0owW > div.framer-3ycjh6:nth-of-type(2) > div.framer-aw3s9p-container > a.framer-3MKD0.framer-yZYSQ",
+     "property": "background-color",
+     "from": "var(--token-e079c459-c6e9-4577-8c52-a24b838cfa37, rgb(234, 228, 211))",
+     "to": "var(--token-7bbaafe9-06f3-4286-8b9e-1f6b96128a55, rgb(255, 255, 255))",
+     "atMs": 82,
+     "count": 19
+    }
+   ],
+   "text": [],
+   "animations": [],
+   "film": null
+  },
+  {
+   "path": "div.framer-ugkfba-container > div.framer-TNrt0.framer-g0owW > div.framer-3ycjh6:nth-of-type(2) > div.framer-aw3s9p-container > a.framer-3MKD0.framer-yZYSQ",
+   "label": "a.framer-fxasn.framer-1yv5043",
+   "changes": [
+    {
+     "path": "div.framer-ugkfba-container > div.framer-TNrt0.framer-g0owW > div.framer-3ycjh6:nth-of-type(2) > div.framer-aw3s9p-container > a.framer-3MKD0.framer-yZYSQ",
+     "property": "box-shadow",
+     "from": "0px 5.80462px 0px 0px var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     "to": "0px 4px 0px 0px var(--token-a225ace6-638e-469b-9793-3ab54fcf3b3a, rgb(27, 52, 40))",
+     "atMs": 3,
+     "count": 9
+    },
+    {
+     "path": "div.framer-ugkfba-container > div.framer-TNrt0.framer-g0owW > div.framer-3ycjh6:nth-of-type(2) > div.framer-aw3s9p-container > a.framer-3MKD0.framer-yZYSQ",
+     "property": "background-color",
+     "from": "rgb(247, 245, 238)",
+     "to": "var(--token-e079c459-c6e9-4577-8c52-a24b838cfa37, rgb(234, 228, 211))",
+     "atMs": 3,
+     "count": 8
+    },
+    {
+     "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(1) > div.framer-18tazs6-container",
+     "property": "transform",
+     "from": "rotate(2deg)",
+     "to": "rotate(2deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(2) > div.framer-1v4hp66-container",
+     "property": "transform",
+     "from": "rotate(-2deg)",
+     "to": "rotate(-2deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1ky5bq3:nth-of-type(1) > div.framer-e9y44s:nth-of-type(2) > div.framer-12j51kx > div.ssr-variant.hidden-bcge12:nth-of-type(3) > div.framer-rbt8o-container",
+     "property": "transform",
+     "from": "rotate(2deg)",
+     "to": "rotate(2deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1fjdtnj > div.framer-1e9xds5 > div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(1) > div.framer-13p3dzp-container",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1fjdtnj > div.framer-1e9xds5 > div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(3) > div.framer-16dcfc6-container",
+     "property": "transform",
+     "from": "rotate(6deg)",
+     "to": "rotate(6deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1pwx3yz > div.framer-1gycpy5:nth-of-type(1) > div.framer-1dksp2g:nth-of-type(2) > div.framer-3me2fc:nth-of-type(5) > div.framer-1jpu99j:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-16f0o6z:nth-of-type(1) > div.ssr-variant.hidden-bcge12:nth-of-type(1) > div.framer-qdx3pg",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-5ivlul:nth-of-type(2) > div.ssr-variant > div.framer-ml63o3",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1z04r43:nth-of-type(2) > div.framer-1lo7yl2:nth-of-type(1) > div.framer-1ez819k:nth-of-type(3) > div.ssr-variant.hidden-bcge12 > div.framer-10tciei",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "main.framer-1pwritj > section.framer-horakz:nth-of-type(1) > div.framer-1z04r43:nth-of-type(2) > div.framer-1hw68xg:nth-of-type(2) > div.framer-t7n6sr-container",
+     "property": "transform",
+     "from": "rotate(-4deg)",
+     "to": "rotate(-4deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "div.framer-i85edc > div.framer-t2zri2:nth-of-type(1) > div.framer-itwba7:nth-of-type(1) > div.framer-1e67fbm:nth-of-type(3) > div.framer-1ndmou2:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1tt5inq > div.framer-qp82qt:nth-of-type(2) > div.framer-bps8x7:nth-of-type(2) > div.ssr-variant.hidden-18afziw > div.framer-1rvk88l",
+     "property": "transform",
+     "from": "rotate(3deg)",
+     "to": "rotate(3deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "div.framer-nj1or > div.framer-10xczcq:nth-of-type(1) > div.framer-1u7fori:nth-of-type(1) > div.framer-1sq9c4d:nth-of-type(3) > div.framer-1ay52vm:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "div.framer-a7hccw > div.framer-m6jfy4 > div.framer-4th0yu:nth-of-type(1) > div.framer-7ol6en:nth-of-type(3) > div.framer-cttg6j:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "div.framer-14qs9fm:nth-of-type(1) > div.framer-1mz23uj:nth-of-type(1) > div.framer-buh3zj:nth-of-type(2) > div.framer-1t7jzm2:nth-of-type(3) > div.framer-tslpdh:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "div.framer-13x0nho:nth-of-type(1) > div.framer-d2lpr2:nth-of-type(1) > div.framer-sj5y41:nth-of-type(2) > div.framer-1njdg5t:nth-of-type(4) > div.framer-1y8sjv2:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1e9xds5 > div.framer-10p5lo:nth-of-type(1) > div.framer-14gtx4r > div.framer-1bsygp9:nth-of-type(3) > div.framer-b10oed:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "div.framer-cdae3m > div.framer-vxgnum:nth-of-type(1) > div.framer-q0hrw2:nth-of-type(1) > div.framer-12s7x3j:nth-of-type(2) > div.framer-61ukli:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1vrwac6 > div.framer-duiqzy:nth-of-type(1) > div.framer-1bjlxcd > div.framer-1hm2wn4:nth-of-type(4) > div.framer-usmh2b:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1lo7yl2:nth-of-type(1) > div.framer-1ez819k:nth-of-type(3) > div.ssr-variant.hidden-bcge12 > div.framer-10tciei > div.framer-apqfzb.hidden-bcge12:nth-of-type(2)",
+     "property": "transform",
+     "from": "rotate(4deg)",
+     "to": "rotate(4deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(1) > div.framer-13p3dzp-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(2) > div.framer-12mf2sx-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "div.framer-11bt30x:nth-of-type(2) > div.ssr-variant:nth-of-type(3) > div.framer-16dcfc6-container > div.framer-kzGSa.framer-xgT8x > div.framer-1n10hea:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(-6deg)",
+     "to": "rotate(-6deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "section.framer-zkyT3.framer-KrJS4 > div.framer-1xa4jnn:nth-of-type(2) > div.framer-513zc8:nth-of-type(1) > div.framer-ig3iao:nth-of-type(2) > div.framer-jbbf79:nth-of-type(2)",
+     "property": "transform",
+     "from": "rotate(-40deg)",
+     "to": "rotate(-40deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1voba55-container:nth-of-type(1) > div.framer-2Kaps.framer-xgT8x > div.framer-1frh9mr:nth-of-type(1) > div.framer-6qhlpq:nth-of-type(2) > div.framer-1xwpwo8:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(180deg)",
+     "to": "rotate(180deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1voba55-container:nth-of-type(1) > div.framer-2Kaps.framer-xgT8x > div.framer-1frh9mr:nth-of-type(1) > div.framer-6qhlpq:nth-of-type(2) > div.framer-bna4yy:nth-of-type(2)",
+     "property": "transform",
+     "from": "rotate(90deg)",
+     "to": "rotate(90deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "div.framer-1m4mmul > div.framer-ixplj4:nth-of-type(1) > div.framer-1cfgdco:nth-of-type(2) > div.framer-a9gfjg:nth-of-type(4) > div.framer-n3foqy:nth-of-type(1)",
+     "property": "transform",
+     "from": "rotate(5deg)",
+     "to": "rotate(5deg)",
+     "atMs": 92,
+     "count": 2
+    },
+    {
+     "path": "div#main > div.framer-Kxk9R.framer-1at5jdz:nth-of-type(1) > div.framer-1rs71ji-container:nth-of-type(6) > a.framer-fxasn.framer-1yv5043",
+     "property": "class",
+     "from": "+hover",
+     "to": "+hover",
+     "atMs": 92,
+     "count": 1
+    },
+    {
+     "path": "div#main > div.framer-Kxk9R.framer-1at5jdz:nth-of-type(1) > div.framer-1rs71ji-container:nth-of-type(6) > a.framer-fxasn.framer-1yv5043",
+     "property": "data-framer-name",
+     "from": "",
+     "to": "",
+     "atMs": 92,
+     "count": 1
+    },
+    {
+     "path": "div.framer-Kxk9R.framer-1at5jdz:nth-of-type(1) > div.framer-1rs71ji-container:nth-of-type(6) > a.framer-fxasn.framer-1yv5043 > div.framer-108wwvz:nth-of-type(1) > div.framer-150v12y:nth-of-type(1)",
+     "property": "transform",
+     "from": "none",
+     "to": "translateX(-50%)",
+     "atMs": 104,
+     "count": 51
+    },
+    {
+     "path": "div.framer-Kxk9R.framer-1at5jdz:nth-of-type(1) > div.framer-1rs71ji-container:nth-of-type(6) > a.framer-fxasn.framer-1yv5043 > div.framer-108wwvz:nth-of-type(1) > div.framer-etuony:nth-of-type(2)",
+     "property": "transform",
+     "from": "translateX(-50%) scale(1.2)",
+     "to": "none",
+     "atMs": 104,
+     "count": 54
+    },
+    {
+     "path": "div.framer-Kxk9R.framer-1at5jdz:nth-of-type(1) > div.framer-1rs71ji-container:nth-of-type(6) > a.framer-fxasn.framer-1yv5043 > div.framer-108wwvz:nth-of-type(1) > div.framer-150v12y:nth-of-type(1)",
+     "property": "transform-origin",
+     "from": "",
+     "to": "50% 50% 0px",
+     "atMs": 104,
+     "count": 1
+    },
+    {
+     "path": "div.framer-Kxk9R.framer-1at5jdz:nth-of-type(1) > div.framer-1rs71ji-container:nth-of-type(6) > a.framer-fxasn.framer-1yv5043 > div.framer-108wwvz:nth-of-type(1) > div.framer-150v12y:nth-of-type(1)",
+     "property": "opacity",
+     "from": "1",
+     "to": "",
+     "atMs": 104,
+     "count": 1
+    },
+    {
+     "path": "div.framer-Kxk9R.framer-1at5jdz:nth-of-type(1) > div.framer-1rs71ji-container:nth-of-type(6) > a.framer-fxasn.framer-1yv5043 > div.framer-108wwvz:nth-of-type(1) > div.framer-etuony:nth-of-type(2)",
+     "property": "transform-origin",
+     "from": "",
+     "to": "50% 50% 0px",
+     "atMs": 104,
+     "count": 1
+    },
+    {
+     "path": "div.framer-Kxk9R.framer-1at5jdz:nth-of-type(1) > div.framer-1rs71ji-container:nth-of-type(6) > a.framer-fxasn.framer-1yv5043 > div.framer-108wwvz:nth-of-type(1) > div.framer-etuony:nth-of-type(2)",
+     "property": "opacity",
+     "from": "1",
+     "to": "",
+     "atMs": 104,
+     "count": 1
+    },
+    {
+     "path": "div.framer-Kxk9R.framer-1at5jdz:nth-of-type(1) > div.framer-1rs71ji-container:nth-of-type(6) > a.framer-fxasn.framer-1yv5043 > div.framer-108wwvz:nth-of-type(1) > div.framer-etuony:nth-of-type(2)",
+     "property": "will-change",
+     "from": "",
+     "to": "transform",
+     "atMs": 123,
+     "count": 1
+    }
+   ],
+   "text": [],
+   "animations": [],
+   "film": null
+  },
+  {
+   "path": "div.framer-Kxk9R.framer-1at5jdz:nth-of-type(1) > div.framer-1rs71ji-container:nth-of-type(6) > a.framer-fxasn.framer-1yv5043 > div.framer-108wwvz:nth-of-type(1) > div.framer-150v12y:nth-of-type(1)",
+   "label": "a.framer-6jwyo.framer-n0ccwk",
+   "changes": [
+    {
+     "path": "div.framer-Kxk9R.framer-1at5jdz:nth-of-type(1) > div.framer-1rs71ji-container:nth-of-type(6) > a.framer-fxasn.framer-1yv5043 > div.framer-108wwvz:nth-of-type(1) > div.framer-150v12y:nth-of-type(1)",
+     "property": "transform",
+     "from": "translate3d(0px, -24.8635px, 0px)",
+     "to": "none",
+     "atMs": 1,
+     "count": 31
+    },
+    {
+     "path": "div.framer-Kxk9R.framer-1at5jdz:nth-of-type(1) > div.framer-1rs71ji-container:nth-of-type(6) > a.framer-fxasn.framer-1yv5043 > div.framer-108wwvz:nth-of-type(1) > div.framer-etuony:nth-of-type(2)",
+     "property": "transform",
+     "from": "translateX(-50%) translate3d(0.509895px, -24.8635px, 0px) scale(1.07797, 1.07797)",
+     "to": "translateX(-50%) scale(1.2, 1.2)",
+     "atMs": 1,
+     "count": 32
+    }
+   ],
+   "text": [],
+   "animations": [],
+   "film": null
+  }
+ ],
+ "clicks": [],
+ "canvases": [],
+ "text": [],
+ "notes": []
+}

@@ -40,8 +40,8 @@ lernivox/
 │   ├── architecture/           # Topology, folder structure, and pipeline flows
 │   ├── decisions/              # Architectural Decision Records (ADRs)
 │   └── design/                 # Visual design references (BrightPath) & tokens
-├── frontend/                   # Legacy prototype reference (preserved undisturbed)
-├── backend/                    # Legacy prototype reference (preserved undisturbed)
+├── .nvmrc                      # Node.js version specification (24)
+├── .gitignore                  # Git ignore rules for dependencies, secrets, & builds
 ├── pnpm-workspace.yaml         # Workspace configuration (apps/*, packages/*)
 ├── turbo.json                  # Turborepo task pipeline and caching rules
 ├── package.json                # Monorepo root scripts & dev dependencies
