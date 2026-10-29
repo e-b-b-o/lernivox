@@ -1,25 +1,20 @@
 import type { Metadata } from 'next';
-import { Bricolage_Grotesque, Instrument_Sans, Fraunces } from 'next/font/google';
+import { Bricolage_Grotesque, Instrument_Sans } from 'next/font/google';
 import { AuthProvider } from '../context/AuthContext';
 import '../styles/globals.css';
 
 const bricolage = Bricolage_Grotesque({
   subsets: ['latin'],
   variable: '--font-bricolage',
+  weight: ['700', '800'],
   display: 'swap',
 });
 
-const instrumentSans = Instrument_Sans({
+const instrument = Instrument_Sans({
   subsets: ['latin'],
   variable: '--font-instrument',
+  weight: ['400', '500', '600', '700'],
   display: 'swap',
-});
-
-const fraunces = Fraunces({
-  subsets: ['latin'],
-  variable: '--font-fraunces',
-  display: 'swap',
-  style: ['normal', 'italic'],
 });
 
 export const metadata: Metadata = {
@@ -34,11 +29,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      className={`${bricolage.variable} ${instrumentSans.variable} ${fraunces.variable} scroll-smooth`}
-    >
-      <body className="min-h-screen bg-lernivox-cream text-lernivox-forest font-sans antialiased selection:bg-lernivox-peach selection:text-lernivox-forest">
+    <html lang="en" className={`${bricolage.variable} ${instrument.variable} scroll-smooth`}>
+      <body className="font-sans bg-[#F6F4EE] text-[#14261D] antialiased selection:bg-[#F9D8C0] selection:text-[#14261D]">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
