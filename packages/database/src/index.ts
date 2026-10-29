@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 export * from '@prisma/client';
+export * from './vector.js';
 
 declare global {
   // eslint-disable-next-line no-var

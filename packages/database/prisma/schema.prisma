@@ -8,67 +8,762 @@ generator client {
   previewFeatures = ["postgresqlExtensions"]
 }
 
+// -------------------------------------------------------------
+// Enums
+// -------------------------------------------------------------
+
 enum Role {
   USER
   ADMIN
 }
 
+enum PlanTier {
+  FREE
+  PRO
+}
+
 enum DocumentStatus {
   UPLOADED
   PROCESSING
+  EXTRACTING
+  CHUNKING
+  EMBEDDING
   READY
   FAILED
 }
 
+enum DocumentVisibility {
+  PRIVATE
+  SHARED
+  COURSE_ONLY
+}
+
+enum StorageProvider {
+  LOCAL
+  CLOUDINARY
+  S3
+}
+
+enum CourseMemberRole {
+  OWNER
+  COLLABORATOR
+  STUDENT
+}
+
+enum SharePermission {
+  VIEW_ONLY
+  CONTRIBUTE
+  MANAGE
+}
+
+enum AuthProvider {
+  EMAIL_PASSWORD
+  GOOGLE
+}
+
+enum DifficultyLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum ExplanationLength {
+  CONCISE
+  BALANCED
+  DETAILED
+}
+
+enum TeachingStyle {
+  SOCRATIC
+  DIRECT
+  ANALOGICAL
+}
+
+enum ThemePreference {
+  SYSTEM
+  LIGHT
+  DARK
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+}
+
+enum MessageSender {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+enum MaterialType {
+  SUMMARY
+  REVISION_NOTES
+  WORKED_EXAMPLE
+  FLASHCARD_DECK
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  SHORT_ANSWER
+  TRUE_FALSE
+}
+
+enum StudyGroupRole {
+  ADMIN
+  MEMBER
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+// -------------------------------------------------------------
+// Identity, Accounts & Preferences
+// -------------------------------------------------------------
+
 model User {
-  id           String      @id @default(uuid())
-  email        String      @unique
-  name         String?
-  role         Role        @default(USER)
-  workspaces   Workspace[]
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  id        String    @id @default(uuid())
+  email     String    @unique
+  name      String?
+  role      Role      @default(USER)
+  isActive  Boolean   @default(true)
+  planTier  PlanTier  @default(FREE)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  identities            UserIdentity[]
+  preferences           UserPreference?
+  subscription          Subscription?
+  workspaces            Workspace[]
+  ownedCourses          Course[]               @relation("CourseOwner")
+  courseMemberships     CourseMember[]
+  courseShares          CourseShare[]
+  documents             Document[]             @relation("DocumentOwner")
+  courseDocumentsAdded  CourseDocument[]
+  conversations         Conversation[]
+  learningMaterials     LearningMaterial[]
+  quizzes               Quiz[]
+  quizAttempts          QuizAttempt[]
+  progress              StudentProgress[]
+  studyPlans            StudyPlan[]
+  ownedStudyGroups      StudyGroup[]           @relation("StudyGroupOwner")
+  studyGroupMemberships StudyGroupMember[]
+  sentInvitations       StudyGroupInvitation[]
+  sharedGroupResources  StudyGroupResource[]
+  sessions              UserSession[]
 
   @@map("users")
 }
 
+model UserIdentity {
+  id                String       @id @default(uuid())
+  userId            String
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider          AuthProvider
+  providerAccountId String
+  passwordHash      String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@unique([provider, providerAccountId])
+  @@unique([userId, provider])
+  @@index([userId])
+  @@map("user_identities")
+}
+
+model UserSession {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  userAgent String?
+  ipAddress String?
+  isRevoked Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@map("user_sessions")
+}
+
+model UserPreference {
+  id                      String            @id @default(uuid())
+  userId                  String            @unique
+  user                    User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  difficulty              DifficultyLevel   @default(INTERMEDIATE)
+  explanationLength       ExplanationLength @default(BALANCED)
+  teachingStyle           TeachingStyle     @default(SOCRATIC)
+  dailyStudyTargetMinutes Int               @default(30)
+  theme                   ThemePreference   @default(SYSTEM)
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
+
+  @@map("user_preferences")
+}
+
+model Subscription {
+  id               String             @id @default(uuid())
+  userId           String             @unique
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tier             PlanTier           @default(FREE)
+  status           SubscriptionStatus @default(ACTIVE)
+  currentPeriodEnd DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  @@map("subscriptions")
+}
+
+// -------------------------------------------------------------
+// Workspaces (Legacy Compatibility)
+// -------------------------------------------------------------
+
 model Workspace {
-  id          String      @id @default(uuid())
-  name        String
-  ownerId     String
-  owner       User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  documents   Document[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id        String     @id @default(uuid())
+  name      String
+  ownerId   String
+  owner     User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  documents Document[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   @@map("workspaces")
 }
 
-model Document {
-  id               String          @id @default(uuid())
-  workspaceId      String
-  workspace        Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  title            String
-  storagePath      String
-  mimeType         String
-  sizeBytes        Int
-  status           DocumentStatus  @default(UPLOADED)
-  chunks           DocumentChunk[]
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+// -------------------------------------------------------------
+// Courses & Materials
+// -------------------------------------------------------------
 
+model Course {
+  id          String   @id @default(uuid())
+  ownerId     String
+  owner       User     @relation("CourseOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  name        String
+  code        String?
+  description String?
+  color       String?
+  isArchived  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members           CourseMember[]
+  shares            CourseShare[]
+  documents         CourseDocument[]
+  conversations     Conversation[]
+  learningMaterials LearningMaterial[]
+  quizzes           Quiz[]
+  progress          StudentProgress[]
+  studyPlans        StudyPlan[]
+  studyGroups       StudyGroup[]
+
+  @@index([ownerId])
+  @@map("courses")
+}
+
+model CourseMember {
+  id       String           @id @default(uuid())
+  courseId String
+  course   Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     CourseMemberRole @default(STUDENT)
+  joinedAt DateTime         @default(now())
+
+  @@unique([courseId, userId])
+  @@index([userId])
+  @@map("course_members")
+}
+
+model CourseShare {
+  id               String          @id @default(uuid())
+  courseId         String
+  course           Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  sharedWithUserId String?
+  sharedWithUser   User?           @relation(fields: [sharedWithUserId], references: [id], onDelete: Cascade)
+  permission       SharePermission @default(VIEW_ONLY)
+  shareToken       String?         @unique
+  expiresAt        DateTime?
+  createdAt        DateTime        @default(now())
+
+  @@unique([courseId, sharedWithUserId])
+  @@index([courseId])
+  @@map("course_shares")
+}
+
+model CourseDocument {
+  id         String   @id @default(uuid())
+  courseId   String
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  addedById  String
+  addedBy    User     @relation(fields: [addedById], references: [id], onDelete: Cascade)
+  addedAt    DateTime @default(now())
+
+  @@unique([courseId, documentId])
+  @@index([courseId])
+  @@index([documentId])
+  @@map("course_documents")
+}
+
+// -------------------------------------------------------------
+// Central Document Library & Ingestion
+// -------------------------------------------------------------
+
+model Document {
+  id                    String             @id @default(uuid())
+  workspaceId           String?
+  workspace             Workspace?         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  ownerId               String?
+  owner                 User?              @relation("DocumentOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  title                 String
+  fileName              String?
+  storagePath           String
+  mimeType              String
+  sizeBytes             Int
+  storageProvider       StorageProvider    @default(LOCAL)
+  visibility            DocumentVisibility @default(PRIVATE)
+  status                DocumentStatus     @default(UPLOADED)
+  errorCode             String?
+  errorMessage          String?
+  pageCount             Int?
+  totalTokens           Int?
+  processingStartedAt   DateTime?
+  processingCompletedAt DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  courseDocuments     CourseDocument[]
+  sections            DocumentSection[]
+  chunks              DocumentChunk[]
+  learningMaterials   LearningMaterial[]
+  quizzes             Quiz[]
+  messageCitations    MessageCitation[]
+  materialCitations   MaterialCitation[]
+  progress            StudentProgress[]
+  studyGroupResources StudyGroupResource[]
+
+  @@index([ownerId])
+  @@index([workspaceId])
   @@map("documents")
 }
 
-model DocumentChunk {
-  id          String                   @id @default(uuid())
-  documentId  String
-  document    Document                 @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  chunkIndex  Int
-  content     String
-  embedding   Unsupported("vector(768)")?
-  createdAt   DateTime                 @default(now())
+model DocumentSection {
+  id                 String              @id @default(uuid())
+  documentId         String
+  document           Document            @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  title              String
+  chapterNumber      Int?
+  sectionNumber      Int?
+  pageNumber         Int?
+  startOffset        Int?
+  endOffset          Int?
+  parentSectionId    String?
+  parentSection      DocumentSection?    @relation("SectionHierarchy", fields: [parentSectionId], references: [id], onDelete: SetNull)
+  subsections        DocumentSection[]   @relation("SectionHierarchy")
+  chunks             DocumentChunk[]
+  progress           StudentProgress[]
+  studyScheduleItems StudyScheduleItem[]
+  createdAt          DateTime            @default(now())
 
   @@index([documentId])
+  @@map("document_sections")
+}
+
+model DocumentChunk {
+  id           String                      @id @default(uuid())
+  documentId   String
+  document     Document                    @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  sectionId    String?
+  section      DocumentSection?            @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+  chunkIndex   Int
+  content      String
+  pageNumber   Int?
+  chapter      String?
+  sectionTitle String?
+  startToken   Int?
+  endToken     Int?
+  tokenCount   Int?
+  embedding    Unsupported("vector(768)")?
+  createdAt    DateTime                    @default(now())
+
+  embeddings        ChunkEmbedding[]
+  messageCitations  MessageCitation[]
+  materialCitations MaterialCitation[]
+  quizQuestions     QuizQuestion[]
+
+  @@unique([documentId, chunkIndex])
+  @@index([documentId])
+  @@index([sectionId])
   @@map("document_chunks")
+}
+
+model ChunkEmbedding {
+  id        String                      @id @default(uuid())
+  chunkId   String
+  chunk     DocumentChunk               @relation(fields: [chunkId], references: [id], onDelete: Cascade)
+  model     String
+  dimension Int
+  embedding Unsupported("vector(768)")?
+  createdAt DateTime                    @default(now())
+
+  @@unique([chunkId, model])
+  @@index([chunkId])
+  @@map("chunk_embeddings")
+}
+
+// -------------------------------------------------------------
+// Tutoring & Generated Materials
+// -------------------------------------------------------------
+
+model Conversation {
+  id        String                @id @default(uuid())
+  userId    String
+  user      User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId  String?
+  course    Course?               @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  title     String
+  messages  ConversationMessage[]
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+
+  @@index([userId])
+  @@index([courseId])
+  @@map("conversations")
+}
+
+model ConversationMessage {
+  id             String            @id @default(uuid())
+  conversationId String
+  conversation   Conversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         MessageSender
+  content        String
+  tokenCount     Int?
+  citations      MessageCitation[]
+  createdAt      DateTime          @default(now())
+
+  @@index([conversationId])
+  @@map("conversation_messages")
+}
+
+model MessageCitation {
+  id             String              @id @default(uuid())
+  messageId      String
+  message        ConversationMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  chunkId        String?
+  chunk          DocumentChunk?      @relation(fields: [chunkId], references: [id], onDelete: SetNull)
+  documentId     String
+  document       Document            @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  quoteSnippet   String
+  pageNumber     Int?
+  chapter        String?
+  relevanceScore Float?
+  createdAt      DateTime            @default(now())
+
+  @@index([messageId])
+  @@index([chunkId])
+  @@map("message_citations")
+}
+
+model LearningMaterial {
+  id                  String               @id @default(uuid())
+  userId              String
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId            String?
+  course              Course?              @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  documentId          String?
+  document            Document?            @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  type                MaterialType
+  title               String
+  content             String
+  metadata            Json?
+  citations           MaterialCitation[]
+  flashcards          Flashcard[]
+  studyGroupResources StudyGroupResource[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  @@index([userId])
+  @@index([courseId])
+  @@index([documentId])
+  @@map("learning_materials")
+}
+
+model MaterialCitation {
+  id           String           @id @default(uuid())
+  materialId   String
+  material     LearningMaterial @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  chunkId      String?
+  chunk        DocumentChunk?   @relation(fields: [chunkId], references: [id], onDelete: SetNull)
+  documentId   String
+  document     Document         @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  quoteSnippet String
+  pageNumber   Int?
+  createdAt    DateTime         @default(now())
+
+  @@index([materialId])
+  @@index([chunkId])
+  @@map("material_citations")
+}
+
+model Flashcard {
+  id              String           @id @default(uuid())
+  materialId      String
+  material        LearningMaterial @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  front           String
+  back            String
+  hint            String?
+  repetitionLevel Int              @default(0)
+  easeFactor      Float            @default(2.5)
+  intervalDays    Int              @default(1)
+  nextReviewAt    DateTime?
+  lastReviewedAt  DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([materialId])
+  @@index([nextReviewAt])
+  @@map("flashcards")
+}
+
+// -------------------------------------------------------------
+// Assessments & Progress
+// -------------------------------------------------------------
+
+model Quiz {
+  id                  String               @id @default(uuid())
+  userId              String
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId            String?
+  course              Course?              @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  documentId          String?
+  document            Document?            @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  title               String
+  description         String?
+  difficulty          DifficultyLevel      @default(INTERMEDIATE)
+  questions           QuizQuestion[]
+  attempts            QuizAttempt[]
+  studyGroupResources StudyGroupResource[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  @@index([userId])
+  @@index([courseId])
+  @@index([documentId])
+  @@map("quizzes")
+}
+
+model QuizQuestion {
+  id             String              @id @default(uuid())
+  quizId         String
+  quiz           Quiz                @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  questionOrder  Int
+  questionType   QuestionType        @default(MULTIPLE_CHOICE)
+  prompt         String
+  expectedAnswer String
+  explanation    String?
+  sourceChunkId  String?
+  sourceChunk    DocumentChunk?      @relation(fields: [sourceChunkId], references: [id], onDelete: SetNull)
+  options        QuestionOption[]
+  attemptAnswers QuizAttemptAnswer[]
+  createdAt      DateTime            @default(now())
+
+  @@unique([quizId, questionOrder])
+  @@index([quizId])
+  @@map("quiz_questions")
+}
+
+model QuestionOption {
+  id             String              @id @default(uuid())
+  questionId     String
+  question       QuizQuestion        @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  optionOrder    Int
+  text           String
+  isCorrect      Boolean             @default(false)
+  attemptAnswers QuizAttemptAnswer[]
+
+  @@unique([questionId, optionOrder])
+  @@index([questionId])
+  @@map("question_options")
+}
+
+model QuizAttempt {
+  id             String              @id @default(uuid())
+  quizId         String
+  quiz           Quiz                @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startedAt      DateTime            @default(now())
+  completedAt    DateTime?
+  score          Float?
+  totalQuestions Int
+  correctAnswers Int?
+  isCompleted    Boolean             @default(false)
+  answers        QuizAttemptAnswer[]
+
+  @@index([quizId])
+  @@index([userId])
+  @@map("quiz_attempts")
+}
+
+model QuizAttemptAnswer {
+  id               String          @id @default(uuid())
+  attemptId        String
+  attempt          QuizAttempt     @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  questionId       String
+  question         QuizQuestion    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedOptionId String?
+  selectedOption   QuestionOption? @relation(fields: [selectedOptionId], references: [id], onDelete: SetNull)
+  submittedAnswer  String?
+  isCorrect        Boolean
+  feedback         String?
+  answeredAt       DateTime        @default(now())
+
+  @@unique([attemptId, questionId])
+  @@index([attemptId])
+  @@map("quiz_attempt_answers")
+}
+
+model StudentProgress {
+  id                String           @id @default(uuid())
+  userId            String
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId          String?
+  course            Course?          @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  documentId        String?
+  document          Document?        @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  sectionId         String?
+  section           DocumentSection? @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+  topicKey          String
+  isCompleted       Boolean          @default(false)
+  completedAt       DateTime?
+  masteryScore      Float            @default(0.0)
+  retentionStrength Float            @default(0.0)
+  lastStudiedAt     DateTime         @default(now())
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@unique([userId, documentId, topicKey])
+  @@index([userId])
+  @@index([courseId])
+  @@map("student_progress")
+}
+
+// -------------------------------------------------------------
+// Study Planning & Collaboration
+// -------------------------------------------------------------
+
+model StudyPlan {
+  id             String              @id @default(uuid())
+  userId         String
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId       String?
+  course         Course?             @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  title          String
+  targetExamDate DateTime?
+  isActive       Boolean             @default(true)
+  scheduleItems  StudyScheduleItem[]
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@index([userId])
+  @@index([courseId])
+  @@map("study_plans")
+}
+
+model StudyScheduleItem {
+  id            String           @id @default(uuid())
+  studyPlanId   String
+  studyPlan     StudyPlan        @relation(fields: [studyPlanId], references: [id], onDelete: Cascade)
+  scheduledDate DateTime
+  title         String
+  description   String?
+  sectionId     String?
+  section       DocumentSection? @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+  topicKey      String?
+  isCompleted   Boolean          @default(false)
+  completedAt   DateTime?
+  createdAt     DateTime         @default(now())
+
+  @@index([studyPlanId])
+  @@map("study_schedule_items")
+}
+
+model StudyGroup {
+  id          String   @id @default(uuid())
+  ownerId     String
+  owner       User     @relation("StudyGroupOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  courseId    String?
+  course      Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members     StudyGroupMember[]
+  invitations StudyGroupInvitation[]
+  resources   StudyGroupResource[]
+
+  @@index([ownerId])
+  @@index([courseId])
+  @@map("study_groups")
+}
+
+model StudyGroupMember {
+  id       String         @id @default(uuid())
+  groupId  String
+  group    StudyGroup     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     StudyGroupRole @default(MEMBER)
+  joinedAt DateTime       @default(now())
+
+  @@unique([groupId, userId])
+  @@index([groupId])
+  @@index([userId])
+  @@map("study_group_members")
+}
+
+model StudyGroupInvitation {
+  id           String           @id @default(uuid())
+  groupId      String
+  group        StudyGroup       @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  inviterId    String
+  inviter      User             @relation(fields: [inviterId], references: [id], onDelete: Cascade)
+  inviteeEmail String
+  role         StudyGroupRole   @default(MEMBER)
+  token        String           @unique
+  status       InvitationStatus @default(PENDING)
+  expiresAt    DateTime
+  createdAt    DateTime         @default(now())
+
+  @@index([groupId])
+  @@map("study_group_invitations")
+}
+
+model StudyGroupResource {
+  id         String            @id @default(uuid())
+  groupId    String
+  group      StudyGroup        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  sharedById String
+  sharedBy   User              @relation(fields: [sharedById], references: [id], onDelete: Cascade)
+  documentId String?
+  document   Document?         @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  materialId String?
+  material   LearningMaterial? @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  quizId     String?
+  quiz       Quiz?             @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  permission SharePermission   @default(VIEW_ONLY)
+  sharedAt   DateTime          @default(now())
+
+  @@index([groupId])
+  @@map("study_group_resources")
 }
