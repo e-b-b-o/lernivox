@@ -1,31 +1,122 @@
-# OS files
+# ==============================================================================
+# Lernivox Root .gitignore
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Dependencies
+# ------------------------------------------------------------------------------
+node_modules/
+**/node_modules/
+.pnpm-store/
+
+# ------------------------------------------------------------------------------
+# Build Output & Generated Artifacts
+# ------------------------------------------------------------------------------
+.next/
+**/.next/
+out/
+**/out/
+dist/
+**/dist/
+build/
+**/build/
+coverage/
+**/coverage/
+.turbo/
+**/.turbo/
+*.tsbuildinfo
+**/*.tsbuildinfo
+
+# ------------------------------------------------------------------------------
+# Environment Files & Secrets
+# ------------------------------------------------------------------------------
+.env
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example
+!.env.*.example
+!.env.template
+
+# Private keys and credentials
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+*.jks
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+
+# ------------------------------------------------------------------------------
+# Logs & Temporary Files
+# ------------------------------------------------------------------------------
+*.log
+logs/
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# ------------------------------------------------------------------------------
+# Local Uploads, Databases, Storage & Infrastructure Data
+# ------------------------------------------------------------------------------
+uploads/
+**/uploads/
+local-uploads/
+**/local-uploads/
+storage/uploads/
+data/uploads/
+chroma_db/
+**/chroma_db/
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+.docker/
+
+# ------------------------------------------------------------------------------
+# Testing, Tooling, Editors & Deployment
+# ------------------------------------------------------------------------------
+.nyc_output/
+playwright-report/
+test-results/
+
+.vercel/
+.netlify/
+
+.cache/
+**/.cache/
+.eslintcache
+
+# OS artifacts
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 Desktop.ini
 
-# Editor directories
-.vscode/
+# Editor-specific artifacts (preserve shared configurations)
 .idea/
-
-# Environment variables
-.env
-!.env.example
-
-# Dependencies
-node_modules/
-venv/
-__pycache__/
-
-# Build output
-dist/
-build/
-.next/
-.turbo/
-
-# Data / runtime
-chroma_db/
-uploads/
-*.log
-
-# Docker
-.docker/
+*.sublime-project
+*.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
