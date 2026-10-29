@@ -103,7 +103,7 @@ Lernivox transforms textbooks and lecture documents into an interactive, high-re
    - Do not introduce unnecessary dependencies, third-party libraries, or over-engineered abstractions.
 4. **Safety & Non-Destructive Operations**:
    - Never run destructive Git commands (e.g., `git reset --hard`, `git clean -f -d`, `git push --force`) without explicit user instruction.
-   - Never discard, overwrite, or reset user changes or working prototype code.
+   - Never discard, overwrite, or reset uncommitted user changes or working code without explicit authorization.
    - Never drop database tables or run destructive database migrations without explicit authorization.
 
 ---

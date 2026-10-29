@@ -22,8 +22,11 @@ lernivox/
 ├── infra/
 │   └── docker/                  # Local PostgreSQL (pgvector) and Redis Compose setup
 ├── docs/                        # Architecture, product, design, and decision records
-├── frontend/                    # Legacy prototype reference (preserved undisturbed)
-└── backend/                     # Legacy prototype reference (preserved undisturbed)
+├── .nvmrc                       # Node.js version lock (Node 24)
+├── package.json                 # Monorepo root scripts & dev dependencies
+├── pnpm-workspace.yaml          # Workspace definitions
+├── pnpm-lock.yaml               # Deterministic dependency lockfile
+└── turbo.json                   # Turborepo task pipeline configuration
 ```
 
 ---
@@ -97,11 +100,4 @@ pnpm build
 - **Health Check Endpoint**: `http://localhost:4000/api/v1/health`
 - **Interactive Swagger Docs**: `http://localhost:4000/api/docs`
 
----
 
-## Legacy Prototype Reference
-
-The original proof-of-concept remains preserved for implementation reference:
-- Legacy Frontend: `frontend/` (React + Vite)
-- Legacy Backend: `backend/` (Express + Mongoose + MongoDB)
-- Legacy RAG Service: `backend/rag/` (Python Flask + ChromaDB)
