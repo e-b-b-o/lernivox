@@ -4,11 +4,14 @@ import { BullModule } from '@nestjs/bullmq';
 import { QueueName } from '@lernivox/contracts';
 import { DocumentIngestionProcessor } from './processors/document-ingestion.processor';
 import { WorkerHealthService } from './health/worker-health.service';
+import { PrismaModule } from './prisma/prisma.module';
+import { StorageModule } from './storage/storage.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: ['.env', '../../.env'],
     }),
     BullModule.forRootAsync({
       imports: [ConfigModule],
@@ -16,7 +19,6 @@ import { WorkerHealthService } from './health/worker-health.service';
         connection: {
           host: configService.get<string>('REDIS_HOST', 'localhost'),
           port: configService.get<number>('REDIS_PORT', 6379),
-          // Fail gracefully if redis is not running during simple CLI checks
           lazyConnect: true,
           maxRetriesPerRequest: null,
           enableReadyCheck: false,
@@ -27,6 +29,8 @@ import { WorkerHealthService } from './health/worker-health.service';
     BullModule.registerQueue({
       name: QueueName.DOCUMENT_INGESTION,
     }),
+    PrismaModule,
+    StorageModule,
   ],
   providers: [DocumentIngestionProcessor, WorkerHealthService],
 })
