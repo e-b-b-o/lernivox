@@ -3,18 +3,35 @@
 @tailwind utilities;
 
 :root {
-  --bg-cream: #f4f0e5;
-  --bg-cream-light: #faf7f3;
-  --text-forest: #14261d;
-  --text-muted: #45564b;
-  --accent-terracotta: #e8722c;
-  --border-stone: #eae4d3;
+  --bg-cream: #FAF7F2;
+  --bg-cream-light: #FDFBF7;
+  --text-forest: #14261D;
+  --text-muted: #4C5952;
+  --accent-terracotta: #C25E3B;
+  --accent-peach: #FBE9DD;
+  --border-stone: #EBE5DA;
 }
 
 body {
   background-color: var(--bg-cream);
   color: var(--text-forest);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font-instrument), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+

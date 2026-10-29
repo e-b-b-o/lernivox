@@ -10,6 +10,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@lernivox/contracts": "workspace:*",
     "lucide-react": "^0.475.0",
     "next": "15.3.9",
     "react": "^19.0.0",

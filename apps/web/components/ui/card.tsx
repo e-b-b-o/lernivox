@@ -7,7 +7,7 @@ export function Card({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={`rounded-2xl border border-lernivox-stone bg-lernivox-cream-light p-6 shadow-sm ${className}`}
+      className={`rounded-[2rem] border border-stone-200/80 bg-white/80 backdrop-blur-md p-8 md:p-10 shadow-card transition-all duration-300 ${className}`}
       {...props}
     >
       {children}
@@ -21,7 +21,7 @@ export function CardHeader({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={`mb-4 flex flex-col space-y-1.5 ${className}`} {...props}>
+    <div className={`mb-6 flex flex-col space-y-2 ${className}`} {...props}>
       {children}
     </div>
   );
@@ -34,7 +34,7 @@ export function CardTitle({
 }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h3
-      className={`text-xl font-bold tracking-tight text-lernivox-forest ${className}`}
+      className={`font-display text-2xl font-bold tracking-tight text-lernivox-forest ${className}`}
       {...props}
     >
       {children}
@@ -48,8 +48,9 @@ export function CardContent({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={`text-lernivox-forest-muted ${className}`} {...props}>
+    <div className={`text-stone-600 leading-relaxed ${className}`} {...props}>
       {children}
     </div>
   );
 }
+
