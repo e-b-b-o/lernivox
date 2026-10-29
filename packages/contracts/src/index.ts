@@ -2,6 +2,9 @@
  * Shared job and event contract definitions for Lernivox.
  */
 
+export * from './auth';
+export * from './documents';
+
 export enum QueueName {
   DOCUMENT_INGESTION = 'document-ingestion',
   AI_ORCHESTRATION = 'ai-orchestration',
@@ -24,7 +27,7 @@ export enum JobStatus {
 
 export interface DocumentIngestionJobPayload {
   documentId: string;
-  workspaceId: string;
+  workspaceId?: string;
   userId: string;
   storagePath: string;
   originalFileName: string;
