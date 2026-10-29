@@ -58,29 +58,81 @@ export default function MarketingPage() {
       {/* ======================================================== */}
       {/* SECTION 1: HERO & UPLOAD ENTRY POINT */}
       {/* ======================================================== */}
-      <section className="relative overflow-hidden pt-20 pb-28 md:pt-32 md:pb-44">
-        {/* Subtle decorative background gradient circles */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-lernivox-peach/30 rounded-full blur-3xl pointer-events-none -z-10" />
+      <section className="relative overflow-hidden pt-[120px] lg:pt-[146px] pb-12">
+        {/* Subtle decorative background gradient glow */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-[#F9D8C0]/30 rounded-full blur-3xl pointer-events-none -z-10" />
 
-        <div className="mx-auto max-w-[1440px] px-6 md:px-12 xl:px-16 text-center">
-          {/* Subtitle Pill Badge */}
-          <div className="inline-flex items-center gap-2.5 rounded-full border border-stone-200/80 bg-white/85 backdrop-blur-sm px-5 py-2 text-xs md:text-sm font-semibold text-lernivox-forest mb-8 shadow-subtle">
-            <span className="h-2.5 w-2.5 rounded-full bg-lernivox-terracotta animate-ping" />
-            <span className="h-2.5 w-2.5 rounded-full bg-lernivox-terracotta -ml-4" />
-            Source-Grounded Academic Intelligence
-          </div>
+        <div className="mx-auto max-w-[1380px] px-6 md:px-10 text-center">
+          {/* Main Headline */}
+          <h1 className="font-display font-black text-6xl md:text-8xl lg:text-[103px] leading-[0.98] tracking-[-0.03em] text-[#14261D] max-w-6xl mx-auto">
+            Turn your textbooks
+            <span className="block mt-2 md:mt-3">
+              into real{' '}
+              <span className="relative inline-block rotate-[3.5deg] origin-bottom-left text-[#497E64] pb-2 md:pb-3 select-none">
+                understanding.
+                {/* Top-Right Accent Ticks (//) in #E8722C */}
+                <span className="absolute -top-3 md:-top-5 -right-6 md:-right-8 w-6 h-6 md:w-8 md:h-8 pointer-events-none select-none text-[#E8722C]">
+                  <svg
+                    viewBox="0 0 28 28"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-full h-full"
+                  >
+                    <path
+                      d="M 7 21 L 13 7"
+                      stroke="currentColor"
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M 17 23 L 23 9"
+                      stroke="currentColor"
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </span>
 
-          {/* Headline */}
-          <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight text-lernivox-forest max-w-5xl mx-auto leading-[1.04]">
-            Turn your textbooks into{' '}
-            <span className="font-serif italic font-normal text-lernivox-terracotta">
-              real understanding
+                {/* Bottom Decor: Multiple Sketch Underline Lines in #E8722C */}
+                <span className="absolute -bottom-3 md:-bottom-5 left-0 w-[102%] h-4 md:h-6 pointer-events-none select-none text-[#E8722C]">
+                  <svg
+                    viewBox="0 0 320 22"
+                    fill="none"
+                    preserveAspectRatio="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-full h-full overflow-visible"
+                  >
+                    {/* Primary top sketch line */}
+                    <path
+                      d="M 4 8 C 80 4, 200 4.5, 314 9.5"
+                      stroke="currentColor"
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                    />
+                    {/* Secondary lower sketch line */}
+                    <path
+                      d="M 22 15.5 C 95 11, 220 11.5, 290 17"
+                      stroke="currentColor"
+                      strokeWidth="2.8"
+                      strokeLinecap="round"
+                      opacity="0.9"
+                    />
+                    {/* Subtle third sketch accent */}
+                    <path
+                      d="M 45 20 C 110 17, 180 18, 230 20.5"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      opacity="0.6"
+                    />
+                  </svg>
+                </span>
+              </span>
             </span>
-            .
           </h1>
 
-          {/* Subtitle */}
-          <p className="mx-auto mt-8 max-w-3xl text-lg sm:text-xl md:text-2xl text-stone-600 leading-relaxed font-normal">
+          {/* Subheadline */}
+          <p className="font-sans font-normal text-lg md:text-xl lg:text-[20px] text-[#14261D]/75 max-w-3xl mx-auto text-center leading-relaxed mt-7">
             Upload course materials, lecture slides, or textbook chapters. Lernivox breaks complex subjects into guided explanations, worked methods, and verified practice—grounded directly in your source documents.
           </p>
 
