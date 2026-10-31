@@ -146,9 +146,9 @@ export function HeroUpload() {
   };
 
   return (
-    <section id="how-it-works" className="relative w-full bg-[#EAE4D3] scroll-mt-[86px] overflow-hidden">
+    <section id="how-it-works" className="relative w-full max-w-full bg-[#EAE4D3] scroll-mt-0 overflow-hidden">
       {/* Pixel-Perfect Cloud Canopy Divider (Exact BrightPath Reference) */}
-      <div className="w-full overflow-hidden leading-none select-none pointer-events-none relative bg-[#F4F0E5]">
+      <div className="w-full max-w-full overflow-hidden leading-none select-none pointer-events-none relative bg-[#F4F0E5]">
         <div
           className="w-full h-[64px] sm:h-[72px] md:h-[78px]"
           style={{
@@ -161,7 +161,7 @@ export function HeroUpload() {
         />
       </div>
 
-      <div className="w-full max-w-[1380px] mx-auto px-6 md:px-10 pt-16 md:pt-24 pb-28 md:pb-36">
+      <div className="w-full max-w-[1380px] mx-auto px-4 sm:px-6 md:px-10 pt-12 sm:pt-16 md:pt-24 pb-20 sm:pb-28 md:pb-36">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
           
           {/* Left Side (5 Columns / lg:col-span-5) — Editorial Context & Value Steps */}
@@ -172,7 +172,7 @@ export function HeroUpload() {
             </span>
 
             {/* Left Column Heading */}
-            <h2 className="font-display font-extrabold text-4xl md:text-5xl lg:text-[54px] text-[#14261D] tracking-tight leading-[1.08] mb-8">
+            <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-[54px] text-[#14261D] tracking-tight leading-[1.08] mb-8">
               From dense PDFs to clear, guided{' '}
               <span
                 className="relative inline-block text-[#497E64] ml-1 select-none"
@@ -186,7 +186,7 @@ export function HeroUpload() {
 
                 {/* Multi-Stroke Hand-Drawn Marker Underline in #E8722C */}
                 <svg
-                  className="absolute -bottom-3 left-0 w-[105%] h-[16px] text-[#E8722C] pointer-events-none overflow-visible"
+                  className="absolute -bottom-3 left-0 w-full h-[12px] sm:h-[16px] text-[#E8722C] pointer-events-none overflow-visible"
                   viewBox="0 0 320 16"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
@@ -259,20 +259,20 @@ export function HeroUpload() {
           </div>
 
           {/* Right Side (7 Columns / lg:col-span-7) — Tactile Framer Upload Card */}
-          <div className="lg:col-span-7">
+          <div className="lg:col-span-7 w-full max-w-full">
             <div
               id="upload-card"
-              className="bg-[#FAF8F4] border-[2px] border-[#1B3428] rounded-[28px] shadow-[0_6px_0_0_#1B3428] p-6 md:p-8 transition-all duration-200"
+              className="w-full max-w-full bg-[#FAF8F4] border-[2px] border-[#1B3428] rounded-[24px] sm:rounded-[32px] shadow-[0_4px_0_0_#1B3428] sm:shadow-[0_6px_0_0_#1B3428] p-4 sm:p-6 md:p-8 transition-all duration-200"
             >
               {/* Tab Switcher ("Upload Document" vs "Paste Study Notes") */}
-              <div className="bg-[#EAE4D3] p-1.5 rounded-full border border-[#1B3428]/20 mb-6 flex items-center">
+              <div className="w-full flex items-center p-1 bg-[#EAE4D3] rounded-full mb-6 border border-[#1B3428]/15">
                 <button
                   type="button"
                   onClick={() => {
                     setActiveTab('file');
                     setErrorMessage(null);
                   }}
-                  className={`flex-1 rounded-full font-sans text-sm font-medium py-2 px-6 transition-all text-center select-none ${
+                  className={`w-1/2 py-2 px-2 text-xs sm:text-sm font-semibold rounded-full transition-all text-center select-none truncate ${
                     activeTab === 'file'
                       ? 'bg-[#1B3428] text-white shadow-[0_2px_0_0_#497E64]'
                       : 'text-[#14261D]/70 hover:text-[#14261D]'
@@ -286,7 +286,7 @@ export function HeroUpload() {
                     setActiveTab('text');
                     setErrorMessage(null);
                   }}
-                  className={`flex-1 rounded-full font-sans text-sm font-medium py-2 px-6 transition-all text-center select-none ${
+                  className={`w-1/2 py-2 px-2 text-xs sm:text-sm font-semibold rounded-full transition-all text-center select-none truncate ${
                     activeTab === 'text'
                       ? 'bg-[#1B3428] text-white shadow-[0_2px_0_0_#497E64]'
                       : 'text-[#14261D]/70 hover:text-[#14261D]'
@@ -323,7 +323,7 @@ export function HeroUpload() {
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
-                    className={`cursor-pointer rounded-2xl border-[2px] border-dashed p-8 text-center transition-colors duration-200 ${
+                    className={`cursor-pointer rounded-2xl border-[2px] border-dashed p-5 sm:p-8 flex flex-col items-center justify-center text-center transition-colors duration-200 ${
                       isDragging
                         ? 'border-[#E8722C] bg-[#F9D8C0]/30'
                         : selectedFile
@@ -339,8 +339,8 @@ export function HeroUpload() {
                       className="hidden"
                     />
 
-                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F9D8C0] text-[#E8722C] mb-4 shadow-sm">
-                      <UploadCloud className="h-7 w-7" />
+                    <div className="mx-auto flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-[#F9D8C0] text-[#E8722C] mb-3 sm:mb-4 shadow-sm">
+                      <UploadCloud className="h-6 w-6 sm:h-7 sm:w-7" />
                     </div>
 
                     {selectedFile ? (
@@ -363,7 +363,7 @@ export function HeroUpload() {
                         <p className="text-xs md:text-sm text-[#14261D]/70 mt-1.5 font-sans">
                           Drag and drop your file, or click to browse (up to 25 MB)
                         </p>
-                        <div className="mt-4 flex items-center justify-center gap-2">
+                        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
                           <span className="rounded-full border border-[#1B3428]/15 bg-white px-3 py-1 text-xs font-semibold text-[#14261D] shadow-sm font-sans">
                             PDF
                           </span>
@@ -468,20 +468,22 @@ export function HeroUpload() {
                   </div>
                 ) : (
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <p className="font-sans text-xs text-[#14261D]/70 text-center sm:text-left">
+                    <p className="font-sans text-xs text-[#14261D]/60 text-center sm:text-left">
                       Free student account required to index files.
                     </p>
 
-                    <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                    <div className="w-full sm:w-auto flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3">
+                      {/* Sign In Button */}
                       <Link
                         href="/login"
-                        className="w-full sm:w-auto h-[42px] px-6 rounded-full bg-[#F4F0E5] text-[#14261D] border border-[#1B3428] font-sans text-sm font-semibold shadow-[0_3px_0_0_#1B3428] hover:-translate-y-[1px] hover:shadow-[0_4px_0_0_#1B3428] active:translate-y-[2px] active:shadow-[0_1px_0_0_#1B3428] transition-all inline-flex items-center justify-center select-none"
+                        className="w-full sm:w-auto py-2.5 px-6 rounded-full bg-transparent text-[#14261D] font-display font-bold text-sm border-[1.5px] border-[#1B3428] shadow-[0_2px_0_0_#1B3428] active:translate-y-0.5 active:shadow-none hover:bg-black/5 transition-all text-center select-none"
                       >
                         Sign In
                       </Link>
+                      {/* Create Free Account Button */}
                       <Link
                         href="/register"
-                        className="w-full sm:w-auto h-[42px] px-6 rounded-full bg-[#E8722C] text-white font-sans text-sm font-semibold shadow-[0_3px_0_0_#B26E45] hover:-translate-y-[1px] hover:shadow-[0_4px_0_0_#B26E45] active:translate-y-[2px] active:shadow-[0_1px_0_0_#B26E45] transition-all inline-flex items-center justify-center select-none whitespace-nowrap"
+                        className="w-full sm:w-auto py-2.5 px-6 rounded-full bg-[#E8722C] text-white font-display font-bold text-sm shadow-[0_3px_0_0_#1B3428] active:translate-y-0.5 active:shadow-none hover:bg-[#D66522] transition-all text-center select-none whitespace-nowrap"
                       >
                         Create Free Account
                       </Link>
