@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Bricolage_Grotesque, Instrument_Sans } from 'next/font/google';
 import { AuthProvider } from '../context/AuthContext';
 import '../styles/globals.css';
@@ -17,6 +17,12 @@ const instrument = Instrument_Sans({
   display: 'swap',
 });
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+};
+
 export const metadata: Metadata = {
   title: 'Lernivox — Turn Your Textbooks into Real Understanding',
   description:
@@ -29,8 +35,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${bricolage.variable} ${instrument.variable} scroll-smooth`}>
-      <body className="font-sans bg-[#F4F0E5] text-[#14261D] antialiased selection:bg-[#F9D8C0] selection:text-[#14261D] overflow-x-hidden">
+    <html lang="en" className={`${bricolage.variable} ${instrument.variable} scroll-smooth overflow-x-clip`}>
+      <body className="font-sans bg-[#F4F0E5] text-[#14261D] antialiased selection:bg-[#F9D8C0] selection:text-[#14261D] overflow-x-clip">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
