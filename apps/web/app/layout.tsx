@@ -30,7 +30,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${bricolage.variable} ${instrument.variable} scroll-smooth`}>
-      <body className="font-sans bg-[#F6F4EE] text-[#14261D] antialiased selection:bg-[#F9D8C0] selection:text-[#14261D]">
+      <body className="font-sans bg-[#F4F0E5] text-[#14261D] antialiased selection:bg-[#F9D8C0] selection:text-[#14261D] overflow-x-hidden">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
