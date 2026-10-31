@@ -47,12 +47,12 @@ export function Navbar() {
   }, []);
 
   return (
-    <header className="w-full bg-[#F4F0E5] py-[20px] h-[86px] sticky top-0 z-50 border-none transition-colors">
-      <div className="max-w-[1440px] h-[46px] px-[30px] mx-auto flex items-center justify-center">
-        <div className="w-full max-w-[1380px] h-[46px] flex items-center justify-between gap-4 lg:gap-[100px]">
+    <header className="w-full bg-[#F4F0E5] py-3 md:py-[20px] h-[72px] md:h-[86px] sticky top-0 z-50 border-none transition-colors">
+      <div className="max-w-[1440px] h-[46px] px-4 sm:px-6 md:px-[30px] mx-auto flex items-center justify-center">
+        <div className="w-full max-w-[1380px] h-[46px] flex items-center justify-between gap-2 sm:gap-4 lg:gap-[100px]">
           
-          {/* Zone 1 — Left (Logo Lockup: 236x32) */}
-          <div className="w-[236px] min-w-[236px] h-[32px] flex items-center shrink-0">
+          {/* Zone 1 — Left (Logo Lockup: responsive on mobile, 236x32 on desktop) */}
+          <div className="w-auto min-w-0 md:w-[236px] md:min-w-[236px] h-[32px] flex items-center shrink-0">
             <Link href="/" className="h-[32px] inline-flex items-center gap-[10px] group">
               <div className="w-[32px] h-[32px] rounded-[8px] bg-[#E8722C] text-white flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105">
                 <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -99,8 +99,8 @@ export function Navbar() {
             })}
           </nav>
 
-          {/* Zone 3 — Right (Sign In + "Get started" Button: 236x46, gap 20px) */}
-          <div className="flex items-center justify-end shrink-0 gap-[20px] md:w-[236px] md:min-w-[236px] h-[46px]">
+          {/* Zone 3 — Right (Sign In + "Get started" Button: responsive, gap 20px on desktop) */}
+          <div className="flex items-center justify-end shrink-0 gap-2 sm:gap-[20px] md:w-[236px] md:min-w-[236px] h-[46px]">
             {isAuthenticated ? (
               <div className="hidden md:flex items-center gap-[16px]">
                 <Link
@@ -137,11 +137,11 @@ export function Navbar() {
             )}
 
             {/* Mobile Menu Toggle Button */}
-            <div className="flex md:hidden">
+            <div className="flex md:hidden shrink-0">
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="rounded-full border border-stone-300 bg-white/80 p-2.5 text-[#14261D] hover:bg-white hover:text-[#E8722C] transition"
+                className="shrink-0 rounded-full border border-stone-300 bg-white/90 p-2 text-[#14261D] hover:bg-white hover:text-[#E8722C] transition-colors focus:outline-none"
                 aria-label="Toggle navigation menu"
               >
                 {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
