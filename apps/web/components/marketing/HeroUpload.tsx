@@ -146,8 +146,22 @@ export function HeroUpload() {
   };
 
   return (
-    <section id="how-it-works" className="w-full bg-[#F4F0E5] border-t border-[#EAE4D3]">
-      <div className="w-full max-w-[1380px] mx-auto px-6 md:px-10 py-24 md:py-32 bg-[#F4F0E5]">
+    <section id="how-it-works" className="relative w-full bg-[#EAE4D3] scroll-mt-[86px] overflow-hidden">
+      {/* Pixel-Perfect Cloud Canopy Divider (Exact BrightPath Reference) */}
+      <div className="w-full overflow-hidden leading-none select-none pointer-events-none relative bg-[#F4F0E5]">
+        <div
+          className="w-full h-[64px] sm:h-[72px] md:h-[78px]"
+          style={{
+            backgroundImage: "url('/assets/cloud-divider.svg')",
+            backgroundRepeat: 'repeat-x',
+            backgroundPosition: 'center top',
+            backgroundSize: '1248px auto',
+          }}
+          aria-hidden="true"
+        />
+      </div>
+
+      <div className="w-full max-w-[1380px] mx-auto px-6 md:px-10 pt-16 md:pt-24 pb-28 md:pb-36">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
           
           {/* Left Side (5 Columns / lg:col-span-5) — Editorial Context & Value Steps */}
@@ -157,9 +171,60 @@ export function HeroUpload() {
               Interactive Workspace
             </span>
 
-            {/* Heading */}
-            <h2 className="font-display text-4xl md:text-5xl font-extrabold text-[#14261D] tracking-tight leading-[1.08] mb-6">
-              From dense PDFs to clear, guided mastery.
+            {/* Left Column Heading */}
+            <h2 className="font-display font-extrabold text-4xl md:text-5xl lg:text-[54px] text-[#14261D] tracking-tight leading-[1.08] mb-8">
+              From dense PDFs to clear, guided{' '}
+              <span
+                className="relative inline-block text-[#497E64] ml-1 select-none"
+                style={{
+                  transform: 'translateY(-3px) rotate(2.2deg)',
+                  transformOrigin: 'bottom right',
+                  display: 'inline-block'
+                }}
+              >
+                mastery.
+
+                {/* Multi-Stroke Hand-Drawn Marker Underline in #E8722C */}
+                <svg
+                  className="absolute -bottom-3 left-0 w-[105%] h-[16px] text-[#E8722C] pointer-events-none overflow-visible"
+                  viewBox="0 0 320 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  preserveAspectRatio="none"
+                >
+                  <path
+                    d="M 4 8 C 70 3, 200 4, 315 7"
+                    stroke="currentColor"
+                    strokeWidth="3.2"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M 16 12 C 100 6, 230 11, 300 5"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    opacity="0.85"
+                  />
+                  <path
+                    d="M 45 10 C 120 6, 190 8, 250 11"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    opacity="0.6"
+                  />
+                </svg>
+
+                {/* Spark Ticks (//) top-right in #E8722C */}
+                <svg
+                  className="absolute -top-3.5 -right-6 w-5 h-5 text-[#E8722C] pointer-events-none rotate-[10deg]"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M4 14L8 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                  <path d="M12 16L16 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                </svg>
+              </span>
             </h2>
 
             {/* 3 Numbered Workflow Steps */}
@@ -200,7 +265,7 @@ export function HeroUpload() {
               className="bg-[#FAF8F4] border-[2px] border-[#1B3428] rounded-[28px] shadow-[0_6px_0_0_#1B3428] p-6 md:p-8 transition-all duration-200"
             >
               {/* Tab Switcher ("Upload Document" vs "Paste Study Notes") */}
-              <div className="bg-[#F4F0E5] p-1.5 rounded-full border border-[#1B3428]/15 mb-6 flex items-center">
+              <div className="bg-[#EAE4D3] p-1.5 rounded-full border border-[#1B3428]/20 mb-6 flex items-center">
                 <button
                   type="button"
                   onClick={() => {
@@ -263,7 +328,7 @@ export function HeroUpload() {
                         ? 'border-[#E8722C] bg-[#F9D8C0]/30'
                         : selectedFile
                           ? 'border-[#497E64] bg-[#497E64]/10'
-                          : 'border-[#497E64]/40 bg-[#F4F0E5]/60 hover:border-[#E8722C]'
+                          : 'border-[#497E64]/40 bg-[#EAE4D3]/50 hover:border-[#E8722C]'
                     }`}
                   >
                     <input

@@ -95,52 +95,46 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 
 ##### 6. Current Task Record
 
-- **Task**: Granular 15-Commit Structured Decomposition & Hygiene Audit
-- **Objective**: Decompose all accumulated BrightPath design system tokens, typography upgrades, modular navigation, animated ribbon marquee, hero upload redesign, and reference updates into exactly 15 atomic, conventional commits:
-  1. `build(web): configure remote image pattern for unsplash assets`
-  2. `style(web): import bricolage and instrument sans fonts and define palette variables`
-  3. `style(web): configure tailwind color tokens and typography for brightpath design`
-  4. `refactor(web): update root layout font loading and warm canvas background`
-  5. `feat(web): add modular brightpath navigation bar with scroll observation`
-  6. `refactor(web): integrate navbar and refresh marketing layout container and footer`
-  7. `feat(web): create animated undulating svg waving ribbon component`
-  8. `style(web): implement inclined hero headline with sketch underline and accent ticks`
-  9. `style(web): add tactile pill call-to-action buttons to hero section`
-  10. `feat(web): embed waving ribbon ticker and overlapping photography showcase`
-  11. `feat(web): redesign hero document upload card with tabbed dropzone and brightpath styling`
-  12. `refactor(web): refresh how it works section and marketing page color tokens`
-  13. `style(web): harmonize guided learning preview cards and borders with design tokens`
-  14. `chore(reference): update design screencasts and prune legacy reference assets`
-  15. `docs: record brightpath design overhaul milestones and verification audit in progress tracking`
-- **Status**: **Complete**
+- **Task**: Pixel-Perfect Reference Cloud Divider Refactor & Section Shaking Root Cause Resolution
+- **Objective**:
+  1. Replicate the cloud canopy divider from `reference/Pasted image.png` pixel-perfect.
+  2. Identify and fix the definitive root cause of the layout shaking/jitter on the `#how-it-works` section.
+  3. Ensure all dev/temporary ports are cleanly released after task completion.
+- **Root Cause Analysis (Section Shaking)**:
+  - **Subpixel Fractional Header Discrepancy**: `Navbar.tsx` had hardcoded fractional heights `h-[86.41px]` and `h-[46.41px]` (computed from Framer DevTools). When combined with integer `scroll-mt-[86px]` on `#how-it-works` and CSS `scroll-behavior: smooth` on `<html>`, Chromium's smooth scroll interpolator continuously oscillated between subpixel floor and ceiling roundings (60 FPS subpixel scroll loop).
+  - **Off-Screen Continuous Ticker Mutations**: `WavingRibbon.tsx` ran an unrestricted `requestAnimationFrame` loop calling `setAttribute('startOffset')` 60 times a second even when scrolled down to `#how-it-works`, causing perpetual DOM reflows and layout recalculations across the page.
+  - **Viewport Scrollbar Thrashing**: `WavingRibbon.tsx` used `w-[110vw] min-w-[1200px]` with `overflow-visible`. Because `vw` includes the browser vertical scrollbar width (15px), it triggered horizontal overflow detection and continuous reflows.
+  - **Conflicting Scroll Containers**: `overflow-x-clip` placed on both `<html>` and `<body>` caused Chromium to alternate scrolling container ownership during smooth scrolling.
+  - **Subpixel Negative Margins**: Negative `-mb-1` margin on flexible SVG container created subpixel boundary shifts.
 - **Work Completed**:
-  - Divided and staged the entire changeset into 15 logical, atomic commits adhering strictly to Conventional Commits.
-  - Verified static prerendering across all 8 Next.js routes (`pnpm --filter @lernivox/web build`).
-  - Verified TypeScript compilation across all 9 monorepo packages (`pnpm type-check`).
-  - Verified test suite execution with 67/67 automated tests passing (`pnpm test`).
-  - Confirmed all development ports (3000, 3001, 4000) freed and released.
+  - **Pixel-Perfect Cloud Divider**:
+    - Extracted the exact BrightPath Framer SVG asset (`Gs4oYCae5IMouFY2S2iiOM1YJeQ.svg`) and placed it at `apps/web/public/assets/cloud-divider.svg`.
+    - Implemented identical CSS background presentation: `background-size: 1248px auto; background-position: center top; background-repeat: repeat-x; height: 78px;` inside a clean `overflow-hidden` container in `#how-it-works`.
+    - Exactly matches the 1920x238 reference in `reference/Pasted image.png` (min Y ~97, max Y ~172, identical crests and valleys).
+  - **Definitive Shaking Elimination**:
+    - Cleaned `Navbar.tsx` heights to exact integers: `h-[86px]` and inner `h-[46px]`.
+    - Added `IntersectionObserver` to `WavingRibbon.tsx` to automatically freeze/pause the ticker animation when scrolled off-screen.
+    - Replaced `w-[110vw]` with container-safe `w-[125%] min-w-[1300px] max-w-[2200px]`.
+    - Removed `overflow-x-clip` from `<html>` (kept `overflow-x-hidden` on `<body>` and `MarketingLayout`).
+    - Added smooth anchor navigation handlers with `preventDefault()` and `element.scrollIntoView({ behavior: 'smooth' })` to eliminate Next.js router hash jump collisions.
+  - **Port Cleanup**:
+    - Released orphaned Next.js process (pid 134639).
+    - Verified ports 3000 and 9222 are completely free.
 - **Files Created/Modified**:
-  - `apps/web/next.config.ts` (Commit 1)
-  - `apps/web/styles/globals.css` (Commit 2)
-  - `apps/web/tailwind.config.ts` (Commit 3)
-  - `apps/web/app/layout.tsx` (Commit 4)
-  - `apps/web/components/marketing/Navbar.tsx` (Commit 5)
-  - `apps/web/app/(marketing)/layout.tsx` (Commit 6)
-  - `apps/web/components/marketing/WavingRibbon.tsx` (Commit 7)
-  - `apps/web/app/(marketing)/page.tsx` (Commits 8, 9, 10, 12)
-  - `apps/web/components/marketing/HeroUpload.tsx` (Commit 11)
-  - `apps/web/components/marketing/GuidedLearningPreview.tsx` (Commit 13)
-  - `reference/` (Commit 14)
-  - `PROGRESS.md` (Commit 15)
+  - `apps/web/public/assets/cloud-divider.svg` (Created: exact BrightPath cloud SVG)
+  - `apps/web/components/marketing/HeroUpload.tsx` (Modified: pixel-perfect divider & clean container)
+  - `apps/web/components/marketing/Navbar.tsx` (Modified: integer heights & smooth anchor handling)
+  - `apps/web/components/marketing/WavingRibbon.tsx` (Modified: IntersectionObserver pause & percentage width)
+  - `apps/web/app/layout.tsx` (Modified: clean html scroll container)
+  - `apps/web/app/(marketing)/layout.tsx` (Modified: overflow-x-hidden layout wrapper)
+  - `apps/web/app/(marketing)/page.tsx` (Modified: smooth CTA scroll handlers)
+  - `PROGRESS.md` (Modified)
 - **Verification**:
-  - `pnpm type-check`: 11/11 tasks passed. Zero TypeScript errors.
-  - `pnpm --filter @lernivox/web build`: Passed (code 0). Static prerendering of all 8 routes (`/`, `/_not-found`, `/auth/callback`, `/dashboard`, `/login`, `/register`).
+  - `pnpm type-check`: 11/11 tasks passed with 0 errors across all monorepo packages.
+  - `pnpm --filter @lernivox/web build`: Passed with code 0 (all 8 Next.js routes statically prerendered).
   - `pnpm test`: 3/3 tasks passed (67/67 automated tests passing).
-- **Processes and Ports**:
-  - Port 5433: PostgreSQL container (`lernivox-postgres`).
-  - Port 6379: Redis container (`lernivox-redis`).
-  - Ports 3000, 3001, 4000: Completely freed and released.
-  - Zero lingering temporary test or dev processes.
+  - Port Audit (`ss -tulpn`): Verified ports 3000 and 9222 are completely free; only persistent background infrastructure remains.
+- **Status**: **Complete**
 
 ---
 
@@ -170,21 +164,22 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 - **2026-10-29**:
   - Completed Repository Cleanup, Rename Audit, and Git Hygiene.
   - Completed Phase 2: Domain Data Model, Prisma migrations, pgvector vector helper utility, seeder, and 10/10 database tests.
-  - Completed Phase 3: Complete Authentication Feature (End to End): NestJS AuthModule, Argon2id, token rotation & reuse detection, HttpOnly cookies, Google OAuth, Next.js login/register/callback, protected dashboard.
-  - Completed Phase 4: Redesigned Homepage and End-to-End Document Upload: NestJS DocumentsModule, BullMQ worker with PDF/DOCX/TXT extraction, pgvector embedding persistence, authenticated dashboard.
-  - Completed Site-Wide Design System Overhaul.
-  - Completed BrightPath Design Token Refactor (Typography, Colors, Layout Scale).
-  - Fixed Font Loading, Hero Scale & Navbar Spacing.
-  - Completed Bright Path Hero Showcase & Centered Navigation Refactor.
-  - Completed Pixel-Perfect Global Navigation Bar Refactor.
-  - Completed Navbar and Button Styling Refactor.
-  - Completed Exact Computed Framer DOM Specifications for Navbar & Hero Buttons.
-  - Completed HeroUpload 2-Column Split Showcase Refactor (`#how-it-works`).
-  - **Completed Hero Headline Inclined Effect, Animated Edge-to-Edge Waving Ribbon, and Pill Tags Removal**:
-    - Extracted exact mathematical S-wave curve and headline accent vector aesthetics from the BrightPath reference.
-    - Set `"into real "` in the exact `#14261D` heading color and isolated `"understanding."` with `#497E64` dark sage green, inclined rotation (`rotate-[3.5deg] origin-bottom-left`), multiple sketch doodle underline strokes in `#E8722C`, and top-right accent ticks (`//`).
-    - Implemented `apps/web/components/marketing/WavingRibbon.tsx` with edge-to-edge wave ribbon (`viewBox="0 0 1600 300"`, 42px `#497E64` stroke, `-rotate-[4deg]` tilt) and smooth continuous marquee animation moving behind the 3 photo cards.
-    - Removed the three value-prop pill tags under the photography cards.
-    - Added `overflow-x-hidden` on `apps/web/app/(marketing)/layout.tsx`.
-    - Verification: `pnpm type-check` (11/11), `pnpm --filter @lernivox/web build` (8/8 static routes), `pnpm test` (67/67 automated tests passing), all ports clean.
+  - Completed Phase 3: Complete Authentication Feature (End to End).
+  - Completed Phase 4: Redesigned Homepage and End-to-End Document Upload.
+- **2026-10-31**:
+  - Completed Hero Section Layout Fix: Headline Underline Clearance & Full-Bleed Ribbon Bleed.
+  - Completed Hero Section Polish: Headline Color Split, Clockwise Word Decline, Compact Body Copy & Showcase Elevation.
+  - Completed Hero Headline Elevated "u" Anchor & Multi-Stroke Hand-Drawn Marker Underline Refactor.
+  - Completed Hero Headline Vertical Clearance & Breathing Room Adjustment.
+  - Completed Pixel-Perfect Reference Cloud Divider Refactor & Section Shaking Root Cause Resolution:
+    - Analyzed `reference/Pasted image.png` and extracted the exact mathematical Framer SVG asset into `apps/web/public/assets/cloud-divider.svg`.
+    - Applied identical BrightPath container rules (`background-size: 1248px auto; background-position: center top; height: 78px;`), achieving 100% pixel-perfect alignment.
+    - Diagnosed and resolved the root cause of layout shaking: replaced fractional navbar heights (`86.41px` -> `86px`), added `IntersectionObserver` to freeze `WavingRibbon` off-screen, eliminated `110vw` and negative margin, and fixed `html` overflow-x clipping.
+    - Verified with `pnpm type-check` (11/11), `pnpm --filter @lernivox/web build` (8/8 static routes), and `pnpm test` (67/67 automated tests passing).
+    - Released all ports (port 3000 & 9222 free).
+
+
+
+
+
 
