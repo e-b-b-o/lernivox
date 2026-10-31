@@ -47,9 +47,9 @@ export function Navbar() {
   }, []);
 
   return (
-    <header className="w-full bg-[#F4F0E5] py-[20px] h-[86.41px] sticky top-0 z-50 border-none transition-colors">
-      <div className="max-w-[1440px] h-[46.41px] px-[30px] mx-auto flex items-center justify-center">
-        <div className="w-full max-w-[1380px] h-[46.41px] flex items-center justify-between gap-4 lg:gap-[100px]">
+    <header className="w-full bg-[#F4F0E5] py-[20px] h-[86px] sticky top-0 z-50 border-none transition-colors">
+      <div className="max-w-[1440px] h-[46px] px-[30px] mx-auto flex items-center justify-center">
+        <div className="w-full max-w-[1380px] h-[46px] flex items-center justify-between gap-4 lg:gap-[100px]">
           
           {/* Zone 1 — Left (Logo Lockup: 236x32) */}
           <div className="w-[236px] min-w-[236px] h-[32px] flex items-center shrink-0">
@@ -78,7 +78,15 @@ export function Navbar() {
                 <a
                   key={link.href}
                   href={link.href}
-                  onClick={() => setActiveHash(link.href)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setActiveHash(link.href);
+                    const el = document.querySelector(link.href);
+                    if (el) {
+                      el.scrollIntoView({ behavior: 'smooth' });
+                      window.history.pushState(null, '', link.href);
+                    }
+                  }}
                   className={`font-sans text-[16px] font-medium leading-[22.4px] transition-colors duration-200 relative ${
                     isActive
                       ? 'text-[#E8722C] after:content-[\'\'] after:absolute after:-bottom-[3px] after:left-0 after:w-full after:h-[2px] after:bg-[#E8722C] after:rounded-full'
@@ -154,9 +162,15 @@ export function Navbar() {
                 <a
                   key={link.href}
                   href={link.href}
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault();
                     setActiveHash(link.href);
                     setMobileMenuOpen(false);
+                    const el = document.querySelector(link.href);
+                    if (el) {
+                      el.scrollIntoView({ behavior: 'smooth' });
+                      window.history.pushState(null, '', link.href);
+                    }
                   }}
                   className={`font-sans text-[16px] font-medium leading-[22.4px] transition-colors ${
                     isActive ? 'text-[#E8722C]' : 'text-[#14261D] hover:text-[#E8722C]'
