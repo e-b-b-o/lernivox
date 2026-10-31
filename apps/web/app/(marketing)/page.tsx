@@ -3,23 +3,13 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import {
-  Sparkles,
-  ArrowRight,
   BookOpen,
   CheckCircle2,
-  FileText,
   ShieldCheck,
-  BrainCircuit,
   GraduationCap,
   Users,
   HelpCircle,
-  ChevronDown,
-  Layers,
-  Database,
-  Cpu,
-  Search,
 } from 'lucide-react';
-import { Button } from '../../components/ui/button';
 import { HeroUpload } from '../../components/marketing/HeroUpload';
 import { GuidedLearningPreview } from '../../components/marketing/GuidedLearningPreview';
 import { WavingRibbon } from '../../components/marketing/WavingRibbon';
@@ -63,57 +53,36 @@ export default function MarketingPage() {
         {/* Subtle decorative background gradient glow */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-[#F9D8C0]/30 rounded-full blur-3xl pointer-events-none -z-10" />
 
-        <div className="mx-auto max-w-[1380px] px-6 md:px-10 text-center">
+        <div className="mx-auto max-w-[1380px] px-4 sm:px-6 md:px-10 text-center">
           {/* Main Headline */}
-          <h1 className="font-display font-extrabold text-6xl md:text-8xl lg:text-[103px] leading-[1.04] tracking-[-0.03em] text-[#14261D] max-w-6xl mx-auto text-center">
+          <h1 className="font-display font-extrabold text-[32px] xs:text-[38px] sm:text-5xl md:text-7xl lg:text-8xl xl:text-[103px] leading-[1.08] tracking-tight text-[#14261D] max-w-6xl mx-auto text-center mb-6">
             Turn your textbooks <br className="hidden md:block" />
             into real{' '}
             <span 
-              className="relative inline-block text-[#497E64] ml-1.5 select-none"
+              className="relative inline-block text-[#497E64] ml-1 sm:ml-1.5 select-none"
               style={{
-                transform: 'translateY(-3px) rotate(2.2deg)',
+                transform: 'translateY(-2px) rotate(2deg)',
                 transformOrigin: 'bottom right',
                 display: 'inline-block'
               }}
             >
               understanding.
 
-              {/* Authentic Multi-Stroke Hand-Drawn Marker Underline */}
+              {/* Responsive SVG Doodle Underline */}
               <svg
-                className="absolute -bottom-3 left-0 w-[104%] h-[18px] text-[#E8722C] pointer-events-none overflow-visible"
-                viewBox="0 0 340 18"
+                className="absolute -bottom-2 sm:-bottom-3 left-0 w-full h-[10px] sm:h-[14px] md:h-[18px] text-[#E8722C] pointer-events-none overflow-visible"
+                viewBox="0 0 320 16"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
                 preserveAspectRatio="none"
               >
-                {/* Primary sweeping sketch stroke */}
-                <path
-                  d="M 5 9 C 75 3, 210 4, 335 8"
-                  stroke="currentColor"
-                  strokeWidth="3.5"
-                  strokeLinecap="round"
-                />
-                {/* Secondary overlapping scribble stroke */}
-                <path
-                  d="M 18 13 C 110 7, 245 12, 318 6"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  opacity="0.85"
-                />
-                {/* Short accent scratch line */}
-                <path
-                  d="M 55 11 C 135 6, 205 9, 260 12"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  opacity="0.6"
-                />
+                <path d="M 4 8 C 70 3, 200 4, 315 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                <path d="M 16 12 C 100 6, 230 11, 300 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.85" />
               </svg>
 
-              {/* Dual Accent Ticks (//) top-right */}
+              {/* Spark Ticks */}
               <svg
-                className="absolute -top-3.5 -right-6 w-5 h-5 text-[#E8722C] pointer-events-none rotate-[10deg]"
+                className="absolute -top-2.5 sm:-top-3.5 -right-4 sm:-right-6 w-3.5 h-3.5 sm:w-5 sm:h-5 text-[#E8722C] pointer-events-none rotate-[10deg]"
                 viewBox="0 0 20 20"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -125,12 +94,12 @@ export default function MarketingPage() {
           </h1>
 
           {/* Subheadline */}
-          <p className="font-sans font-normal text-lg md:text-xl text-[#14261D]/80 max-w-2xl mx-auto text-center leading-relaxed mt-6 mb-8">
+          <p className="font-sans font-normal text-base sm:text-lg md:text-xl text-[#14261D]/80 max-w-2xl mx-auto text-center leading-relaxed mt-4 sm:mt-6 mb-8">
             Upload your notes, slides, or books. Lernivox turns them into clear explanations and practice questions grounded in your course.
           </p>
 
           {/* Action CTAs */}
-          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mb-12 md:mb-16">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 mb-12 md:mb-16 w-full max-w-sm sm:max-w-none mx-auto">
             <a
               href="#how-it-works"
               onClick={(e) => {
@@ -141,7 +110,7 @@ export default function MarketingPage() {
                   window.history.pushState(null, '', '#how-it-works');
                 }
               }}
-              className="h-[54px] px-[30px] py-[16px] rounded-[100px] bg-[#E8722C] text-white font-sans text-[16px] font-medium leading-[22.4px] shadow-[0_4px_0_0_#B26E45] hover:-translate-y-[1px] hover:shadow-[0_5px_0_0_#B26E45] active:translate-y-[2px] active:shadow-[0_2px_0_0_#B26E45] transition-all duration-150 inline-flex items-center justify-center select-none"
+              className="w-full sm:w-auto h-[50px] sm:h-[54px] px-6 sm:px-[30px] py-[14px] sm:py-[16px] rounded-[100px] bg-[#E8722C] text-white font-sans text-sm sm:text-[16px] font-medium leading-[22.4px] shadow-[0_4px_0_0_#B26E45] hover:-translate-y-[1px] hover:shadow-[0_5px_0_0_#B26E45] active:translate-y-[2px] active:shadow-[0_2px_0_0_#B26E45] transition-all duration-150 inline-flex items-center justify-center select-none text-center"
             >
               Upload Course Material
             </a>
@@ -155,7 +124,7 @@ export default function MarketingPage() {
                   window.history.pushState(null, '', '#sample-lesson');
                 }
               }}
-              className="h-[54px] px-[30px] py-[16px] rounded-[100px] bg-[#F4F0E5] text-[#14261D] font-sans text-[16px] font-medium leading-[22.4px] border border-[#1B3428] shadow-[0_4px_0_0_#1B3428] hover:-translate-y-[1px] hover:shadow-[0_5px_0_0_#1B3428] active:translate-y-[2px] active:shadow-[0_2px_0_0_#1B3428] transition-all duration-150 inline-flex items-center justify-center select-none"
+              className="w-full sm:w-auto h-[50px] sm:h-[54px] px-6 sm:px-[30px] py-[14px] sm:py-[16px] rounded-[100px] bg-[#F4F0E5] text-[#14261D] font-sans text-sm sm:text-[16px] font-medium leading-[22.4px] border border-[#1B3428] shadow-[0_4px_0_0_#1B3428] hover:-translate-y-[1px] hover:shadow-[0_5px_0_0_#1B3428] active:translate-y-[2px] active:shadow-[0_2px_0_0_#1B3428] transition-all duration-150 inline-flex items-center justify-center select-none text-center"
             >
               Explore Sample Lesson
             </a>
@@ -226,188 +195,272 @@ export default function MarketingPage() {
       <HeroUpload />
 
       {/* ======================================================== */}
-      {/* SECTION 3: GUIDED LEARNING PREVIEW */}
+      {/* SECTION 3: UNIFIED FEATURES & INTERACTIVE LESSON PREVIEW */}
       {/* ======================================================== */}
-      <section id="sample-lesson" className="border-t border-[#EAE4D3] bg-[#F6F4EE] py-24 md:py-36">
-        <div className="mx-auto max-w-[1380px] px-6 md:px-10">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#EAE4D3] bg-white/80 backdrop-blur-sm px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-[#45564B] mb-6 shadow-subtle font-sans">
-              Live Product Experience
-            </div>
-            <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#14261D]">
-              See how Lernivox deconstructs{' '}
-              <span className="text-[#497E64]">
-                difficult topics
-              </span>
-              .
-            </h2>
-            <p className="mt-6 text-lg sm:text-xl text-[#45564B] leading-relaxed font-sans">
-              Rather than generic summaries, Lernivox presents learning objectives, intuitive mental models, worked calculations, and instant comprehension checks.
-            </p>
-          </div>
+      <section
+        id="features"
+        className="w-full bg-[#F4F0E5] pt-16 sm:pt-24 md:pt-32 pb-16 sm:pb-24 md:pb-32 px-4 sm:px-6 md:px-10 scroll-mt-0 overflow-hidden"
+      >
+        <div className="max-w-[1380px] mx-auto">
+        {/* ======================================================== */}
+        {/* SECTION 3: INTERACTIVE LESSON PREVIEW */}
+        {/* ======================================================== */}
+        <div className="text-center max-w-4xl mx-auto mb-10 sm:mb-14">
+          <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-5xl md:text-6xl text-[#14261D] tracking-tight leading-[1.08] mb-4 sm:mb-6">
+            See how Lernivox deconstructs{' '}
+            <span className="text-[#497E64]">difficult topics.</span>
+          </h2>
+          <p className="font-sans text-base sm:text-lg md:text-xl text-[#14261D]/75 max-w-2xl mx-auto leading-relaxed">
+            Rather than generic summaries, Lernivox presents structured learning objectives, intuitive mental models, worked derivations, and instant comprehension checks.
+          </p>
+        </div>
 
+        {/* Tactile Framer Lesson Preview Notebook */}
+        <div id="sample-lesson" className="scroll-mt-[86px]">
           <GuidedLearningPreview />
         </div>
-      </section>
 
+        {/* ======================================================== */}
+        {/* SECTION 4: CAPABILITIES / ASYMMETRIC RETENTION ENGINE */}
+        {/* ======================================================== */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-stretch mb-14 md:mb-16">
+          
+          {/* LEFT COLUMN */}
+          <div className="lg:col-span-5 flex flex-col justify-between">
+            <div>
+              <h3 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-4xl lg:text-[44px] text-[#14261D] tracking-tight leading-[1.08] mb-3">
+                Engineered for genuine academic{' '}
+                <span
+                  className="relative inline-block text-[#497E64] ml-1 select-none"
+                  style={{
+                    transform: 'translateY(-2px) rotate(2deg)',
+                    transformOrigin: 'bottom right',
+                    display: 'inline-block'
+                  }}
+                >
+                  retention.
 
-      {/* ======================================================== */}
-      {/* SECTION 4: LEARNING FEATURES */}
-      {/* ======================================================== */}
-      <section id="features" className="border-t border-[#EAE4D3] bg-[#FAF8F4]/60 py-24 md:py-36">
-        <div className="mx-auto max-w-[1380px] px-6 md:px-10">
-          <div className="text-center max-w-3xl mx-auto mb-20">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#EAE4D3] bg-white/80 backdrop-blur-sm px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-[#45564B] mb-6 shadow-subtle font-sans">
-              Core Capabilities
+                  {/* Hand-Drawn Doodle Underline */}
+                  <svg
+                    className="absolute -bottom-2.5 left-0 w-full h-[12px] sm:h-[16px] text-[#E8722C] pointer-events-none overflow-visible"
+                    viewBox="0 0 240 16"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    preserveAspectRatio="none"
+                  >
+                    <path d="M 4 8 C 50 3, 150 4, 235 7" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
+                    <path d="M 12 12 C 70 6, 170 11, 225 5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" opacity="0.85" />
+                    <path d="M 35 10 C 90 6, 140 8, 185 11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" opacity="0.6" />
+                  </svg>
+
+                  {/* Spark Ticks (//) top-right */}
+                  <svg
+                    className="absolute -top-3.5 -right-6 w-5 h-5 text-[#E8722C] pointer-events-none rotate-[10deg]"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M4 14L8 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                    <path d="M12 16L16 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                  </svg>
+                </span>
+              </h3>
+              <p className="font-sans text-sm md:text-base text-[#14261D]/75 leading-relaxed max-w-md">
+                Every feature is purposefully designed to bridge the gap between heavy textbooks and active recall.
+              </p>
             </div>
-            <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#14261D]">
-              Engineered for genuine{' '}
-              <span className="text-[#497E64]">
-                academic retention
-              </span>
-              .
-            </h2>
-            <p className="mt-6 text-lg sm:text-xl text-[#45564B] leading-relaxed font-sans">
-              Every feature is purposefully designed to bridge the gap between heavy textbooks and active recall.
-            </p>
+
+            {/* Photo Frame Anchoring the Bottom Flush with Card 03 */}
+            <div className="w-full flex-1 min-h-[280px] rounded-[30px] overflow-hidden border border-[#14261D]/10 shadow-[0_6px_24px_rgba(20,38,29,0.06)] relative mt-6">
+              <img
+                src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=80"
+                alt="Students studying collaboratively"
+                className="w-full h-full object-cover"
+              />
+            </div>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {/* Feature 1 */}
-            <div className="rounded-[2rem] border border-[#EAE4D3] bg-white/85 backdrop-blur-md p-8 md:p-10 shadow-card hover:shadow-card-hover hover:-translate-y-1.5 transition-all duration-300">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F9D8C0] text-[#E8722C] mb-6 shadow-subtle">
-                <BrainCircuit className="h-7 w-7" />
+          {/* RIGHT COLUMN: Scissor-Pinch Stacked Cards */}
+          <div className="lg:col-span-7 flex flex-col justify-start py-1">
+            
+            {/* Card 01: Tail dips slightly down */}
+            <div 
+              className="bg-white rounded-[26px] p-6 md:p-8 shadow-[0_4px_24px_rgba(20,38,29,0.06)] hover:shadow-[0_8px_32px_rgba(20,38,29,0.1)] transition-all duration-300 flex items-start gap-5 border border-black/[0.04] relative z-10"
+              style={{ 
+                transform: 'rotate(0.7deg)', 
+                transformOrigin: 'center center',
+                marginBottom: '18px'
+              }}
+            >
+              <div className="w-12 h-12 rounded-xl bg-[#E3EFFB] text-[#2B6CB0] flex items-center justify-center font-display font-bold text-base shrink-0">
+                01
               </div>
-              <h3 className="font-display text-2xl font-bold text-[#14261D] mb-3">
-                Guided AI Tutor
-              </h3>
-              <p className="font-sans text-base text-[#45564B] leading-relaxed">
-                Answers your questions using solely your professor’s slides and textbook chapters. Never hallucinates arbitrary formulas or ungrounded facts.
-              </p>
+              <div>
+                <h4 className="font-display text-lg md:text-xl font-bold text-[#14261D] mb-1.5 flex items-baseline gap-2 flex-wrap">
+                  Guided AI Tutor
+                  <span className="font-sans font-normal text-xs md:text-sm text-[#14261D]/50 italic">— source grounded</span>
+                </h4>
+                <p className="font-sans text-[14px] md:text-[15px] leading-relaxed text-[#14261D]/75">
+                  Answers your questions using solely your professor&apos;s slides and textbook chapters. Never hallucinates arbitrary formulas or ungrounded facts.
+                </p>
+              </div>
             </div>
 
-            {/* Feature 2 */}
-            <div className="rounded-[2rem] border border-[#EAE4D3] bg-white/85 backdrop-blur-md p-8 md:p-10 shadow-card hover:shadow-card-hover hover:-translate-y-1.5 transition-all duration-300">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#C9E0F2] text-[#14261D] mb-6 shadow-subtle">
-                <Layers className="h-7 w-7" />
+            {/* Card 02: Tail lifts UP (pinches Card 01 on right), Head dips DOWN (pinches Card 03 on left) */}
+            <div 
+              className="bg-white rounded-[26px] p-6 md:p-8 shadow-[0_4px_24px_rgba(20,38,29,0.06)] hover:shadow-[0_8px_32px_rgba(20,38,29,0.1)] transition-all duration-300 flex items-start gap-5 border border-black/[0.04] relative z-20"
+              style={{ 
+                transform: 'rotate(-2.0deg)', 
+                transformOrigin: 'center center',
+                marginBottom: '22px'
+              }}
+            >
+              <div className="w-12 h-12 rounded-xl bg-[#E2EBD8] text-[#497E64] flex items-center justify-center font-display font-bold text-base shrink-0">
+                02
               </div>
-              <h3 className="font-display text-2xl font-bold text-[#14261D] mb-3">
-                Step-by-Step Worked Methods
-              </h3>
-              <p className="font-sans text-base text-[#45564B] leading-relaxed">
-                Breaks intricate mathematical derivations, biological cycles, and legal analyses into progressive, digestible sub-steps.
-              </p>
+              <div>
+                <h4 className="font-display text-lg md:text-xl font-bold text-[#14261D] mb-1.5 flex items-baseline gap-2 flex-wrap">
+                  Step-by-Step Worked Methods
+                  <span className="font-sans font-normal text-xs md:text-sm text-[#14261D]/50 italic">— progressive logic</span>
+                </h4>
+                <p className="font-sans text-[14px] md:text-[15px] leading-relaxed text-[#14261D]/75">
+                  Breaks intricate mathematical derivations, biological cycles, and legal analyses into progressive, digestible sub-steps.
+                </p>
+              </div>
             </div>
 
-            {/* Feature 3 */}
-            <div className="rounded-[2rem] border border-[#EAE4D3] bg-white/85 backdrop-blur-md p-8 md:p-10 shadow-card hover:shadow-card-hover hover:-translate-y-1.5 transition-all duration-300">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#D6E59A] text-[#14261D] mb-6 shadow-subtle">
-                <CheckCircle2 className="h-7 w-7" />
+            {/* Card 03: Head lifts UP (pinches Card 02 on left), Tail drops DOWN (opens wide wedge on right) */}
+            <div 
+              className="bg-white rounded-[26px] p-6 md:p-8 shadow-[0_4px_24px_rgba(20,38,29,0.06)] hover:shadow-[0_8px_32px_rgba(20,38,29,0.1)] transition-all duration-300 flex items-start gap-5 border border-black/[0.04] relative z-10"
+              style={{ 
+                transform: 'rotate(1.9deg)', 
+                transformOrigin: 'center center'
+              }}
+            >
+              <div className="w-12 h-12 rounded-xl bg-[#FBE8DC] text-[#E8722C] flex items-center justify-center font-display font-bold text-base shrink-0">
+                03
               </div>
-              <h3 className="font-display text-2xl font-bold text-[#14261D] mb-3">
-                Chapter Quizzes & Feedback
-              </h3>
-              <p className="font-sans text-base text-[#45564B] leading-relaxed">
-                Generates practice questions tied directly to chapter learning objectives, providing instant explanations for wrong options.
-              </p>
+              <div>
+                <h4 className="font-display text-lg md:text-xl font-bold text-[#14261D] mb-1.5 flex items-baseline gap-2 flex-wrap">
+                  Chapter Quizzes & Feedback
+                  <span className="font-sans font-normal text-xs md:text-sm text-[#14261D]/50 italic">— active recall</span>
+                </h4>
+                <p className="font-sans text-[14px] md:text-[15px] leading-relaxed text-[#14261D]/75">
+                  Generates practice questions tied directly to chapter learning objectives, providing instant explanations for wrong options.
+                </p>
+              </div>
             </div>
 
-            {/* Feature 4 */}
-            <div className="rounded-[2rem] border border-[#EAE4D3] bg-white/85 backdrop-blur-md p-8 md:p-10 shadow-card hover:shadow-card-hover hover:-translate-y-1.5 transition-all duration-300">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F6D7E8] text-[#14261D] mb-6 shadow-subtle">
-                <Cpu className="h-7 w-7" />
+          </div>
+
+        </div>
+
+        {/* Part B: Bottom Supporting Shelf (Full-Width Peach Banner) */}
+        <div className="w-full rounded-[28px] bg-[#F9EAE1] border border-[#14261D]/[0.08] p-6 md:p-8 lg:p-10 shadow-sm">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Item 04 (Problem-Solving Challenges) */}
+            <div>
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="w-5 h-5 rounded-full bg-[#14261D] text-white flex items-center justify-center shrink-0">
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <span className="font-display font-bold text-base text-[#14261D]">
+                  Problem-Solving Challenges
+                </span>
               </div>
-              <h3 className="font-display text-2xl font-bold text-[#14261D] mb-3">
-                Problem-Solving Challenges
-              </h3>
-              <p className="font-sans text-base text-[#45564B] leading-relaxed">
+              <p className="font-sans text-sm text-[#14261D]/75 leading-relaxed pl-7">
                 Applies abstract principles to novel problem sets, encouraging conceptual mastery rather than rote memorization.
               </p>
             </div>
 
-            {/* Feature 5 */}
-            <div className="rounded-[2rem] border border-[#EAE4D3] bg-white/85 backdrop-blur-md p-8 md:p-10 shadow-card hover:shadow-card-hover hover:-translate-y-1.5 transition-all duration-300">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#EAE4D3] text-[#14261D] mb-6 shadow-subtle">
-                <FileText className="h-7 w-7" />
+            {/* Item 05 (Structured Revision Cards) */}
+            <div>
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="w-5 h-5 rounded-full bg-[#14261D] text-white flex items-center justify-center shrink-0">
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <span className="font-display font-bold text-base text-[#14261D]">
+                  Structured Revision Cards
+                </span>
               </div>
-              <h3 className="font-display text-2xl font-bold text-[#14261D] mb-3">
-                Structured Revision Cards
-              </h3>
-              <p className="font-sans text-base text-[#45564B] leading-relaxed">
-                Condenses dense 50-page textbook chapters into high-yield summaries, formula reference cheat sheets, and active flashcards.
+              <p className="font-sans text-sm text-[#14261D]/75 leading-relaxed pl-7">
+                Condenses dense 50-page textbook chapters into high-yield summaries, formula sheets, and key concept decks.
               </p>
             </div>
 
-            {/* Feature 6 */}
-            <div className="rounded-[2rem] border border-[#EAE4D3] bg-white/85 backdrop-blur-md p-8 md:p-10 shadow-card hover:shadow-card-hover hover:-translate-y-1.5 transition-all duration-300">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-[#14261D] mb-6 shadow-subtle">
-                <Search className="h-7 w-7" />
+            {/* Item 06 (Verifiable Page Citations) */}
+            <div>
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="w-5 h-5 rounded-full bg-[#14261D] text-white flex items-center justify-center shrink-0">
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <span className="font-display font-bold text-base text-[#14261D]">
+                  Verifiable Page Citations
+                </span>
               </div>
-              <h3 className="font-display text-2xl font-bold text-[#14261D] mb-3">
-                Verifiable Page Citations
-              </h3>
-              <p className="font-sans text-base text-[#45564B] leading-relaxed">
-                Click any citation tag to jump directly to the exact textbook page, section number, and verbatim passage backing up the answer.
+              <p className="font-sans text-sm text-[#14261D]/75 leading-relaxed pl-7">
+                Click any citation tag to jump directly to the exact textbook page, section number, and theorem.
               </p>
             </div>
           </div>
+        </div>
         </div>
       </section>
 
       {/* ======================================================== */}
       {/* SECTION 5: PROGRESS AND EXAM PREPARATION */}
       {/* ======================================================== */}
-      <section className="border-t border-[#EAE4D3] bg-[#F6F4EE] py-24 md:py-36">
-        <div className="mx-auto max-w-[1380px] px-6 md:px-10">
-          <div className="grid gap-16 lg:grid-cols-2 items-center">
+      <section className="w-full bg-[#C9E0F2] pt-16 sm:pt-24 md:pt-32 pb-16 sm:pb-24 md:pb-32 px-4 sm:px-6 md:px-10 border-t border-[#14261D]/10 scroll-mt-0 overflow-hidden">
+        <div className="mx-auto max-w-[1380px]">
+          <div className="grid gap-12 lg:gap-16 lg:grid-cols-2 items-center">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#EAE4D3] bg-white/80 backdrop-blur-sm px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-[#14261D]/70 mb-6 shadow-subtle">
-                Objective Metrics
-              </div>
-              <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#14261D] leading-[1.08]">
-                Track exam readiness with{' '}
-                <span className="text-[#497E64]">
-                  verifiable certainty
-                </span>
-                .
+              <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-5xl lg:text-6xl text-[#14261D] tracking-tight leading-[1.08] mb-4 sm:mb-6">
+                Track exam readiness with verifiable{' '}
+                <span className="text-[#497E64]">certainty.</span>
               </h2>
-              <p className="mt-6 text-lg sm:text-xl text-[#14261D]/75 leading-relaxed">
-                Stop guessing whether you are prepared for midterms. Lernivox tracks topic completion, quiz accuracy, and source comprehension across every chapter.
+              <p className="mt-4 sm:mt-6 text-base sm:text-lg md:text-xl text-[#14261D]/75 leading-relaxed">
+                Stop guessing whether you are prepared for test day. Lernivox tracks your chapter progress and quiz scores so you walk into every exam confident.
               </p>
 
-              <div className="mt-10 space-y-6">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-[#497E64] flex-shrink-0 mt-0.5 font-bold">
+              <div className="mt-8 sm:mt-10 space-y-5 sm:space-y-6">
+                <div className="flex items-start gap-3.5 sm:gap-4">
+                  <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-emerald-100 text-[#497E64] flex-shrink-0 mt-0.5 font-bold text-sm">
                     ✓
                   </div>
                   <div>
-                    <h4 className="text-lg font-bold text-[#14261D]">Chapter-by-Chapter Completion</h4>
-                    <p className="text-base text-[#14261D]/70 mt-1">
-                      Monitor which sections you’ve digested, chunked, and quizzed versus untouched textbook pages.
+                    <h4 className="text-base sm:text-lg font-bold text-[#14261D]">Chapter-by-Chapter Progress</h4>
+                    <p className="text-sm sm:text-base text-[#14261D]/70 mt-1">
+                      See exactly which chapters you&apos;ve mastered and which pages still need a quick review.
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-[#497E64] flex-shrink-0 mt-0.5 font-bold">
+                <div className="flex items-start gap-3.5 sm:gap-4">
+                  <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-emerald-100 text-[#497E64] flex-shrink-0 mt-0.5 font-bold text-sm">
                     ✓
                   </div>
                   <div>
-                    <h4 className="text-lg font-bold text-[#14261D]">Weak Concept Diagnostics</h4>
-                    <p className="text-base text-[#14261D]/70 mt-1">
-                      Pinpoint exact theorems or formulas where practice quiz scores indicate gaps in retention.
+                    <h4 className="text-base sm:text-lg font-bold text-[#14261D]">Weak Spot Finder</h4>
+                    <p className="text-sm sm:text-base text-[#14261D]/70 mt-1">
+                      Instantly spot the tricky formulas or concepts where you keep missing practice questions.
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F9D8C0] text-[#E8722C] flex-shrink-0 mt-0.5 font-bold text-sm">
+                <div className="flex items-start gap-3.5 sm:gap-4">
+                  <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-[#F9D8C0] text-[#E8722C] flex-shrink-0 mt-0.5 font-bold text-sm">
                     ★
                   </div>
                   <div>
-                    <h4 className="text-lg font-bold text-[#14261D]">Spaced-Repetition Review (Roadmap)</h4>
-                    <p className="text-base text-[#14261D]/70 mt-1">
-                      Personalized daily review schedules based on memory decay curves are in active development.
+                    <h4 className="text-base sm:text-lg font-bold text-[#14261D]">Smart Daily Review (Roadmap)</h4>
+                    <p className="text-sm sm:text-base text-[#14261D]/70 mt-1">
+                      Get friendly reminders to review difficult topics right before you&apos;re about to forget them.
                     </p>
                   </div>
                 </div>
@@ -415,22 +468,22 @@ export default function MarketingPage() {
             </div>
 
             {/* Visual Metric Mockup Card */}
-            <div className="rounded-[2.5rem] border border-[#EAE4D3] bg-white/90 backdrop-blur-md p-8 sm:p-12 shadow-card hover:shadow-card-hover transition-all duration-300">
-              <div className="flex items-center justify-between border-b border-[#EAE4D3] pb-6 mb-8">
+            <div className="bg-white rounded-[24px] sm:rounded-[28px] p-4 sm:p-6 md:p-8 border-[2px] border-[#1B3428] shadow-[0_4px_0_0_#1B3428] sm:shadow-[0_6px_0_0_#1B3428]">
+              <div className="flex items-center justify-between border-b border-[#EAE4D3] pb-5 sm:pb-6 mb-6 sm:mb-8">
                 <div>
-                  <h3 className="font-display text-xl font-bold text-[#14261D]">
+                  <h3 className="font-display text-lg sm:text-xl font-bold text-[#14261D]">
                     Stewart Calculus — Exam Readiness
                   </h3>
-                  <p className="text-sm text-[#14261D]/60 mt-0.5">4 of 6 chapters indexed</p>
+                  <p className="text-xs sm:text-sm text-[#14261D]/60 mt-0.5">4 of 6 chapters indexed</p>
                 </div>
-                <span className="rounded-full bg-emerald-100 px-4 py-1.5 text-sm font-bold text-[#497E64]">
+                <span className="rounded-full bg-emerald-100 px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-bold text-[#497E64]">
                   78% Ready
                 </span>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-5 sm:space-y-6">
                 <div>
-                  <div className="flex justify-between text-sm font-semibold text-[#14261D] mb-2">
+                  <div className="flex justify-between text-xs sm:text-sm font-semibold text-[#14261D] mb-1.5 sm:mb-2">
                     <span>§ 2.1 Limits & Derivatives</span>
                     <span className="text-[#497E64] font-bold">100% Mastered</span>
                   </div>
@@ -440,7 +493,7 @@ export default function MarketingPage() {
                 </div>
 
                 <div>
-                  <div className="flex justify-between text-sm font-semibold text-[#14261D] mb-2">
+                  <div className="flex justify-between text-xs sm:text-sm font-semibold text-[#14261D] mb-1.5 sm:mb-2">
                     <span>§ 2.5 The Chain Rule</span>
                     <span className="text-[#497E64] font-bold">85% Mastered</span>
                   </div>
@@ -450,7 +503,7 @@ export default function MarketingPage() {
                 </div>
 
                 <div>
-                  <div className="flex justify-between text-sm font-semibold text-[#14261D] mb-2">
+                  <div className="flex justify-between text-xs sm:text-sm font-semibold text-[#14261D] mb-1.5 sm:mb-2">
                     <span>§ 3.1 Implicit Differentiation</span>
                     <span className="text-[#E8722C] font-bold">45% In Progress</span>
                   </div>
@@ -460,7 +513,7 @@ export default function MarketingPage() {
                 </div>
 
                 <div>
-                  <div className="flex justify-between text-sm font-semibold text-[#14261D] mb-2">
+                  <div className="flex justify-between text-xs sm:text-sm font-semibold text-[#14261D] mb-1.5 sm:mb-2">
                     <span>§ 3.4 Related Rates</span>
                     <span className="text-[#14261D]/50 font-medium">Queued for review</span>
                   </div>
@@ -470,9 +523,8 @@ export default function MarketingPage() {
                 </div>
               </div>
 
-              <div className="mt-8 pt-6 border-t border-[#EAE4D3] flex items-center justify-between text-sm text-[#14261D]/60">
-                <span>Indexed using pgvector (768-dim)</span>
-                <span className="font-semibold text-[#14261D]">142 verified citations</span>
+              <div className="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-[#EAE4D3] flex items-center justify-between text-xs sm:text-sm text-[#14261D]/70 font-medium">
+                <span>Verified Course Coverage • 142 textbook citations</span>
               </div>
             </div>
           </div>
@@ -482,56 +534,88 @@ export default function MarketingPage() {
       {/* ======================================================== */}
       {/* SECTION 6: COLLABORATIVE LEARNING */}
       {/* ======================================================== */}
-      <section className="border-t border-[#EAE4D3] bg-[#FAF8F4]/60 py-24 md:py-36">
-        <div className="mx-auto max-w-[1380px] px-6 md:px-10 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#EAE4D3] bg-white/80 backdrop-blur-sm px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-[#14261D]/70 mb-6 shadow-subtle">
-            Future Collaboration
+      <section className="w-full bg-[#F4F0E5] pt-16 sm:pt-24 md:pt-32 pb-16 sm:pb-24 md:pb-32 px-4 sm:px-6 md:px-10 border-t border-[#14261D]/10 scroll-mt-0 overflow-hidden">
+        <div className="mx-auto max-w-[1380px] text-center">
+          <div className="text-center max-w-4xl mx-auto mb-12 sm:mb-16">
+            <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-5xl md:text-6xl text-[#14261D] tracking-tight leading-[1.08] mb-4 sm:mb-6">
+              Study groups built around shared course{' '}
+              <span
+                className="relative inline-block text-[#497E64] ml-1 select-none"
+                style={{
+                  transform: 'translateY(-2px) rotate(2deg)',
+                  transformOrigin: 'bottom right',
+                  display: 'inline-block'
+                }}
+              >
+                materials.
+
+                {/* Multi-Stroke Hand-Drawn Marker Underline */}
+                <svg
+                  className="absolute -bottom-2 sm:-bottom-3 left-0 w-full h-[12px] sm:h-[16px] text-[#E8722C] pointer-events-none overflow-visible"
+                  viewBox="0 0 240 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  preserveAspectRatio="none"
+                >
+                  <path d="M 4 8 C 50 3, 150 4, 235 7" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
+                  <path d="M 12 12 C 70 6, 170 11, 225 5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" opacity="0.85" />
+                  <path d="M 35 10 C 90 6, 140 8, 185 11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" opacity="0.6" />
+                </svg>
+
+                {/* Spark Ticks */}
+                <svg
+                  className="absolute -top-2.5 sm:-top-3.5 -right-4 sm:-right-6 w-3.5 h-3.5 sm:w-5 sm:h-5 text-[#E8722C] pointer-events-none rotate-[10deg]"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M4 14L8 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                  <path d="M12 16L16 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                </svg>
+              </span>
+            </h2>
+            <p className="font-sans text-lg md:text-xl text-[#14261D]/75 max-w-2xl mx-auto leading-relaxed">
+              Studying is easier together. Share one textbook across your group, challenge friends to quick chapter quizzes, and prep for finals as a team.
+            </p>
           </div>
-          <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#14261D] max-w-4xl mx-auto">
-            Study groups built around{' '}
-            <span className="text-[#497E64]">
-              shared course materials
-            </span>
-            .
-          </h2>
-          <p className="mx-auto mt-6 max-w-3xl text-lg sm:text-xl text-[#14261D]/75 leading-relaxed">
-            In our upcoming collaborative release, study partners will be able to share private textbook indexes, challenge classmates to chapter quizzes, and compare solution methods without duplicating upload workloads.
-          </p>
 
-          <div className="mt-16 grid gap-8 sm:grid-cols-3 max-w-5xl mx-auto">
-            <div className="rounded-[2rem] border border-[#EAE4D3] bg-white/85 backdrop-blur-md p-8 shadow-card hover:shadow-card-hover transition-all duration-300">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#CCE2F5] text-[#14261D] mb-6 mx-auto shadow-subtle">
-                <Users className="h-7 w-7" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {/* Card 1: One Shared Book */}
+            <div className="bg-white border-[1.5px] border-[#1B3428] rounded-[24px] p-8 shadow-[0_4px_0_0_#1B3428] hover:-translate-y-1 hover:shadow-[0_6px_0_0_#1B3428] transition-all text-left">
+              <div className="w-12 h-12 rounded-xl bg-[#E3EFFB] text-[#2B6CB0] flex items-center justify-center mb-6">
+                <Users className="h-6 w-6" />
               </div>
-              <h3 className="font-display text-xl font-bold text-[#14261D] mb-2">
-                Shared Document Index
-              </h3>
-              <p className="text-base text-[#14261D]/70 leading-relaxed">
-                One student uploads the heavy textbook; the entire study group accesses the indexed chapter citations.
+              <h4 className="font-display text-xl font-bold text-[#14261D] mb-3">
+                One Shared Book
+              </h4>
+              <p className="font-sans text-base text-[#14261D]/75 leading-relaxed">
+                One person uploads the textbook or lecture slides, and everyone in your study circle gets instant access to chapter notes and practice questions.
               </p>
             </div>
 
-            <div className="rounded-[2rem] border border-[#EAE4D3] bg-white/85 backdrop-blur-md p-8 shadow-card hover:shadow-card-hover transition-all duration-300">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#D8E6A2] text-[#14261D] mb-6 mx-auto shadow-subtle">
-                <GraduationCap className="h-7 w-7" />
+            {/* Card 2: Group Quiz Battles */}
+            <div className="bg-white border-[1.5px] border-[#1B3428] rounded-[24px] p-8 shadow-[0_4px_0_0_#1B3428] hover:-translate-y-1 hover:shadow-[0_6px_0_0_#1B3428] transition-all text-left">
+              <div className="w-12 h-12 rounded-xl bg-[#E2EBD8] text-[#497E64] flex items-center justify-center mb-6">
+                <GraduationCap className="h-6 w-6" />
               </div>
-              <h3 className="font-display text-xl font-bold text-[#14261D] mb-2">
-                Group Practice Rounds
-              </h3>
-              <p className="text-base text-[#14261D]/70 leading-relaxed">
-                Compete synchronously on randomized chapter problem sets to prep before recitation.
+              <h4 className="font-display text-xl font-bold text-[#14261D] mb-3">
+                Group Quiz Battles
+              </h4>
+              <p className="font-sans text-base text-[#14261D]/75 leading-relaxed">
+                Challenge your classmates to fast practice rounds before exams to see who really understands the toughest concepts.
               </p>
             </div>
 
-            <div className="rounded-[2rem] border border-[#EAE4D3] bg-white/85 backdrop-blur-md p-8 shadow-card hover:shadow-card-hover transition-all duration-300">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F9D8C0] text-[#E8722C] mb-6 mx-auto shadow-subtle">
-                <ShieldCheck className="h-7 w-7" />
+            {/* Card 3: Private Study Notes */}
+            <div className="bg-white border-[1.5px] border-[#1B3428] rounded-[24px] p-8 shadow-[0_4px_0_0_#1B3428] hover:-translate-y-1 hover:shadow-[0_6px_0_0_#1B3428] transition-all text-left">
+              <div className="w-12 h-12 rounded-xl bg-[#FBE8DC] text-[#E8722C] flex items-center justify-center mb-6">
+                <ShieldCheck className="h-6 w-6" />
               </div>
-              <h3 className="font-display text-xl font-bold text-[#14261D] mb-2">
-                Strict Privacy Controls
-              </h3>
-              <p className="text-base text-[#14261D]/70 leading-relaxed">
-                Your personal study notes and mistakes remain private; only shared deck questions are visible.
+              <h4 className="font-display text-xl font-bold text-[#14261D] mb-3">
+                Private Study Notes
+              </h4>
+              <p className="font-sans text-base text-[#14261D]/75 leading-relaxed">
+                Your personal notes and incorrect quiz answers stay completely private. Only shared group decks are visible to your study group.
               </p>
             </div>
           </div>
@@ -541,120 +625,162 @@ export default function MarketingPage() {
       {/* ======================================================== */}
       {/* SECTION 7: PRICING */}
       {/* ======================================================== */}
-      <section id="pricing" className="border-t border-[#EAE4D3] bg-[#F6F4EE] py-24 md:py-36">
-        <div className="mx-auto max-w-[1380px] px-6 md:px-10">
-          <div className="text-center max-w-3xl mx-auto mb-20">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#EAE4D3] bg-white/80 backdrop-blur-sm px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-[#14261D]/70 mb-6 shadow-subtle">
-              Transparent Freemium Model
+      <section id="pricing" className="w-full bg-[#EAE4D3] pt-16 sm:pt-24 md:pt-32 pb-16 sm:pb-24 md:pb-32 px-4 sm:px-6 md:px-10 scroll-mt-0 overflow-hidden">
+        {/* Left-Aligned Header Block */}
+        <div className="max-w-5xl mx-auto mb-10 sm:mb-14 text-left">
+          <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-4xl lg:text-[56px] text-[#14261D] tracking-tight leading-[1.08] mb-4">
+            Simple, accessible academic{' '}
+            <span
+              className="relative inline-block text-[#497E64] ml-1 select-none"
+              style={{
+                transform: 'translateY(-3px) rotate(2.2deg)',
+                transformOrigin: 'bottom right',
+                display: 'inline-block'
+              }}
+            >
+              plans.
+
+              {/* Multi-Stroke Hand-Drawn Marker Underline */}
+              <svg
+                className="absolute -bottom-3 left-0 w-full h-[12px] sm:h-[16px] text-[#E8722C] pointer-events-none overflow-visible"
+                viewBox="0 0 200 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                preserveAspectRatio="none"
+              >
+                <path d="M 4 8 C 45 3, 130 4, 195 7" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
+                <path d="M 12 12 C 60 6, 145 11, 185 5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" opacity="0.85" />
+                <path d="M 30 10 C 75 6, 120 8, 160 11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" opacity="0.6" />
+              </svg>
+
+              {/* Spark Ticks (//) top-right */}
+              <svg
+                className="absolute -top-3.5 -right-5 sm:-right-6 w-4 h-4 sm:w-5 sm:h-5 text-[#E8722C] pointer-events-none rotate-[10deg]"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M4 14L8 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                <path d="M12 16L16 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+              </svg>
+            </span>
+          </h2>
+          <p className="font-sans text-sm sm:text-base md:text-lg text-[#14261D]/75 max-w-xl leading-relaxed">
+            Every student gets genuine document grounding for free. Upgrade only when you manage an extensive multi-semester library.
+          </p>
+        </div>
+
+        {/* Pricing Cards Grid (Light vs Dark Contrast Pair) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-5xl mx-auto items-stretch">
+          {/* Left Card: Light Tactile Card (Free Starter) */}
+          <div className="bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/20 rounded-[24px] sm:rounded-[28px] p-5 sm:p-8 md:p-10 shadow-[0_4px_0_0_#1B3428] flex flex-col justify-between">
+            <div>
+              <h3 className="font-display text-xl font-bold text-[#14261D] mb-2">Free Starter</h3>
+              
+              <div className="flex items-baseline gap-2 mb-4">
+                <span className="font-display font-extrabold text-4xl xs:text-5xl md:text-6xl text-[#14261D] tracking-tight">
+                  0 Birr
+                </span>
+                <span className="font-sans text-sm sm:text-base text-[#14261D]/60 font-medium">/ forever</span>
+              </div>
+
+              <p className="font-sans text-sm text-[#14261D]/75 mb-6">
+                Ideal for students focusing on a core class or midterm syllabus this term.
+              </p>
+
+              <hr className="border-t border-[#14261D]/15 my-6" />
+
+              <ul className="space-y-4 font-sans text-sm md:text-[15px] text-[#14261D]/80">
+                <li className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-[#497E64] text-white flex items-center justify-center shrink-0 text-xs font-bold">
+                    ✓
+                  </div>
+                  <span>Upload up to 3 active textbooks or syllabi</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-[#497E64] text-white flex items-center justify-center shrink-0 text-xs font-bold">
+                    ✓
+                  </div>
+                  <span>Files up to 25 MB (PDF, DOCX, TXT)</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-[#497E64] text-white flex items-center justify-center shrink-0 text-xs font-bold">
+                    ✓
+                  </div>
+                  <span>Standard asynchronous document processing</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-[#497E64] text-white flex items-center justify-center shrink-0 text-xs font-bold">
+                    ✓
+                  </div>
+                  <span>Full citation grounding & chapter practice quizzes</span>
+                </li>
+              </ul>
             </div>
-            <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#14261D]">
-              Simple, accessible{' '}
-              <span className="text-[#497E64]">
-                academic plans
-              </span>
-              .
-            </h2>
-            <p className="mt-6 text-lg sm:text-xl text-[#14261D]/75 leading-relaxed">
-              Every student gets genuine document grounding for free. Upgrade only when you manage an extensive multi-semester library.
-            </p>
+
+            <Link href="/register" className="w-full mt-8 block">
+              <button className="w-full py-3.5 px-6 rounded-full bg-[#FAF8F4] text-[#14261D] font-display font-bold text-base border-[2px] border-[#14261D] shadow-[0_4px_0_0_#14261D] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#14261D] active:translate-y-1 active:shadow-[0_1px_0_0_#14261D] transition-all">
+                Start Learning Free
+              </button>
+            </Link>
           </div>
 
-          <div className="grid gap-10 md:grid-cols-2 max-w-5xl mx-auto items-stretch">
-            {/* Free Starter Tier */}
-            <div className="flex flex-col justify-between rounded-[2.5rem] border border-[#EAE4D3] bg-white/85 backdrop-blur-md p-10 md:p-12 shadow-card hover:shadow-card-hover transition-all duration-300">
-              <div>
-                <span className="rounded-full bg-[#F6F4EE] px-4 py-1.5 text-xs font-bold text-[#14261D] border border-[#EAE4D3]">
-                  Free Starter
+          {/* Right Card: Dark Forest Green Card (Freemium Tier) */}
+          <div className="bg-[#1B3428] border-[1.5px] border-[#14261D] rounded-[24px] sm:rounded-[28px] p-5 sm:p-8 md:p-10 shadow-[0_6px_0_0_#14261D] flex flex-col justify-between relative overflow-hidden">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-display text-xl font-bold text-white">Pro Scholar</h3>
+                <span className="bg-[#E8722C] text-white font-sans text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full shadow-sm">
+                  Popular
                 </span>
-                <div className="mt-6 flex items-baseline gap-2">
-                  <span className="font-display text-5xl md:text-6xl font-black text-[#14261D]">$0</span>
-                  <span className="text-base text-[#14261D]/60 font-medium">/ forever</span>
-                </div>
-                <p className="mt-4 text-base text-[#14261D]/70 leading-relaxed">
-                  Ideal for students focusing on a core class or midterm syllabus this term.
-                </p>
-
-                <ul className="mt-8 space-y-4 text-base text-[#14261D]">
-                  <li className="flex items-center gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-[#497E64] flex-shrink-0" />
-                    <span>Upload up to 3 active textbooks or syllabi</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-[#497E64] flex-shrink-0" />
-                    <span>Files up to 25 MB (PDF, DOCX, TXT)</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-[#497E64] flex-shrink-0" />
-                    <span>Standard BullMQ asynchronous processing</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-[#497E64] flex-shrink-0" />
-                    <span>Full citation grounding & chapter practice quizzes</span>
-                  </li>
-                </ul>
               </div>
 
-              <div className="mt-10 pt-8 border-t border-[#EAE4D3]">
-                <Link href="/register">
-                  <Button variant="outline" size="lg" className="w-full justify-center rounded-full border-[#14261D]/25 text-[#14261D] hover:bg-white/60 font-medium text-[16px] py-3.5">
-                    Start Learning Free
-                  </Button>
-                </Link>
+              <div className="flex items-baseline gap-2 mb-4">
+                <span className="font-display font-extrabold text-4xl xs:text-5xl md:text-6xl text-white tracking-tight">
+                  Freemium
+                </span>
+                <span className="font-sans text-sm sm:text-base text-white/60 font-medium">/ tier</span>
               </div>
+
+              <p className="font-sans text-sm text-white/75 mb-6">
+                For university students managing full course loads, research papers, and thesis materials.
+              </p>
+
+              <hr className="border-t border-white/15 my-6" />
+
+              <ul className="space-y-4 font-sans text-sm md:text-[15px] text-white/90">
+                <li className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-[#497E64]/30 border border-[#497E64] text-[#86EFAC] flex items-center justify-center shrink-0 text-xs font-bold">
+                    ✓
+                  </div>
+                  <span>Unlimited document uploads and course libraries</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-[#497E64]/30 border border-[#497E64] text-[#86EFAC] flex items-center justify-center shrink-0 text-xs font-bold">
+                    ✓
+                  </div>
+                  <span>Priority background worker queueing</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-[#497E64]/30 border border-[#497E64] text-[#86EFAC] flex items-center justify-center shrink-0 text-xs font-bold">
+                    ✓
+                  </div>
+                  <span>Comprehensive multi-chapter vector indexing</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-[#497E64]/30 border border-[#497E64] text-[#86EFAC] flex items-center justify-center shrink-0 text-xs font-bold">
+                    ✓
+                  </div>
+                  <span>Early access to study rooms and OCR pipelines</span>
+                </li>
+              </ul>
             </div>
 
-            {/* Pro Scholar Tier */}
-            <div className="flex flex-col justify-between rounded-[2.5rem] border-2 border-[#14261D] bg-[#FAF8F4]/90 backdrop-blur-md p-10 md:p-12 shadow-card-hover transition-all duration-300 relative overflow-hidden">
-              <div className="absolute top-0 right-0 bg-[#F9D8C0]/90 text-[#E8722C] text-xs font-bold uppercase tracking-wider px-6 py-2 rounded-bl-2xl border-l border-b border-[#F9D8C0]">
-                Coming Soon
-              </div>
-
-              <div>
-                <div className="flex items-center gap-3">
-                  <span className="rounded-full bg-[#F9D8C0] px-4 py-1.5 text-xs font-bold text-[#E8722C]">
-                    Pro Scholar
-                  </span>
-                </div>
-                <div className="mt-6 flex items-baseline gap-2">
-                  <span className="font-display text-5xl md:text-6xl font-black text-[#14261D]">Freemium</span>
-                  <span className="text-base text-[#14261D]/60 font-medium">tier</span>
-                </div>
-                <p className="mt-4 text-base text-[#14261D]/70 leading-relaxed">
-                  For university students managing full course loads, research papers, and thesis materials.
-                </p>
-
-                <ul className="mt-8 space-y-4 text-base text-[#14261D]">
-                  <li className="flex items-center gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-[#497E64] flex-shrink-0" />
-                    <span>Unlimited document uploads and course libraries</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-[#497E64] flex-shrink-0" />
-                    <span>Priority background worker queueing</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-[#497E64] flex-shrink-0" />
-                    <span>Comprehensive multi-chapter vector indexing</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-[#497E64] flex-shrink-0" />
-                    <span>Early access to study rooms and OCR pipelines</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="mt-10 pt-8 border-t border-[#EAE4D3]">
-                <Link href="/register">
-                  <Button
-                    variant="secondary"
-                    size="lg"
-                    className="w-full justify-center rounded-full bg-[#14261D] hover:bg-[#1f3a2c] text-white font-medium text-[16px] py-3.5 shadow-sm transition-all"
-                  >
-                    Register for Early Access
-                  </Button>
-                </Link>
-              </div>
-            </div>
+            <Link href="/register" className="w-full mt-8 block">
+              <button className="w-full py-3.5 px-6 rounded-full bg-[#497E64] text-white font-display font-bold text-base shadow-[0_4px_0_0_#14261D] hover:bg-[#3D6B55] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#14261D] active:translate-y-1 active:shadow-[0_1px_0_0_#14261D] transition-all">
+                Register for Free Access
+              </button>
+            </Link>
           </div>
         </div>
       </section>
@@ -662,47 +788,96 @@ export default function MarketingPage() {
       {/* ======================================================== */}
       {/* SECTION 8: FREQUENTLY ASKED QUESTIONS */}
       {/* ======================================================== */}
-      <section id="faq" className="border-t border-[#EAE4D3] bg-[#FAF8F4]/60 py-24 md:py-36">
-        <div className="mx-auto max-w-4xl px-6 md:px-10">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#EAE4D3] bg-white/80 backdrop-blur-sm px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-[#14261D]/70 mb-6 shadow-subtle">
-              Answers & Transparency
-            </div>
-            <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#14261D]">
+      <section id="faq" className="w-full bg-[#F4EFE4] py-16 sm:py-24 md:py-32 px-4 sm:px-6 md:px-10 scroll-mt-0 overflow-hidden">
+        <div className="max-w-4xl mx-auto">
+          {/* Section Header */}
+          <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14 md:mb-16">
+            <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-5xl lg:text-6xl text-[#14261D] tracking-tight leading-[1.08]">
               Frequently asked{' '}
-              <span className="text-[#497E64]">
-                questions
+              <span
+                className="relative inline-block text-[#497E64] ml-1 select-none"
+                style={{
+                  transform: 'translateY(-3px) rotate(2.2deg)',
+                  transformOrigin: 'bottom right',
+                  display: 'inline-block'
+                }}
+              >
+                questions.
+
+                {/* Multi-Stroke Hand-Drawn Marker Underline */}
+                <svg
+                  className="absolute -bottom-3 left-0 w-full h-[12px] sm:h-[16px] text-[#E8722C] pointer-events-none overflow-visible"
+                  viewBox="0 0 240 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  preserveAspectRatio="none"
+                >
+                  <path d="M 4 8 C 50 3, 150 4, 235 7" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
+                  <path d="M 12 12 C 70 6, 170 11, 225 5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" opacity="0.85" />
+                  <path d="M 35 10 C 90 6, 140 8, 185 11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" opacity="0.6" />
+                </svg>
+
+                {/* Spark Ticks (//) top-right */}
+                <svg
+                  className="absolute -top-3.5 -right-5 sm:-right-6 w-4 h-4 sm:w-5 sm:h-5 text-[#E8722C] pointer-events-none rotate-[10deg]"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M4 14L8 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                  <path d="M12 16L16 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                </svg>
               </span>
-              .
             </h2>
           </div>
 
-          <div className="space-y-4">
+          {/* Tactile Accordion Cards with Framer Plus/Minus Buttons */}
+          <div className="space-y-3 sm:space-y-4 md:space-y-5 max-w-4xl mx-auto">
             {faqs.map((faq, idx) => {
               const isOpen = openFaq === idx;
               return (
                 <div
                   key={idx}
-                  className="rounded-[1.75rem] border border-[#EAE4D3] bg-white/90 backdrop-blur-md overflow-hidden shadow-subtle hover:shadow-card transition-all"
+                  onClick={() => toggleFaq(idx)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      toggleFaq(idx);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={isOpen}
+                  className="bg-white rounded-[20px] sm:rounded-[24px] p-4 sm:p-6 md:p-8 border border-[#14261D]/10 shadow-[0_4px_20px_rgba(20,38,29,0.04)] transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#497E64]/40 text-left"
                 >
-                  <button
-                    type="button"
-                    onClick={() => toggleFaq(idx)}
-                    className="flex w-full items-center justify-between p-7 text-left focus:outline-none"
-                  >
-                    <span className="font-display text-lg md:text-xl font-bold text-[#14261D] pr-6">
+                  <div className="flex items-center justify-between gap-3 sm:gap-6 select-none">
+                    <span className="font-display text-base sm:text-lg md:text-xl font-bold text-[#14261D] text-left">
                       {faq.q}
                     </span>
-                    <ChevronDown
-                      className={`h-5 w-5 text-[#14261D]/60 transition-transform duration-200 flex-shrink-0 ${
-                        isOpen ? 'transform rotate-180' : ''
+                    <div
+                      className={`w-9 h-9 sm:w-11 sm:h-10 rounded-[12px] sm:rounded-[14px] flex items-center justify-center shrink-0 border transition-all duration-200 ${
+                        isOpen
+                          ? 'bg-[#DCE7A8] text-[#3D5215] border-[#3D5215]/20 shadow-[0_2px_0_0_#C3D37F]'
+                          : 'bg-[#C9E0F2] text-[#1E4D6B] border-[#1E4D6B]/20 shadow-[0_2px_0_0_#A8CEEC]'
                       }`}
-                    />
-                  </button>
-                  {isOpen && (
-                    <div className="px-7 pb-7 text-base text-[#14261D]/75 leading-relaxed border-t border-[#EAE4D3]/50 pt-5 animate-fadeIn">
-                      {faq.a}
+                      aria-hidden="true"
+                    >
+                      {isOpen ? (
+                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
+                        </svg>
+                      ) : (
+                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                      )}
                     </div>
+                  </div>
+
+                  {isOpen && (
+                    <p className="font-sans text-xs sm:text-sm md:text-base text-[#14261D]/75 leading-relaxed mt-3 sm:mt-4 max-w-2xl text-left animate-fadeIn">
+                      {faq.a}
+                    </p>
                   )}
                 </div>
               );
@@ -712,58 +887,164 @@ export default function MarketingPage() {
       </section>
 
       {/* ======================================================== */}
-      {/* SECTION 9: FINAL CALL TO ACTION */}
+      {/* SECTION 9: FINAL CALL TO ACTION (OPEN FULL-BLEED COMPOSITION) */}
       {/* ======================================================== */}
-      <section className="py-20 md:py-32">
-        <div className="mx-auto max-w-[1380px] px-6 md:px-10">
-          <div className="rounded-[3rem] bg-gradient-to-br from-[#14261D] via-[#1A3327] to-[#12231A] text-white p-12 sm:p-20 shadow-2xl relative overflow-hidden text-center">
-            {/* Subtle radial decorative background glow */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-[#E8722C]/20 rounded-full blur-3xl pointer-events-none" />
+      <section className="relative w-full max-w-full bg-[#E9E3D2] pt-16 sm:pt-20 pb-16 sm:pb-20 md:pt-28 md:pb-28 px-4 sm:px-6 md:px-10 overflow-hidden select-none">
+        {/* Organic Backdrop Blobs */}
+        {/* Left backdrop arch */}
+        <div className="absolute left-0 bottom-0 w-[240px] sm:w-[300px] lg:w-[420px] xl:w-[480px] h-[280px] sm:h-[340px] lg:h-[480px] bg-[#E2EBD8] rounded-tr-[160px] pointer-events-none -z-0" />
 
-            <div className="relative z-10">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 backdrop-blur-sm px-5 py-2 text-xs md:text-sm font-semibold text-[#F9D8C0] mb-8">
-                Start Your First Session
+        {/* Right backdrop hill */}
+        <div className="absolute right-0 bottom-0 w-[220px] sm:w-[280px] lg:w-[400px] xl:w-[460px] h-[260px] sm:h-[320px] lg:h-[440px] bg-[#EED5BE] rounded-tl-[180px] pointer-events-none -z-0" />
+
+        {/* Left Cutout: Friendly student reviewing notes with tablet */}
+        <div className="hidden lg:block absolute left-0 xl:left-4 bottom-0 w-[300px] lg:w-[380px] xl:w-[430px] z-10 pointer-events-none select-none">
+          <img
+            src="/assets/cta_student_female_left.png"
+            alt="Student reviewing notes comfortably"
+            className="w-full h-auto object-contain drop-shadow-sm"
+          />
+        </div>
+
+        {/* Right Cutout: Friendly student reading open textbook */}
+        <div className="hidden lg:block absolute right-0 xl:right-4 bottom-0 w-[280px] lg:w-[350px] xl:w-[400px] z-10 pointer-events-none select-none">
+          <img
+            src="/assets/cta_student_male_right.png"
+            alt="Student reading open textbook"
+            className="w-full h-auto object-contain drop-shadow-sm"
+          />
+        </div>
+
+        {/* Center Headline, Subcopy & Framer 3D Buttons */}
+        <div className="relative z-20 max-w-2xl mx-auto text-center px-2 sm:px-4">
+          {/* Intro Badge Pill with Floating Notebook Sticker to its upper-left */}
+          <div className="relative flex justify-center mb-5">
+            {/* Tilted Spiral Notebook Sticker (Floating to the Left) */}
+            <div className="absolute -top-10 left-2 xs:left-4 sm:left-8 lg:-left-12 pointer-events-none">
+              <div className="relative">
+                {/* Curved Motion Trail Doodle with Arrowhead */}
+                <svg
+                  className="absolute -top-3 -right-10 w-16 h-16 text-[#14261D]/35 pointer-events-none overflow-visible"
+                  viewBox="0 0 60 60"
+                  fill="none"
+                >
+                  <path
+                    d="M 6 12 C 18 28, 36 36, 48 48"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeDasharray="3.5 3.5"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M 42 46 L 49 49 L 50 42"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+
+                {/* Wirebound Notebook Sticker */}
+                <div
+                  className="w-13 h-16 sm:w-14 sm:h-18 bg-[#FAF8F4] border-[1.5px] border-[#1B3428] rounded-md shadow-[0_4px_12px_rgba(20,38,29,0.08)] flex p-1.5 transform hover:rotate-0 transition-transform duration-200 cursor-pointer pointer-events-auto"
+                  style={{ transform: 'rotate(-14deg)', transformOrigin: 'bottom left' }}
+                >
+                  {/* Wire Spiral Rings along left */}
+                  <div className="w-2.5 flex flex-col justify-between py-1 border-r border-[#1B3428]/25 pr-0.5 mr-1">
+                    {[...Array(6)].map((_, i) => (
+                      <div key={i} className="w-2 h-1 rounded-full bg-[#1B3428]/80" />
+                    ))}
+                  </div>
+                  {/* Ruled Notebook Page */}
+                  <div className="flex-1 flex flex-col justify-between py-0.5">
+                    <div className="flex gap-1 border-b border-[#1B3428]/20 pb-1 mb-0.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#E8722C]" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#497E64]" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <div className="w-full h-0.5 bg-[#14261D]/15 rounded" />
+                      <div className="w-4/5 h-0.5 bg-[#14261D]/15 rounded" />
+                      <div className="w-3/5 h-0.5 bg-[#14261D]/15 rounded" />
+                      <div className="w-4/5 h-0.5 bg-[#14261D]/15 rounded" />
+                      <div className="w-2/5 h-0.5 bg-[#14261D]/15 rounded" />
+                    </div>
+                  </div>
+                </div>
               </div>
+            </div>
 
-              <h2 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight max-w-4xl mx-auto leading-[1.08]">
-                Ready to study with{' '}
-                <span className="text-[#F9D8C0]">
-                  verified certainty
-                </span>
-                ?
-              </h2>
-
-              <p className="mx-auto mt-6 max-w-2xl text-lg sm:text-xl text-stone-300 leading-relaxed">
-                Upload your first textbook chapter and experience learning grounded in real citations and zero hallucination.
-              </p>
-
-              <div className="mt-10 flex flex-wrap items-center justify-center gap-5">
-                <Link href="/register">
-                  <Button
-                    variant="secondary"
-                    size="lg"
-                    className="rounded-full bg-[#E8722C] hover:bg-[#d66522] text-white font-['Instrument_Sans'] font-semibold text-[17px] px-[36px] py-[18px] shadow-sm hover:shadow-md transition-all duration-200"
-                  >
-                    Create Free Student Account
-                    <ArrowRight className="ml-2.5 h-5 w-5" />
-                  </Button>
-                </Link>
-                <a href="#upload-card">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="rounded-full bg-white/10 hover:bg-white/20 border border-white/30 text-white font-['Instrument_Sans'] font-medium text-[17px] px-[36px] py-[18px] transition-all duration-200"
-                  >
-                    Upload Document Now
-                  </Button>
-                </a>
-              </div>
-
-              <p className="mt-8 text-sm text-stone-400">
-                No credit card required • Strict private textbook storage • Instant setup
-              </p>
+            {/* Intro Badge Pill */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 border border-[#14261D]/15 text-xs text-[#14261D] font-medium shadow-sm backdrop-blur-sm select-none">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#E8722C]" />
+              Free Student Plan • Instant Setup
             </div>
           </div>
+
+          <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-5xl lg:text-[68px] text-[#14261D] tracking-tight leading-[1.08] mb-5">
+            Ready to study with{' '}
+            <br className="hidden sm:inline" />
+            verified{' '}
+            <span
+              className="relative inline-block text-[#497E64] ml-1 select-none"
+              style={{
+                transform: 'translateY(-3px) rotate(2.2deg)',
+                transformOrigin: 'bottom right',
+                display: 'inline-block'
+              }}
+            >
+              certainty?
+
+              {/* Multi-Stroke Hand-Drawn Marker Underline */}
+              <svg
+                className="absolute -bottom-3 left-0 w-full h-[12px] sm:h-[16px] text-[#E8722C] pointer-events-none overflow-visible"
+                viewBox="0 0 240 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                preserveAspectRatio="none"
+              >
+                <path d="M 4 8 C 50 3, 150 4, 235 7" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
+                <path d="M 12 12 C 70 6, 170 11, 225 5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" opacity="0.85" />
+                <path d="M 35 10 C 90 6, 140 8, 185 11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" opacity="0.6" />
+              </svg>
+
+              {/* Spark Ticks (//) top-right */}
+              <svg
+                className="absolute -top-3.5 -right-5 sm:-right-6 w-4 h-4 sm:w-5 sm:h-5 text-[#E8722C] pointer-events-none rotate-[10deg]"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M4 14L8 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                <path d="M12 16L16 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+              </svg>
+            </span>
+          </h2>
+
+          <p className="font-sans text-xs xs:text-sm sm:text-base md:text-[17px] text-[#14261D]/75 max-w-xl mx-auto leading-relaxed mb-8">
+            Upload your first textbook chapter and experience learning grounded in real citations and zero hallucination.
+          </p>
+
+          {/* Dual Tactile CTA Buttons */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 mb-6 w-full max-w-md mx-auto sm:max-w-none">
+            {/* Primary Terracotta 3D Button */}
+            <Link href="/register" className="w-full sm:w-auto">
+              <button className="w-full sm:w-auto h-[50px] sm:h-[52px] px-6 sm:px-8 rounded-full bg-[#E8722C] text-white font-display font-bold text-sm sm:text-base shadow-[0_4px_0_0_#B26E45] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#B26E45] active:translate-y-1 active:shadow-[0_1px_0_0_#B26E45] transition-all">
+                Create Free Student Account →
+              </button>
+            </Link>
+
+            {/* Secondary Light 3D Button */}
+            <a href="#how-it-works" className="w-full sm:w-auto">
+              <button className="w-full sm:w-auto h-[50px] sm:h-[52px] px-6 sm:px-8 rounded-full bg-[#FAF8F4] text-[#14261D] font-display font-bold text-sm sm:text-base border-[2px] border-[#1B3428] shadow-[0_4px_0_0_#1B3428] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#1B3428] active:translate-y-1 active:shadow-[0_1px_0_0_#1B3428] transition-all">
+                Upload Document Now
+              </button>
+            </a>
+          </div>
+
+          {/* Micro Trust Indicators */}
+          <p className="font-sans text-xs text-[#14261D]/60 tracking-wide">
+            Free student plan • Strict private textbook storage • Instant setup
+          </p>
         </div>
       </section>
     </div>

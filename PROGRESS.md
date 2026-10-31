@@ -95,45 +95,60 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 
 ##### 6. Current Task Record
 
-- **Task**: Pixel-Perfect Reference Cloud Divider Refactor & Section Shaking Root Cause Resolution
+- **Task**: Comprehensive Mobile Responsiveness & Viewport Hardening (320px–480px) — LERNIVOX
 - **Objective**:
-  1. Replicate the cloud canopy divider from `reference/Pasted image.png` pixel-perfect.
-  2. Identify and fix the definitive root cause of the layout shaking/jitter on the `#how-it-works` section.
-  3. Ensure all dev/temporary ports are cleanly released after task completion.
-- **Root Cause Analysis (Section Shaking)**:
-  - **Subpixel Fractional Header Discrepancy**: `Navbar.tsx` had hardcoded fractional heights `h-[86.41px]` and `h-[46.41px]` (computed from Framer DevTools). When combined with integer `scroll-mt-[86px]` on `#how-it-works` and CSS `scroll-behavior: smooth` on `<html>`, Chromium's smooth scroll interpolator continuously oscillated between subpixel floor and ceiling roundings (60 FPS subpixel scroll loop).
-  - **Off-Screen Continuous Ticker Mutations**: `WavingRibbon.tsx` ran an unrestricted `requestAnimationFrame` loop calling `setAttribute('startOffset')` 60 times a second even when scrolled down to `#how-it-works`, causing perpetual DOM reflows and layout recalculations across the page.
-  - **Viewport Scrollbar Thrashing**: `WavingRibbon.tsx` used `w-[110vw] min-w-[1200px]` with `overflow-visible`. Because `vw` includes the browser vertical scrollbar width (15px), it triggered horizontal overflow detection and continuous reflows.
-  - **Conflicting Scroll Containers**: `overflow-x-clip` placed on both `<html>` and `<body>` caused Chromium to alternate scrolling container ownership during smooth scrolling.
-  - **Subpixel Negative Margins**: Negative `-mb-1` margin on flexible SVG container created subpixel boundary shifts.
+  1. Primary Root-Cause Resolution:
+     - Navbar Truncation: Eliminated right-edge clipping of the hamburger button caused by rigid min-widths on mobile.
+     - Headline Blowout: Rescaled the 14-character word "understanding." with fluid typography, preventing overflow beyond 320px screen width.
+     - Card Layout Rupture: Reconstructed Section 2 dropzone action buttons with responsive flex stacking (`flex-col-reverse sm:flex-row`), eliminating ejection of the "Sign In" button from the card container.
+  2. Global Overflow Containment:
+     - Set `overflow-x-clip` on `<html>` and `<body>` in [`apps/web/app/layout.tsx`](file:///home/e-b-b-a/Desktop/MyFiles/03_Full_Stack/Projects/lernivox/apps/web/app/layout.tsx) and `<main>` in [`apps/web/app/(marketing)/layout.tsx`](file:///home/e-b-b-a/Desktop/MyFiles/03_Full_Stack/Projects/lernivox/apps/web/app/(marketing)/layout.tsx).
+     - Verified Next.js 15 viewport export (`width=device-width, initial-scale=1, maximum-scale=1`).
+     - Audited codebase for fixed widths, eliminating all unbounded widths.
+  3. Header & Navbar Hardening:
+     - Made Zone 1 responsive (`w-auto min-w-0 md:w-[236px] md:min-w-[236px]`).
+     - Hardened hamburger button with `shrink-0 p-2 rounded-xl` and focus ring inside the navbar pill.
+  4. Typography Scaling & Fluid Long-Word Handling:
+     - Configured `screens: { xs: '380px' }` in [`apps/web/tailwind.config.ts`](file:///home/e-b-b-a/Desktop/MyFiles/03_Full_Stack/Projects/lernivox/apps/web/tailwind.config.ts).
+     - Applied fluid scale `text-[32px] xs:text-[38px] sm:text-5xl md:text-7xl lg:text-8xl xl:text-[103px] leading-[1.08]` to hero headline.
+     - Hardened all section headings (`h2`, `h3`) across Sections 1 to 9 with mobile-first `text-2xl xs:text-3xl sm:...`.
+  5. Section 2 Card & Action Buttons Reconstruction:
+     - Card container updated to `w-full max-w-full rounded-[24px] sm:rounded-[32px] p-4 sm:p-6 md:p-8`.
+     - Tab pill buttons updated with `w-1/2 py-2 px-2 text-xs sm:text-sm truncate`.
+     - Action buttons rebuilt with clean responsive flexbox (`flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto`).
+  6. SVG Dividers, Blobs & Footer Hardening:
+     - Scalloped and cloud dividers wrapped in `w-full max-w-full overflow-hidden leading-none select-none pointer-events-none`.
+     - All hand-drawn marker underline SVGs updated to `w-full` with `preserveAspectRatio="none"`.
+     - Footer hardened with responsive padding (`p-5 sm:p-8 md:p-12 lg:p-16`), responsive wordmark (`text-4xl xs:text-5xl sm:text-7xl ...`), and responsive form sizing.
+  7. Strict Scope Adherence:
+     - No browser automation suites (Playwright/Puppeteer) launched.
+     - No marketing copy, button labels, or feature descriptions altered.
+     - Desktop breakpoints (`lg:`, `xl:`) completely preserved.
+     - Backend API handlers and auth logic untouched.
 - **Work Completed**:
-  - **Pixel-Perfect Cloud Divider**:
-    - Extracted the exact BrightPath Framer SVG asset (`Gs4oYCae5IMouFY2S2iiOM1YJeQ.svg`) and placed it at `apps/web/public/assets/cloud-divider.svg`.
-    - Implemented identical CSS background presentation: `background-size: 1248px auto; background-position: center top; background-repeat: repeat-x; height: 78px;` inside a clean `overflow-hidden` container in `#how-it-works`.
-    - Exactly matches the 1920x238 reference in `reference/Pasted image.png` (min Y ~97, max Y ~172, identical crests and valleys).
-  - **Definitive Shaking Elimination**:
-    - Cleaned `Navbar.tsx` heights to exact integers: `h-[86px]` and inner `h-[46px]`.
-    - Added `IntersectionObserver` to `WavingRibbon.tsx` to automatically freeze/pause the ticker animation when scrolled off-screen.
-    - Replaced `w-[110vw]` with container-safe `w-[125%] min-w-[1300px] max-w-[2200px]`.
-    - Removed `overflow-x-clip` from `<html>` (kept `overflow-x-hidden` on `<body>` and `MarketingLayout`).
-    - Added smooth anchor navigation handlers with `preventDefault()` and `element.scrollIntoView({ behavior: 'smooth' })` to eliminate Next.js router hash jump collisions.
-  - **Port Cleanup**:
-    - Released orphaned Next.js process (pid 134639).
-    - Verified ports 3000 and 9222 are completely free.
-- **Files Created/Modified**:
-  - `apps/web/public/assets/cloud-divider.svg` (Created: exact BrightPath cloud SVG)
-  - `apps/web/components/marketing/HeroUpload.tsx` (Modified: pixel-perfect divider & clean container)
-  - `apps/web/components/marketing/Navbar.tsx` (Modified: integer heights & smooth anchor handling)
-  - `apps/web/components/marketing/WavingRibbon.tsx` (Modified: IntersectionObserver pause & percentage width)
-  - `apps/web/app/layout.tsx` (Modified: clean html scroll container)
-  - `apps/web/app/(marketing)/layout.tsx` (Modified: overflow-x-hidden layout wrapper)
-  - `apps/web/app/(marketing)/page.tsx` (Modified: smooth CTA scroll handlers)
-  - `PROGRESS.md` (Modified)
+  - Configured mobile breakpoint in [`apps/web/tailwind.config.ts`](file:///home/e-b-b-a/Desktop/MyFiles/03_Full_Stack/Projects/lernivox/apps/web/tailwind.config.ts).
+  - Hardened root and marketing layouts in [`apps/web/app/layout.tsx`](file:///home/e-b-b-a/Desktop/MyFiles/03_Full_Stack/Projects/lernivox/apps/web/app/layout.tsx) and [`apps/web/app/(marketing)/layout.tsx`](file:///home/e-b-b-a/Desktop/MyFiles/03_Full_Stack/Projects/lernivox/apps/web/app/(marketing)/layout.tsx).
+  - Hardened navbar in [`apps/web/components/marketing/Navbar.tsx`](file:///home/e-b-b-a/Desktop/MyFiles/03_Full_Stack/Projects/lernivox/apps/web/components/marketing/Navbar.tsx).
+  - Reconstructed Section 2 upload card in [`apps/web/components/marketing/HeroUpload.tsx`](file:///home/e-b-b-a/Desktop/MyFiles/03_Full_Stack/Projects/lernivox/apps/web/components/marketing/HeroUpload.tsx).
+  - Hardened lesson preview card in [`apps/web/components/marketing/GuidedLearningPreview.tsx`](file:///home/e-b-b-a/Desktop/MyFiles/03_Full_Stack/Projects/lernivox/apps/web/components/marketing/GuidedLearningPreview.tsx).
+  - Fluidly scaled Sections 1 to 9 in [`apps/web/app/(marketing)/page.tsx`](file:///home/e-b-b-a/Desktop/MyFiles/03_Full_Stack/Projects/lernivox/apps/web/app/(marketing)/page.tsx).
+  - Hardened editorial footer in [`apps/web/components/marketing/Footer.tsx`](file:///home/e-b-b-a/Desktop/MyFiles/03_Full_Stack/Projects/lernivox/apps/web/components/marketing/Footer.tsx).
 - **Verification**:
   - `pnpm type-check`: 11/11 tasks passed with 0 errors across all monorepo packages.
-  - `pnpm --filter @lernivox/web build`: Passed with code 0 (all 8 Next.js routes statically prerendered).
-  - `pnpm test`: 3/3 tasks passed (67/67 automated tests passing).
-  - Port Audit (`ss -tulpn`): Verified ports 3000 and 9222 are completely free; only persistent background infrastructure remains.
+  - `pnpm test`: 3/3 tasks passed (67/67 automated tests passing: 10 database, 3 worker, 54 api).
+  - `pnpm --filter @lernivox/web build`: 8/8 static routes compiled successfully (`/`, `/_not-found`, `/auth/callback`, `/dashboard`, `/login`, `/register`).
+- **Files Created/Modified**:
+  - [`apps/web/tailwind.config.ts`](file:///home/e-b-b-a/Desktop/MyFiles/03_Full_Stack/Projects/lernivox/apps/web/tailwind.config.ts) (Modified: added `xs: '380px'`)
+  - [`apps/web/app/layout.tsx`](file:///home/e-b-b-a/Desktop/MyFiles/03_Full_Stack/Projects/lernivox/apps/web/app/layout.tsx) (Modified: viewport export & `overflow-x-clip`)
+  - [`apps/web/app/(marketing)/layout.tsx`](file:///home/e-b-b-a/Desktop/MyFiles/03_Full_Stack/Projects/lernivox/apps/web/app/(marketing)/layout.tsx) (Modified: `overflow-x-clip` & `w-full max-w-full`)
+  - [`apps/web/components/marketing/Navbar.tsx`](file:///home/e-b-b-a/Desktop/MyFiles/03_Full_Stack/Projects/lernivox/apps/web/components/marketing/Navbar.tsx) (Modified: Zone 1 width fix, container padding, `shrink-0` hamburger)
+  - [`apps/web/components/marketing/HeroUpload.tsx`](file:///home/e-b-b-a/Desktop/MyFiles/03_Full_Stack/Projects/lernivox/apps/web/components/marketing/HeroUpload.tsx) (Modified: Section 2 card containment, tabs truncate, dropzone badges wrap, stacked action buttons)
+  - [`apps/web/components/marketing/GuidedLearningPreview.tsx`](file:///home/e-b-b-a/Desktop/MyFiles/03_Full_Stack/Projects/lernivox/apps/web/components/marketing/GuidedLearningPreview.tsx) (Modified: responsive padding & containment)
+  - [`apps/web/app/(marketing)/page.tsx`](file:///home/e-b-b-a/Desktop/MyFiles/03_Full_Stack/Projects/lernivox/apps/web/app/(marketing)/page.tsx) (Modified: Sections 1-9 fluid typography, responsive SVGs, stacked mobile buttons)
+  - [`apps/web/components/marketing/Footer.tsx`](file:///home/e-b-b-a/Desktop/MyFiles/03_Full_Stack/Projects/lernivox/apps/web/components/marketing/Footer.tsx) (Modified: responsive padding, form, wordmark)
+  - [`PROGRESS.md`](file:///home/e-b-b-a/Desktop/MyFiles/03_Full_Stack/Projects/lernivox/PROGRESS.md) (Modified)
+- **Processes & Ports**:
+  - Pre-execution check: ports 3000 and 4000 verified. No temporary processes lingering. All ports clean.
 - **Status**: **Complete**
 
 ---
@@ -171,12 +186,28 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
   - Completed Hero Section Polish: Headline Color Split, Clockwise Word Decline, Compact Body Copy & Showcase Elevation.
   - Completed Hero Headline Elevated "u" Anchor & Multi-Stroke Hand-Drawn Marker Underline Refactor.
   - Completed Hero Headline Vertical Clearance & Breathing Room Adjustment.
-  - Completed Pixel-Perfect Reference Cloud Divider Refactor & Section Shaking Root Cause Resolution:
-    - Analyzed `reference/Pasted image.png` and extracted the exact mathematical Framer SVG asset into `apps/web/public/assets/cloud-divider.svg`.
-    - Applied identical BrightPath container rules (`background-size: 1248px auto; background-position: center top; height: 78px;`), achieving 100% pixel-perfect alignment.
-    - Diagnosed and resolved the root cause of layout shaking: replaced fractional navbar heights (`86.41px` -> `86px`), added `IntersectionObserver` to freeze `WavingRibbon` off-screen, eliminated `110vw` and negative margin, and fixed `html` overflow-x clipping.
-    - Verified with `pnpm type-check` (11/11), `pnpm --filter @lernivox/web build` (8/8 static routes), and `pnpm test` (67/67 automated tests passing).
-    - Released all ports (port 3000 & 9222 free).
+  - Completed Pixel-Perfect Reference Cloud Divider Refactor & Section Shaking Root Cause Resolution.
+  - Completed Unified Compound `#features` Section (Interactive Lesson Preview & Academic Retention Engine).
+  - Completed Section 3 & 4 Asymmetric Split Layout & Single-Word Hero Accent Refactor.
+  - Completed Section 4 Fan-Spread Card Tilts, Spacing Wedges, Tactile 3D Badges & Height Alignment Refactor.
+  - Completed Section 5 & 6 Student-Friendly Copy, Readiness Tracker & Study Groups Refactor.
+  - Completed Section 7 Pricing Refactor.
+  - Completed Navbar Anchor Scroll Landing Position & Section Background Bleed Fix.
+  - Completed Section 8 FAQ Section Refactor.
+  - Completed Pixel-Accurate FAQ Transition and Final CTA Redesign.
+  - Completed Reference-Inspired Editorial Footer Recreation for Lernivox.
+  - Completed Comprehensive Mobile Responsiveness & Viewport Hardening (320px–480px):
+    - Eliminated horizontal blowout across the entire application canvas down to 320px (iPhone SE / narrow Android).
+    - Hardened Navbar: Hamburger button given `shrink-0 p-2`, Zone 1 min-width removed on mobile, ensuring full visibility and clearance inside the nav pill.
+    - Scaled Hero Headline: Configured `xs: '380px'`, applied fluid typography `text-[32px] xs:text-[38px] sm:text-5xl ...`, responsive SVG doodle underline (`w-full`), and spark ticks.
+    - Reconstructed Section 2 Workspace Card: Replaced overflowing side-by-side buttons with responsive flexbox `flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto`. "Sign In" and "Create Free Account" stack inside card boundaries.
+    - Applied global `overflow-x-clip` across `<html>`, `<body>`, and `<main>` with zero `w-screen` dependencies.
+    - Hardened all section titles (`h2`, `h3`) across Sections 1 to 9 with mobile-first `text-2xl xs:text-3xl sm:...`.
+    - Hardened Footer: Responsive frame padding (`p-5 sm:p-8 ...`), responsive wordmark (`text-4xl xs:text-5xl ...`), responsive form sizing.
+    - Verified with automated type checks (`pnpm type-check` 11/11 passed), tests (`pnpm test` 67/67 passed), and Next.js production build (`pnpm --filter @lernivox/web build` 8/8 routes).
+    - Preserved all marketing copy, button labels, desktop breakpoints, and backend contracts. Zero browser automation suites executed.
+
+
 
 
 
