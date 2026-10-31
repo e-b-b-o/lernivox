@@ -65,147 +65,155 @@ export default function MarketingPage() {
 
         <div className="mx-auto max-w-[1380px] px-6 md:px-10 text-center">
           {/* Main Headline */}
-          <h1 className="font-display font-black text-6xl md:text-8xl lg:text-[103px] leading-[0.98] tracking-[-0.03em] text-[#14261D] max-w-6xl mx-auto">
-            Turn your textbooks
-            <span className="block mt-2 md:mt-3">
-              into real{' '}
-              <span className="relative inline-block rotate-[3.5deg] origin-bottom-left text-[#497E64] pb-2 md:pb-3 select-none">
-                understanding.
-                {/* Top-Right Accent Ticks (//) in #E8722C */}
-                <span className="absolute -top-3 md:-top-5 -right-6 md:-right-8 w-6 h-6 md:w-8 md:h-8 pointer-events-none select-none text-[#E8722C]">
-                  <svg
-                    viewBox="0 0 28 28"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-full h-full"
-                  >
-                    <path
-                      d="M 7 21 L 13 7"
-                      stroke="currentColor"
-                      strokeWidth="3.5"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M 17 23 L 23 9"
-                      stroke="currentColor"
-                      strokeWidth="3.5"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </span>
+          <h1 className="font-display font-extrabold text-6xl md:text-8xl lg:text-[103px] leading-[1.04] tracking-[-0.03em] text-[#14261D] max-w-6xl mx-auto text-center">
+            Turn your textbooks <br className="hidden md:block" />
+            into real{' '}
+            <span 
+              className="relative inline-block text-[#497E64] ml-1.5 select-none"
+              style={{
+                transform: 'translateY(-3px) rotate(2.2deg)',
+                transformOrigin: 'bottom right',
+                display: 'inline-block'
+              }}
+            >
+              understanding.
 
-                {/* Bottom Decor: Multiple Sketch Underline Lines in #E8722C */}
-                <span className="absolute -bottom-3 md:-bottom-5 left-0 w-[102%] h-4 md:h-6 pointer-events-none select-none text-[#E8722C]">
-                  <svg
-                    viewBox="0 0 320 22"
-                    fill="none"
-                    preserveAspectRatio="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-full h-full overflow-visible"
-                  >
-                    {/* Primary top sketch line */}
-                    <path
-                      d="M 4 8 C 80 4, 200 4.5, 314 9.5"
-                      stroke="currentColor"
-                      strokeWidth="3.5"
-                      strokeLinecap="round"
-                    />
-                    {/* Secondary lower sketch line */}
-                    <path
-                      d="M 22 15.5 C 95 11, 220 11.5, 290 17"
-                      stroke="currentColor"
-                      strokeWidth="2.8"
-                      strokeLinecap="round"
-                      opacity="0.9"
-                    />
-                    {/* Subtle third sketch accent */}
-                    <path
-                      d="M 45 20 C 110 17, 180 18, 230 20.5"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      opacity="0.6"
-                    />
-                  </svg>
-                </span>
-              </span>
+              {/* Authentic Multi-Stroke Hand-Drawn Marker Underline */}
+              <svg
+                className="absolute -bottom-3 left-0 w-[104%] h-[18px] text-[#E8722C] pointer-events-none overflow-visible"
+                viewBox="0 0 340 18"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                preserveAspectRatio="none"
+              >
+                {/* Primary sweeping sketch stroke */}
+                <path
+                  d="M 5 9 C 75 3, 210 4, 335 8"
+                  stroke="currentColor"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                />
+                {/* Secondary overlapping scribble stroke */}
+                <path
+                  d="M 18 13 C 110 7, 245 12, 318 6"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  opacity="0.85"
+                />
+                {/* Short accent scratch line */}
+                <path
+                  d="M 55 11 C 135 6, 205 9, 260 12"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  opacity="0.6"
+                />
+              </svg>
+
+              {/* Dual Accent Ticks (//) top-right */}
+              <svg
+                className="absolute -top-3.5 -right-6 w-5 h-5 text-[#E8722C] pointer-events-none rotate-[10deg]"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M4 14L8 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                <path d="M12 16L16 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+              </svg>
             </span>
           </h1>
 
           {/* Subheadline */}
-          <p className="font-sans font-normal text-lg md:text-xl lg:text-[20px] text-[#14261D]/75 max-w-3xl mx-auto text-center leading-relaxed mt-7">
-            Upload course materials, lecture slides, or textbook chapters. Lernivox breaks complex subjects into guided explanations, worked methods, and verified practice—grounded directly in your source documents.
+          <p className="font-sans font-normal text-lg md:text-xl text-[#14261D]/80 max-w-2xl mx-auto text-center leading-relaxed mt-6 mb-8">
+            Upload your notes, slides, or books. Lernivox turns them into clear explanations and practice questions grounded in your course.
           </p>
 
           {/* Action CTAs */}
-          <div className="mt-10 md:mt-12 flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mb-12 md:mb-16">
             <a
               href="#how-it-works"
+              onClick={(e) => {
+                e.preventDefault();
+                const el = document.getElementById('how-it-works');
+                if (el) {
+                  el.scrollIntoView({ behavior: 'smooth' });
+                  window.history.pushState(null, '', '#how-it-works');
+                }
+              }}
               className="h-[54px] px-[30px] py-[16px] rounded-[100px] bg-[#E8722C] text-white font-sans text-[16px] font-medium leading-[22.4px] shadow-[0_4px_0_0_#B26E45] hover:-translate-y-[1px] hover:shadow-[0_5px_0_0_#B26E45] active:translate-y-[2px] active:shadow-[0_2px_0_0_#B26E45] transition-all duration-150 inline-flex items-center justify-center select-none"
             >
               Upload Course Material
             </a>
             <a
               href="#sample-lesson"
+              onClick={(e) => {
+                e.preventDefault();
+                const el = document.getElementById('sample-lesson');
+                if (el) {
+                  el.scrollIntoView({ behavior: 'smooth' });
+                  window.history.pushState(null, '', '#sample-lesson');
+                }
+              }}
               className="h-[54px] px-[30px] py-[16px] rounded-[100px] bg-[#F4F0E5] text-[#14261D] font-sans text-[16px] font-medium leading-[22.4px] border border-[#1B3428] shadow-[0_4px_0_0_#1B3428] hover:-translate-y-[1px] hover:shadow-[0_5px_0_0_#1B3428] active:translate-y-[2px] active:shadow-[0_2px_0_0_#1B3428] transition-all duration-150 inline-flex items-center justify-center select-none"
             >
               Explore Sample Lesson
             </a>
           </div>
+        </div>
 
-          {/* ======================================================== */}
-          {/* PHOTO SHOWCASE & WAVING RIBBON BAND */}
-          {/* ======================================================== */}
-          <div className="relative mt-20 md:mt-28 w-full overflow-visible">
-            {/* Edge-to-edge animated waving ribbon band passing behind photos */}
-            <WavingRibbon />
+        {/* ======================================================== */}
+        {/* PHOTO SHOWCASE & FULL-BLEED WAVING RIBBON BAND */}
+        {/* ======================================================== */}
+        <div className="relative w-full overflow-hidden py-4 mt-6 md:mt-8">
+          {/* Edge-to-edge animated waving ribbon band passing behind photos */}
+          <WavingRibbon />
 
-            {/* Three Overlapping Photography Cards */}
-            <div className="relative z-10 flex items-center justify-center gap-4 sm:gap-8 md:gap-12 max-w-5xl mx-auto px-4 pt-4 pb-8">
-              {/* Left Card: Tilted (-rotate-6) */}
-              <div className="group relative w-44 md:w-56 aspect-[3/4] rounded-3xl overflow-hidden shadow-lg border-4 border-white -rotate-6 hover:rotate-0 transition-transform duration-300 mt-10 md:mt-16 flex-shrink-0">
-                <img
-                  src="https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=600&q=80"
-                  alt="Student reading focused"
-                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
-                  loading="lazy"
-                />
-                {/* Soft peach badge with smiling face sticker */}
-                <div className="absolute top-3 left-3 bg-[#F9D8C0] text-[#14261D] rounded-full px-3 py-1 text-xs font-bold shadow-md flex items-center gap-1 select-none">
-                  <span>Focused</span>
-                  <span>:)</span>
-                </div>
+          {/* Three Overlapping Photography Cards */}
+          <div className="relative z-10 flex items-center justify-center gap-4 sm:gap-8 md:gap-12 max-w-5xl mx-auto px-4 pt-4 pb-8">
+            {/* Left Card: Tilted (-rotate-6) */}
+            <div className="group relative w-44 md:w-56 aspect-[3/4] rounded-3xl overflow-hidden shadow-lg border-4 border-white -rotate-6 hover:rotate-0 transition-transform duration-300 mt-10 md:mt-16 flex-shrink-0">
+              <img
+                src="https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=600&q=80"
+                alt="Student reading focused"
+                className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+              />
+              {/* Soft peach badge with smiling face sticker */}
+              <div className="absolute top-3 left-3 bg-[#F9D8C0] text-[#14261D] rounded-full px-3 py-1 text-xs font-bold shadow-md flex items-center gap-1 select-none">
+                <span>Focused</span>
+                <span>:)</span>
               </div>
+            </div>
 
-              {/* Center Card: Elevated & Upright */}
-              <div className="group relative w-60 md:w-72 lg:w-80 aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl border-4 border-white z-10 -mt-6 md:-mt-10 flex-shrink-0 transition-transform duration-300 hover:scale-[1.02]">
-                <img
-                  src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80"
-                  alt="Modern library student with books"
-                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
-                  loading="lazy"
-                />
-                {/* Subtle caption tag */}
-                <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-[#14261D]/80 via-[#14261D]/20 to-transparent flex items-end justify-center">
-                  <span className="rounded-full bg-white/90 backdrop-blur-sm px-4 py-1.5 text-xs font-bold text-[#14261D] shadow-sm select-none">
-                    Stewart Calculus • Grounded
-                  </span>
-                </div>
+            {/* Center Card: Elevated & Upright */}
+            <div className="group relative w-60 md:w-72 lg:w-80 aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl border-4 border-white z-10 -mt-6 md:-mt-10 flex-shrink-0 transition-transform duration-300 hover:scale-[1.02]">
+              <img
+                src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80"
+                alt="Modern library student with books"
+                className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+              />
+              {/* Subtle caption tag */}
+              <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-[#14261D]/80 via-[#14261D]/20 to-transparent flex items-end justify-center">
+                <span className="rounded-full bg-white/90 backdrop-blur-sm px-4 py-1.5 text-xs font-bold text-[#14261D] shadow-sm select-none">
+                  Stewart Calculus • Grounded
+                </span>
               </div>
+            </div>
 
-              {/* Right Card: Tilted (rotate-6) */}
-              <div className="group relative w-48 md:w-60 aspect-[3/4] rounded-3xl overflow-hidden shadow-lg border-4 border-white rotate-6 hover:rotate-0 transition-transform duration-300 -mt-4 md:-mt-6 flex-shrink-0">
-                <img
-                  src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=600&q=80"
-                  alt="Collaborative tutoring study session"
-                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
-                  loading="lazy"
-                />
-                {/* Soft green flower/cloud sticker */}
-                <div className="absolute top-3 right-3 bg-[#497E64] text-[#F6F4EE] rounded-full px-3 py-1 text-xs font-bold shadow-md flex items-center gap-1 select-none">
-                  <span>Peer Study</span>
-                  <span>✿</span>
-                </div>
+            {/* Right Card: Tilted (rotate-6) */}
+            <div className="group relative w-48 md:w-60 aspect-[3/4] rounded-3xl overflow-hidden shadow-lg border-4 border-white rotate-6 hover:rotate-0 transition-transform duration-300 -mt-4 md:-mt-6 flex-shrink-0">
+              <img
+                src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=600&q=80"
+                alt="Collaborative tutoring study session"
+                className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+              />
+              {/* Soft green flower/cloud sticker */}
+              <div className="absolute top-3 right-3 bg-[#497E64] text-[#F6F4EE] rounded-full px-3 py-1 text-xs font-bold shadow-md flex items-center gap-1 select-none">
+                <span>Peer Study</span>
+                <span>✿</span>
               </div>
             </div>
           </div>
