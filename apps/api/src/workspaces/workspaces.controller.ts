@@ -104,6 +104,16 @@ export class WorkspacesController {
     return this.workspacesService.getWorkspaceById(user.id, id);
   }
 
+  @Get(':id/progress')
+  @ApiOperation({ summary: 'Get individual workspace learning progress metrics and topic understanding matrix' })
+  @ApiParam({ name: 'id', description: 'Workspace UUID' })
+  async getWorkspaceProgress(
+    @CurrentUser() user: UserDto,
+    @Param('id') id: string,
+  ) {
+    return this.workspacesService.getWorkspaceProgress(user.id, id);
+  }
+
   @Post(':id/convert-to-group')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({

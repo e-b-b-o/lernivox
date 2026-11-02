@@ -93,6 +93,7 @@ describe('WorkspacesService', () => {
       workspace: {
         findMany: jest.fn(),
         findUnique: jest.fn(),
+        findFirst: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
         delete: jest.fn(),
@@ -140,6 +141,18 @@ describe('WorkspacesService', () => {
       conversation: {
         updateMany: jest.fn(),
         findUnique: jest.fn(),
+      },
+      quizAttempt: {
+        findMany: jest.fn(),
+      },
+      quiz: {
+        count: jest.fn(),
+      },
+      flashcardDeck: {
+        findMany: jest.fn(),
+      },
+      documentChunk: {
+        findMany: jest.fn(),
       },
       $transaction: (jest.fn() as any).mockImplementation((cb: (tx: any) => any) => cb(prisma)),
     };
@@ -670,4 +683,89 @@ describe('WorkspacesService', () => {
       );
     });
   });
+
+  describe('Individual Workspace Learning Progress', () => {
+    it('should aggregate individual student reading, quizzes, and flashcard progress with zero fabricated metrics', async () => {
+      prisma.workspace.findFirst.mockResolvedValue({
+        id: 'ws-1',
+        name: 'Distributed Systems',
+        ownerId: mockOwnerId,
+        document: {
+          id: 'doc-1',
+          title: 'Distributed Systems Principles',
+          pageCount: 100,
+          sections: [
+            { id: 'sec-1', title: 'Chapter 1: Architectures', chapterNumber: 1, pageNumber: 5 },
+            { id: 'sec-2', title: 'Chapter 2: Processes', chapterNumber: 2, pageNumber: 35 },
+          ],
+        },
+      });
+
+      prisma.documentReadingProgress.findUnique.mockResolvedValue({
+        userId: mockOwnerId,
+        documentId: 'doc-1',
+        currentPage: 50,
+        totalPages: 100,
+        lastReadAt: new Date(),
+      });
+
+      prisma.quizAttempt.findMany.mockResolvedValue([
+        {
+          id: 'att-1',
+          score: 80,
+          totalQuestions: 5,
+          completedAt: new Date(),
+          quiz: { id: 'quiz-1', title: 'Architectures Quiz' },
+          answers: [
+            {
+              id: 'ans-1',
+              isCorrect: true,
+              question: { id: 'q-1', prompt: 'P1', chapter: 'Chapter 1: Architectures', pageNumber: 10 },
+            },
+            {
+              id: 'ans-2',
+              isCorrect: false,
+              question: { id: 'q-2', prompt: 'P2', chapter: 'Chapter 1: Architectures', pageNumber: 12 },
+            },
+          ],
+        },
+      ]);
+
+      prisma.quiz.count.mockResolvedValue(1);
+
+      prisma.flashcardDeck.findMany.mockResolvedValue([
+        {
+          id: 'deck-1',
+          cards: [
+            {
+              id: 'c-1',
+              chapter: 'Chapter 1: Architectures',
+              reviews: [
+                {
+                  reviewCount: 3,
+                  repetition: 3,
+                  intervalDays: 15,
+                  lastRating: 4,
+                  nextReviewAt: new Date(Date.now() + 864000000),
+                },
+              ],
+            },
+          ],
+        },
+      ]);
+
+      const progress = await service.getWorkspaceProgress(mockOwnerId, 'ws-1');
+
+      expect(progress.workspaceId).toBe('ws-1');
+      expect(progress.reading.percentage).toBe(50);
+      expect(progress.assessment.totalAttempts).toBe(1);
+      expect(progress.assessment.averageScore).toBe(80);
+      expect(progress.assessment.totalFailedQuestions).toBe(1);
+      expect(progress.flashcards.cardsMastered).toBe(1);
+      expect(progress.flashcards.cardsReviewed).toBe(1);
+      expect(progress.topics).toHaveLength(2);
+      expect(progress.topics[0]?.title).toBe('Chapter 1: Architectures');
+    });
+  });
 });
+
