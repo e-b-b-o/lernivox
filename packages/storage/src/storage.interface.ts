@@ -22,7 +22,7 @@ export interface StorageService {
     options: UploadOptions,
   ): Promise<StorageFileMeta>;
 
-  download(path: string): Promise<Readable>;
+  download(path: string, range?: { start: number; end: number }): Promise<Readable>;
 
   getSignedUrl(path: string, expiresInSeconds?: number): Promise<string>;
 

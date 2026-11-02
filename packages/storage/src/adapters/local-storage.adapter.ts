@@ -49,12 +49,18 @@ export class LocalStorageAdapter implements StorageService {
     };
   }
 
-  async download(filePath: string): Promise<Readable> {
+  async download(
+    filePath: string,
+    range?: { start: number; end: number },
+  ): Promise<Readable> {
     const fullPath = this.resolvePath(filePath);
     if (!fs.existsSync(fullPath)) {
       throw new Error(`File not found: ${filePath}`);
     }
-    return fs.createReadStream(fullPath);
+    return fs.createReadStream(
+      fullPath,
+      range ? { start: range.start, end: range.end } : undefined,
+    );
   }
 
   async getSignedUrl(filePath: string, _expiresInSeconds = 3600): Promise<string> {
