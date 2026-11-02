@@ -4,6 +4,9 @@
 
 export * from './auth';
 export * from './documents';
+export * from './workspaces';
+export * from './tutor';
+export * from './quizzes';
 
 export enum QueueName {
   DOCUMENT_INGESTION = 'document-ingestion',

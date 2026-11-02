@@ -30,6 +30,36 @@ describe('DocumentsService', () => {
       documentChunk: {
         findMany: jest.fn(),
       },
+      documentSection: {
+        findMany: jest.fn(),
+      },
+      documentReadingProgress: {
+        findUnique: jest.fn(),
+        upsert: jest.fn(),
+      },
+      documentBookmark: {
+        findMany: jest.fn(),
+        findUnique: jest.fn(),
+        create: jest.fn(),
+        delete: jest.fn(),
+      },
+      workspace: {
+        create: (jest.fn() as any).mockResolvedValue({ id: 'ws-1', name: 'Test' }),
+        delete: (jest.fn() as any).mockResolvedValue({ id: 'ws-1' }),
+      },
+    };
+
+    const mockWorkspacesService: any = {
+      verifyDocumentAccess: (jest.fn() as any).mockImplementation(async (userId: string, docId: string) => {
+        const doc = await mockPrisma.document.findUnique({ where: { id: docId } });
+        if (!doc) throw new NotFoundException('Document not found');
+        const isOwner = doc.ownerId === userId;
+        const isMember = doc.workspace?.members?.some((m: any) => m.userId === userId) ?? false;
+        if (!isOwner && !isMember) {
+          throw new ForbiddenException('Forbidden');
+        }
+        return { hasAccess: true, isOwner, document: doc, workspace: doc.workspace };
+      }),
     };
 
     mockStorage = {
@@ -56,7 +86,7 @@ describe('DocumentsService', () => {
       }),
     };
 
-    service = new DocumentsService(mockPrisma, mockStorage, mockQueue, mockConfig);
+    service = new DocumentsService(mockPrisma, mockWorkspacesService, mockStorage, mockQueue, mockConfig);
   });
 
   describe('uploadFile', () => {
@@ -192,7 +222,9 @@ describe('DocumentsService', () => {
       expect(doc?.status).toBe('READY');
       expect(mockPrisma.document.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { ownerId: 'user-1' },
+          where: expect.objectContaining({
+            OR: expect.arrayContaining([{ ownerId: 'user-1' }]),
+          }),
         }),
       );
     });
@@ -246,4 +278,262 @@ describe('DocumentsService', () => {
       expect(mockPrisma.document.delete).toHaveBeenCalledWith({ where: { id: 'doc-1' } });
     });
   });
+
+  describe('getDocumentFileStream', () => {
+    it('returns full stream when no range is requested', async () => {
+      mockPrisma.document.findUnique.mockResolvedValue({
+        id: 'doc-1',
+        ownerId: 'user-1',
+        title: 'Biology',
+        fileName: 'bio.pdf',
+        mimeType: 'application/pdf',
+        sizeBytes: 10000,
+        storagePath: 'documents/user-1/doc-1.pdf',
+      });
+      mockStorage.download.mockResolvedValue('readable-stream' as any);
+
+      const result = await service.getDocumentFileStream('user-1', 'doc-1');
+
+      expect(result.isRange).toBe(false);
+      expect(result.totalSize).toBe(10000);
+      expect(result.mimeType).toBe('application/pdf');
+      expect(mockStorage.download).toHaveBeenCalledWith('documents/user-1/doc-1.pdf');
+    });
+
+    it('returns byte-range slice when range header is passed', async () => {
+      mockPrisma.document.findUnique.mockResolvedValue({
+        id: 'doc-1',
+        ownerId: 'user-1',
+        title: 'Biology',
+        fileName: 'bio.pdf',
+        mimeType: 'application/pdf',
+        sizeBytes: 10000,
+        storagePath: 'documents/user-1/doc-1.pdf',
+      });
+      mockStorage.download.mockResolvedValue('partial-stream' as any);
+
+      const result = await service.getDocumentFileStream('user-1', 'doc-1', 'bytes=0-1023');
+
+      expect(result.isRange).toBe(true);
+      expect(result.start).toBe(0);
+      expect(result.end).toBe(1023);
+      expect(result.chunkSize).toBe(1024);
+      expect(mockStorage.download).toHaveBeenCalledWith('documents/user-1/doc-1.pdf', {
+        start: 0,
+        end: 1023,
+      });
+    });
+
+    it('throws ForbiddenException when another user requests the file', async () => {
+      mockPrisma.document.findUnique.mockResolvedValue({
+        id: 'doc-1',
+        ownerId: 'user-other',
+        sizeBytes: 10000,
+      });
+
+      await expect(service.getDocumentFileStream('user-1', 'doc-1')).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('throws BadRequestException when range header is out of bounds', async () => {
+      mockPrisma.document.findUnique.mockResolvedValue({
+        id: 'doc-1',
+        ownerId: 'user-1',
+        sizeBytes: 1000,
+        storagePath: 'documents/user-1/doc-1.pdf',
+      });
+
+      await expect(
+        service.getDocumentFileStream('user-1', 'doc-1', 'bytes=1500-2000'),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('throws NotFoundException when document does not exist', async () => {
+      mockPrisma.document.findUnique.mockResolvedValue(null);
+
+      await expect(service.getDocumentFileStream('user-1', 'nonexistent')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('getDocumentOutline', () => {
+    it('returns outline from stored DocumentSection records if available', async () => {
+      mockPrisma.document.findUnique.mockResolvedValue({
+        id: 'doc-1',
+        ownerId: 'user-1',
+        title: 'Calculus',
+        pageCount: 300,
+      });
+      mockPrisma.documentSection.findMany.mockResolvedValue([
+        {
+          id: 'sec-1',
+          title: 'Chapter 1: Limits',
+          chapterNumber: 1,
+          sectionNumber: null,
+          pageNumber: 5,
+          parentSectionId: null,
+        },
+      ]);
+
+      const outline = await service.getDocumentOutline('user-1', 'doc-1');
+      expect(outline.items).toHaveLength(1);
+      expect(outline.items[0]?.title).toBe('Chapter 1: Limits');
+      expect(outline.items[0]?.pageNumber).toBe(5);
+    });
+
+    it('falls back to deterministic outline extraction from early chunks', async () => {
+      mockPrisma.document.findUnique.mockResolvedValue({
+        id: 'doc-1',
+        ownerId: 'user-1',
+        title: 'New Testament',
+        pageCount: 461,
+      });
+      mockPrisma.documentSection.findMany.mockResolvedValue([]);
+      mockPrisma.documentChunk.findMany.mockResolvedValue([
+        {
+          chunkIndex: 3,
+          pageNumber: 1,
+          content: 'Contents\n1. \tIntroduction: Why Study \t1\n2. \tCanon \t15',
+        },
+      ]);
+
+      const outline = await service.getDocumentOutline('user-1', 'doc-1');
+      expect(outline.items.length).toBeGreaterThanOrEqual(2);
+      expect(outline.items[0]?.title).toContain('1. Introduction: Why Study');
+    });
+
+    it('returns empty items array when no sections or chapter headings match, without AI spend', async () => {
+      mockPrisma.document.findUnique.mockResolvedValue({
+        id: 'doc-1',
+        ownerId: 'user-1',
+        title: 'Plain Document',
+        pageCount: 10,
+      });
+      mockPrisma.documentSection.findMany.mockResolvedValue([]);
+      mockPrisma.documentChunk.findMany.mockResolvedValue([
+        {
+          chunkIndex: 0,
+          pageNumber: 1,
+          content: 'Just some regular text without any chapter or TOC lines.',
+        },
+      ]);
+
+      const outline = await service.getDocumentOutline('user-1', 'doc-1');
+      expect(outline.items).toEqual([]);
+      expect(outline.totalPages).toBe(10);
+    });
+  });
+
+  describe('ReadingProgress', () => {
+    it('persists and returns reading progress via updateReadingProgress', async () => {
+      mockPrisma.document.findUnique.mockResolvedValue({
+        id: 'doc-1',
+        ownerId: 'user-1',
+        title: 'Textbook',
+        pageCount: 100,
+      });
+      mockPrisma.documentReadingProgress.upsert.mockResolvedValue({
+        id: 'prog-1',
+        userId: 'user-1',
+        documentId: 'doc-1',
+        currentPage: 42,
+        totalPages: 100,
+        scrollProgress: 0.5,
+        zoomLevel: 1.2,
+        lastReadAt: new Date('2026-11-01T15:00:00Z'),
+      });
+
+      const result = await service.updateReadingProgress('user-1', 'doc-1', {
+        currentPage: 42,
+        scrollProgress: 0.5,
+        zoomLevel: 1.2,
+      });
+
+      expect(result.currentPage).toBe(42);
+      expect(result.zoomLevel).toBe(1.2);
+      expect(mockPrisma.documentReadingProgress.upsert).toHaveBeenCalled();
+    });
+
+    it('retrieves saved progress via getReadingProgress', async () => {
+      mockPrisma.document.findUnique.mockResolvedValue({
+        id: 'doc-1',
+        ownerId: 'user-1',
+      });
+      mockPrisma.documentReadingProgress.findUnique.mockResolvedValue({
+        id: 'prog-1',
+        userId: 'user-1',
+        documentId: 'doc-1',
+        currentPage: 25,
+        totalPages: 100,
+        scrollProgress: 0.1,
+        zoomLevel: 1.0,
+        lastReadAt: new Date('2026-11-01T15:00:00Z'),
+      });
+
+      const result = await service.getReadingProgress('user-1', 'doc-1');
+      expect(result?.currentPage).toBe(25);
+    });
+  });
+
+  describe('Bookmarks', () => {
+    it('creates a new reading bookmark', async () => {
+      mockPrisma.document.findUnique.mockResolvedValue({
+        id: 'doc-1',
+        ownerId: 'user-1',
+      });
+      mockPrisma.documentBookmark.create.mockResolvedValue({
+        id: 'bm-1',
+        userId: 'user-1',
+        documentId: 'doc-1',
+        pageNumber: 88,
+        title: 'Key Theorem',
+        snippet: 'Important proof snippet',
+        createdAt: new Date(),
+      });
+
+      const bm = await service.createBookmark('user-1', 'doc-1', {
+        pageNumber: 88,
+        title: 'Key Theorem',
+        snippet: 'Important proof snippet',
+      });
+
+      expect(bm.id).toBe('bm-1');
+      expect(bm.pageNumber).toBe(88);
+      expect(mockPrisma.documentBookmark.create).toHaveBeenCalled();
+    });
+
+    it('lists bookmarks and deletes bookmark with permission check', async () => {
+      mockPrisma.document.findUnique.mockResolvedValue({
+        id: 'doc-1',
+        ownerId: 'user-1',
+      });
+      mockPrisma.documentBookmark.findMany.mockResolvedValue([
+        {
+          id: 'bm-1',
+          userId: 'user-1',
+          documentId: 'doc-1',
+          pageNumber: 10,
+          title: 'Intro',
+          snippet: null,
+          createdAt: new Date(),
+        },
+      ]);
+      mockPrisma.documentBookmark.findUnique.mockResolvedValue({
+        id: 'bm-1',
+        userId: 'user-1',
+        documentId: 'doc-1',
+      });
+      mockPrisma.documentBookmark.delete.mockResolvedValue({});
+
+      const list = await service.getBookmarks('user-1', 'doc-1');
+      expect(list).toHaveLength(1);
+
+      const del = await service.deleteBookmark('user-1', 'doc-1', 'bm-1');
+      expect(del.success).toBe(true);
+      expect(mockPrisma.documentBookmark.delete).toHaveBeenCalledWith({ where: { id: 'bm-1' } });
+    });
+  });
 });
+

@@ -38,7 +38,7 @@ describe('DocumentsController', () => {
       document: { id: 'doc-1', status: 'UPLOADED' },
       message: 'Document uploaded successfully and queued for background ingestion.',
     });
-    expect(mockService.uploadFile).toHaveBeenCalledWith(mockUser, mockFile, 'My Document');
+    expect(mockService.uploadFile).toHaveBeenCalledWith(mockUser, mockFile, 'My Document', undefined);
   });
 
   it('createFromText delegates to service and returns upload success response', async () => {

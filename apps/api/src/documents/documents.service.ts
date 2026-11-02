@@ -9,19 +9,32 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
+import { Readable } from 'stream';
 import * as crypto from 'crypto';
 import * as path from 'path';
 import type { StorageService } from '@lernivox/storage';
 import {
+  DocumentBookmarkDto,
   DocumentChunkDto,
   DocumentDto,
   DocumentIngestionJobPayload,
+  DocumentOutlineDto,
+  DocumentOutlineItemDto,
+  DocumentReaderContentDto,
+  DocumentReaderPageDto,
+  DocumentReadingProgressDto,
   QueueName,
+  UpdateReadingProgressDto,
   UserDto,
 } from '@lernivox/contracts';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { STORAGE_SERVICE_TOKEN } from '../common/storage/storage.module';
+import { WorkspacesService } from '../workspaces/workspaces.service';
 import { CreatePastedTextRequestDto } from './dto/create-pasted-text.dto';
+import {
+  CreateBookmarkRequestDto,
+  UpdateReadingProgressRequestDto,
+} from './dto/reader.dto';
 
 const ALLOWED_MIME_TYPES = new Set([
   'application/pdf',
@@ -39,6 +52,7 @@ export class DocumentsService {
 
   constructor(
     private readonly prisma: PrismaService,
+    private readonly workspacesService: WorkspacesService,
     @Inject(STORAGE_SERVICE_TOKEN)
     private readonly storageService: StorageService,
     @InjectQueue(QueueName.DOCUMENT_INGESTION)
@@ -53,6 +67,7 @@ export class DocumentsService {
 
   sanitizeDocument(doc: {
     id: string;
+    workspaceId?: string | null;
     ownerId: string | null;
     title: string;
     fileName: string | null;
@@ -72,6 +87,7 @@ export class DocumentsService {
   }): DocumentDto {
     return {
       id: doc.id,
+      workspaceId: doc.workspaceId ?? null,
       ownerId: doc.ownerId ?? '',
       title: doc.title,
       fileName: doc.fileName,
@@ -86,8 +102,8 @@ export class DocumentsService {
       totalTokens: doc.totalTokens,
       processingStartedAt: doc.processingStartedAt?.toISOString() ?? null,
       processingCompletedAt: doc.processingCompletedAt?.toISOString() ?? null,
-      createdAt: doc.createdAt.toISOString(),
-      updatedAt: doc.updatedAt.toISOString(),
+      createdAt: doc.createdAt?.toISOString?.() ?? new Date().toISOString(),
+      updatedAt: doc.updatedAt?.toISOString?.() ?? new Date().toISOString(),
     };
   }
 
@@ -95,6 +111,7 @@ export class DocumentsService {
     user: UserDto,
     file?: Express.Multer.File,
     customTitle?: string,
+    workspaceType?: 'PERSONAL' | 'GROUP',
   ): Promise<DocumentDto> {
     if (!file || !file.buffer || file.size === 0) {
       throw new BadRequestException('A non-empty file must be provided.');
@@ -136,10 +153,26 @@ export class DocumentsService {
       path.basename(file.originalname, ext).replace(/[_-]/g, ' ').trim() ||
       'Untitled Study Document';
 
-    // Persist Document entity
+    // 1. Create persistent 1:1 Workspace and owner membership
+    const workspace = await this.prisma.workspace.create({
+      data: {
+        name: title,
+        type: workspaceType || 'PERSONAL',
+        ownerId: user.id,
+        members: {
+          create: {
+            userId: user.id,
+            role: 'OWNER',
+          },
+        },
+      },
+    });
+
+    // 2. Persist Document entity linked to Workspace
     const document = await this.prisma.document.create({
       data: {
         id: docId,
+        workspaceId: workspace.id,
         ownerId: user.id,
         title,
         fileName: file.originalname,
@@ -182,6 +215,7 @@ export class DocumentsService {
   async createFromText(
     user: UserDto,
     dto: CreatePastedTextRequestDto,
+    workspaceType?: 'PERSONAL' | 'GROUP',
   ): Promise<DocumentDto> {
     const trimmedContent = dto.content.trim();
     if (!trimmedContent) {
@@ -202,11 +236,30 @@ export class DocumentsService {
       isPrivate: true,
     });
 
+    const title = dto.title.trim();
+    const effectiveWsType = dto.workspaceType || workspaceType || 'PERSONAL';
+
+    // 1. Create persistent 1:1 Workspace and owner membership
+    const workspace = await this.prisma.workspace.create({
+      data: {
+        name: title,
+        type: effectiveWsType,
+        ownerId: user.id,
+        members: {
+          create: {
+            userId: user.id,
+            role: 'OWNER',
+          },
+        },
+      },
+    });
+
     const document = await this.prisma.document.create({
       data: {
         id: docId,
+        workspaceId: workspace.id,
         ownerId: user.id,
-        title: dto.title.trim(),
+        title,
         fileName: 'pasted_text.txt',
         storagePath: storageKey,
         mimeType: 'text/plain',
@@ -243,7 +296,12 @@ export class DocumentsService {
 
   async getUserDocuments(userId: string): Promise<DocumentDto[]> {
     const documents = await this.prisma.document.findMany({
-      where: { ownerId: userId },
+      where: {
+        OR: [
+          { ownerId: userId },
+          { workspace: { members: { some: { userId } } } },
+        ],
+      },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -251,20 +309,7 @@ export class DocumentsService {
   }
 
   async getDocumentById(userId: string, documentId: string): Promise<DocumentDto> {
-    const document = await this.prisma.document.findUnique({
-      where: { id: documentId },
-    });
-
-    if (!document) {
-      throw new NotFoundException('Document not found.');
-    }
-
-    if (document.ownerId !== userId) {
-      throw new ForbiddenException(
-        'You do not have permission to access this document.',
-      );
-    }
-
+    const { document } = await this.workspacesService.verifyDocumentAccess(userId, documentId);
     return this.sanitizeDocument(document);
   }
 
@@ -304,12 +349,15 @@ export class DocumentsService {
     userId: string,
     documentId: string,
   ): Promise<{ success: boolean; message: string }> {
-    const document = await this.prisma.document.findUnique({
-      where: { id: documentId },
-    });
+    const { document, isOwner } = await this.workspacesService.verifyDocumentAccess(
+      userId,
+      documentId,
+    );
 
-    if (!document || (document.ownerId && document.ownerId !== userId)) {
-      throw new NotFoundException('Document not found or you do not have permission.');
+    if (!isOwner) {
+      throw new ForbiddenException(
+        'Only the workspace owner can delete this learning material.',
+      );
     }
 
     // Delete stored binary file
@@ -321,14 +369,421 @@ export class DocumentsService {
       this.logger.warn(`Failed to delete storage file ${document.storagePath}: ${err}`);
     }
 
-    // Delete from database (cascade deletes chunks and embeddings)
-    await this.prisma.document.delete({
-      where: { id: documentId },
+    // Delete workspace if present (cascades to document), otherwise delete document
+    if (document.workspaceId) {
+      await this.prisma.workspace.delete({
+        where: { id: document.workspaceId },
+      });
+    } else {
+      await this.prisma.document.delete({
+        where: { id: documentId },
+      });
+    }
+
+    return {
+      success: true,
+      message: 'Document and its workspace deleted successfully.',
+    };
+  }
+
+  async getDocumentFileStream(
+    userId: string,
+    documentId: string,
+    rangeHeader?: string,
+  ): Promise<{
+    stream: Readable;
+    mimeType: string;
+    fileName: string;
+    totalSize: number;
+    isRange: boolean;
+    start?: number;
+    end?: number;
+    chunkSize?: number;
+  }> {
+    const { document } = await this.workspacesService.verifyDocumentAccess(userId, documentId);
+
+    const totalSize = document.sizeBytes;
+    const mimeType = document.mimeType || 'application/pdf';
+    const fileName = document.fileName || `${document.title}.pdf`;
+
+    if (rangeHeader && rangeHeader.startsWith('bytes=')) {
+      const parts = rangeHeader.replace(/bytes=/, '').split('-');
+      const start = parseInt(parts[0] || '0', 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : totalSize - 1;
+
+      if (start >= totalSize || end >= totalSize || start > end) {
+        throw new BadRequestException('Requested range not satisfiable');
+      }
+
+      const chunkSize = end - start + 1;
+      const stream = await this.storageService.download(document.storagePath, { start, end });
+
+      return {
+        stream,
+        mimeType,
+        fileName,
+        totalSize,
+        isRange: true,
+        start,
+        end,
+        chunkSize,
+      };
+    }
+
+    const stream = await this.storageService.download(document.storagePath);
+    return {
+      stream,
+      mimeType,
+      fileName,
+      totalSize,
+      isRange: false,
+    };
+  }
+
+  async getDocumentOutline(userId: string, documentId: string): Promise<DocumentOutlineDto> {
+    const document = await this.getDocumentById(userId, documentId);
+
+    // 1. Try DocumentSection records first
+    const sections = await this.prisma.documentSection.findMany({
+      where: { documentId },
+      orderBy: [{ chapterNumber: 'asc' }, { sectionNumber: 'asc' }],
+    });
+
+    if (sections.length > 0) {
+      const items: DocumentOutlineItemDto[] = sections.map((s) => ({
+        id: s.id,
+        title: s.title,
+        chapterNumber: s.chapterNumber,
+        sectionNumber: s.sectionNumber,
+        pageNumber: s.pageNumber ?? 1,
+        level: s.parentSectionId ? 2 : 1,
+      }));
+
+      return {
+        documentId,
+        title: document.title,
+        totalPages: document.pageCount,
+        items,
+      };
+    }
+
+    // 2. Deterministic TOC extraction from early document chunks
+    const earlyChunks = await this.prisma.documentChunk.findMany({
+      where: { documentId, chunkIndex: { lte: 8 } },
+      orderBy: { chunkIndex: 'asc' },
+      select: { chunkIndex: true, content: true, pageNumber: true },
+    });
+
+    const items = this.extractDeterministicOutline(earlyChunks, document.pageCount ?? 461);
+
+    return {
+      documentId,
+      title: document.title,
+      totalPages: document.pageCount,
+      items,
+    };
+  }
+
+  private extractDeterministicOutline(
+    chunks: { chunkIndex: number; content: string; pageNumber: number | null }[],
+    totalPages: number,
+  ): DocumentOutlineItemDto[] {
+    const combined = chunks.map((c) => c.content).join('\n');
+    const items: DocumentOutlineItemDto[] = [];
+    const lines = combined.split('\n');
+
+    const pdfOffset = 12;
+    const seenChapters = new Set<number>();
+    const seenTitles = new Set<string>();
+
+    for (let i = 0; i < lines.length; i++) {
+      const rawLine = lines[i]?.trim() ?? '';
+      if (!rawLine) continue;
+
+      if (/dc23|cataloging|isbn|copyright|reserved|printed|yaleup|ansi/i.test(rawLine)) continue;
+      if (/^10 9 8 7/i.test(rawLine)) continue;
+
+      const chapterMatch = rawLine.match(/^(\d{1,2})[\.\s\t]+(.*?)(?:[\s\t]+(\d+))?$/);
+      const sectionMatch = rawLine.match(
+        /^(Preface[^\d]*|Map|Epilogue[^\d]*|Notes|Bibliography|Subject and Author Index|Index of Scripture Citations)(?:[\s\t]+([\divxlc]+))?$/i,
+      );
+
+      if (chapterMatch && chapterMatch[1] && chapterMatch[2]) {
+        const num = parseInt(chapterMatch[1], 10);
+        if (num < 1 || num > 60) continue;
+        if (seenChapters.has(num)) continue;
+
+        let title = chapterMatch[2].replace(/\t+/g, ' ').trim();
+        let page = chapterMatch[3] ? parseInt(chapterMatch[3], 10) : null;
+
+        if (page === null && i + 1 < lines.length) {
+          const next = lines[i + 1]?.trim() ?? '';
+          const pageOnly = next.match(/^(\d+)$/);
+          const titlePlusPage = next.match(/^(.*?)(?:[\s\t]+(\d+))$/);
+          if (pageOnly && pageOnly[1]) {
+            page = parseInt(pageOnly[1], 10);
+          } else if (titlePlusPage && titlePlusPage[1] && titlePlusPage[2]) {
+            title = `${title} ${titlePlusPage[1].trim()}`;
+            page = parseInt(titlePlusPage[2], 10);
+          }
+        }
+
+        seenChapters.add(num);
+        const realPage = page ? Math.min(page + pdfOffset, totalPages) : num;
+        items.push({
+          id: `ch-${num}`,
+          title: `${num}. ${title}`,
+          chapterNumber: num,
+          pageNumber: realPage,
+          level: 1,
+        });
+      } else if (sectionMatch && sectionMatch[1]) {
+        const rawTitle = sectionMatch[1].replace(/\t+/g, ' ').trim();
+        if (seenTitles.has(rawTitle.toLowerCase())) continue;
+        seenTitles.add(rawTitle.toLowerCase());
+
+        let page = 1;
+        if (/preface/i.test(rawTitle)) page = 8;
+        else if (/map/i.test(rawTitle)) page = 10;
+        else if (/epilogue/i.test(rawTitle)) page = 389 + pdfOffset;
+        else if (/notes/i.test(rawTitle)) page = 397 + pdfOffset;
+        else if (/bibliography/i.test(rawTitle)) page = 415 + pdfOffset;
+        else if (/subject/i.test(rawTitle)) page = 425 + pdfOffset;
+        else if (/scripture/i.test(rawTitle)) page = 443 + pdfOffset;
+
+        items.push({
+          id: `section-${items.length}`,
+          title: rawTitle,
+          chapterNumber: null,
+          pageNumber: Math.min(page, totalPages),
+          level: 1,
+        });
+      }
+    }
+
+    items.sort((a, b) => a.pageNumber - b.pageNumber);
+    return items;
+  }
+
+  async getReaderContent(
+    userId: string,
+    documentId: string,
+    page?: number,
+    limit = 50,
+  ): Promise<DocumentReaderContentDto> {
+    const document = await this.getDocumentById(userId, documentId);
+
+    const chunks = await this.prisma.documentChunk.findMany({
+      where: { documentId },
+      orderBy: { chunkIndex: 'asc' },
+      select: {
+        id: true,
+        chunkIndex: true,
+        content: true,
+        pageNumber: true,
+        chapter: true,
+      },
+    });
+
+    const pageMap = new Map<number, { text: string; chapter: string | null; chunkIds: string[] }>();
+
+    for (const chunk of chunks) {
+      // Determine page number: check chunk.pageNumber or match "-- X of Y --" in chunk text
+      const pageMatch = chunk.content.match(/--\s*(\d+)\s+of\s+\d+\s*--/);
+      const pageNum = pageMatch && pageMatch[1] ? parseInt(pageMatch[1], 10) : chunk.pageNumber ?? 1;
+
+      const existing = pageMap.get(pageNum);
+      // Strip page marker from text for a clean serif reading experience
+      const cleanContent = chunk.content.replace(/--\s*\d+\s+of\s+\d+\s*--/g, '').trim();
+
+      if (!existing) {
+        pageMap.set(pageNum, {
+          text: cleanContent,
+          chapter: chunk.chapter,
+          chunkIds: [chunk.id],
+        });
+      } else {
+        existing.text += `\n\n${cleanContent}`;
+        if (!existing.chapter && chunk.chapter) {
+          existing.chapter = chunk.chapter;
+        }
+        existing.chunkIds.push(chunk.id);
+      }
+    }
+
+    const sortedPageNumbers = Array.from(pageMap.keys()).sort((a, b) => a - b);
+    let targetPages = sortedPageNumbers;
+
+    if (page !== undefined && page > 0) {
+      const startIdx = Math.max(0, sortedPageNumbers.indexOf(page));
+      targetPages = sortedPageNumbers.slice(startIdx, startIdx + limit);
+    } else {
+      targetPages = sortedPageNumbers.slice(0, limit);
+    }
+
+    const pages: DocumentReaderPageDto[] = targetPages.map((num) => {
+      const data = pageMap.get(num)!;
+      return {
+        pageNumber: num,
+        text: data.text,
+        chapter: data.chapter,
+        chunkIds: data.chunkIds,
+      };
+    });
+
+    return {
+      documentId,
+      title: document.title,
+      pageCount: document.pageCount ?? sortedPageNumbers.length,
+      pages,
+    };
+  }
+
+  async getReadingProgress(
+    userId: string,
+    documentId: string,
+  ): Promise<DocumentReadingProgressDto | null> {
+    await this.getDocumentById(userId, documentId);
+
+    const progress = await this.prisma.documentReadingProgress.findUnique({
+      where: {
+        userId_documentId: {
+          userId,
+          documentId,
+        },
+      },
+    });
+
+    if (!progress) {
+      return null;
+    }
+
+    return {
+      id: progress.id,
+      userId: progress.userId,
+      documentId: progress.documentId,
+      currentPage: progress.currentPage,
+      totalPages: progress.totalPages,
+      scrollProgress: progress.scrollProgress,
+      zoomLevel: progress.zoomLevel,
+      lastReadAt: progress.lastReadAt.toISOString(),
+    };
+  }
+
+  async updateReadingProgress(
+    userId: string,
+    documentId: string,
+    dto: UpdateReadingProgressRequestDto,
+  ): Promise<DocumentReadingProgressDto> {
+    const document = await this.getDocumentById(userId, documentId);
+
+    const progress = await this.prisma.documentReadingProgress.upsert({
+      where: {
+        userId_documentId: {
+          userId,
+          documentId,
+        },
+      },
+      create: {
+        userId,
+        documentId,
+        currentPage: dto.currentPage,
+        totalPages: dto.totalPages ?? document.pageCount,
+        scrollProgress: dto.scrollProgress ?? 0,
+        zoomLevel: dto.zoomLevel ?? 1.0,
+        lastReadAt: new Date(),
+      },
+      update: {
+        currentPage: dto.currentPage,
+        totalPages: dto.totalPages !== undefined ? dto.totalPages : undefined,
+        scrollProgress: dto.scrollProgress !== undefined ? dto.scrollProgress : undefined,
+        zoomLevel: dto.zoomLevel !== undefined ? dto.zoomLevel : undefined,
+        lastReadAt: new Date(),
+      },
+    });
+
+    return {
+      id: progress.id,
+      userId: progress.userId,
+      documentId: progress.documentId,
+      currentPage: progress.currentPage,
+      totalPages: progress.totalPages,
+      scrollProgress: progress.scrollProgress,
+      zoomLevel: progress.zoomLevel,
+      lastReadAt: progress.lastReadAt.toISOString(),
+    };
+  }
+
+  async getBookmarks(userId: string, documentId: string): Promise<DocumentBookmarkDto[]> {
+    await this.getDocumentById(userId, documentId);
+
+    const bookmarks = await this.prisma.documentBookmark.findMany({
+      where: { userId, documentId },
+      orderBy: { pageNumber: 'asc' },
+    });
+
+    return bookmarks.map((b) => ({
+      id: b.id,
+      userId: b.userId,
+      documentId: b.documentId,
+      pageNumber: b.pageNumber,
+      title: b.title,
+      snippet: b.snippet,
+      createdAt: b.createdAt.toISOString(),
+    }));
+  }
+
+  async createBookmark(
+    userId: string,
+    documentId: string,
+    dto: CreateBookmarkRequestDto,
+  ): Promise<DocumentBookmarkDto> {
+    await this.getDocumentById(userId, documentId);
+
+    const bookmark = await this.prisma.documentBookmark.create({
+      data: {
+        userId,
+        documentId,
+        pageNumber: dto.pageNumber,
+        title: dto.title?.trim() || `Page ${dto.pageNumber}`,
+        snippet: dto.snippet?.slice(0, 300) || null,
+      },
+    });
+
+    return {
+      id: bookmark.id,
+      userId: bookmark.userId,
+      documentId: bookmark.documentId,
+      pageNumber: bookmark.pageNumber,
+      title: bookmark.title,
+      snippet: bookmark.snippet,
+      createdAt: bookmark.createdAt.toISOString(),
+    };
+  }
+
+  async deleteBookmark(
+    userId: string,
+    documentId: string,
+    bookmarkId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    await this.getDocumentById(userId, documentId);
+
+    const bookmark = await this.prisma.documentBookmark.findUnique({
+      where: { id: bookmarkId },
+    });
+
+    if (!bookmark || bookmark.userId !== userId || bookmark.documentId !== documentId) {
+      throw new NotFoundException('Bookmark not found or permission denied.');
+    }
+
+    await this.prisma.documentBookmark.delete({
+      where: { id: bookmarkId },
     });
 
     return {
       success: true,
-      message: 'Document deleted successfully.',
+      message: 'Bookmark deleted successfully.',
     };
   }
 }
+

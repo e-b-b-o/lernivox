@@ -7,6 +7,9 @@ import { StorageModule } from './common/storage/storage.module';
 import { validate } from './config/env.validation';
 import { DocumentsModule } from './documents/documents.module';
 import { HealthModule } from './health/health.module';
+import { TutorModule } from './tutor/tutor.module';
+import { QuizzesModule } from './quizzes/quizzes.module';
+import { WorkspacesModule } from './workspaces/workspaces.module';
 
 @Module({
   imports: [
@@ -29,6 +32,9 @@ import { HealthModule } from './health/health.module';
     StorageModule,
     AuthModule,
     DocumentsModule,
+    WorkspacesModule,
+    TutorModule,
+    QuizzesModule,
     HealthModule,
   ],
 })
