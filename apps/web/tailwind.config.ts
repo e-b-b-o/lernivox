@@ -49,6 +49,9 @@ const config: Config = {
         'pill': '0 2px 8px rgba(20, 38, 29, 0.04)',
         'glow-terracotta': '0 12px 28px -6px rgba(194, 94, 59, 0.28)',
       },
+      transitionDuration: {
+        '350': '350ms',
+      },
     },
   },
   plugins: [],
