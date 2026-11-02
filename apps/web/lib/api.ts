@@ -31,6 +31,18 @@ import type {
   WorkspaceListItemDto,
   WorkspacesListResponseDto,
   ConvertWorkspaceResponseDto,
+  WorkspaceMemberDto,
+  WorkspaceMembersResponseDto,
+  CreateInvitationDto,
+  WorkspaceInvitationDto,
+  PublicInvitationDetailsDto,
+  AcceptInvitationResponseDto,
+  CreateDiscussionMessageDto,
+  DiscussionMessageDto,
+  DiscussionMessagesListResponseDto,
+  CreateSharedConversationDto,
+  SharedConversationSnapshotDto,
+  SharedConversationsListResponseDto,
 } from '@lernivox/contracts';
 
 const API_BASE_URL =
@@ -256,6 +268,137 @@ export const api = {
         `/workspaces/${id}/convert-to-group`,
         { method: 'POST' },
         token,
+      ),
+
+    getMembers: (workspaceId: string, token: string): Promise<WorkspaceMembersResponseDto> =>
+      request<WorkspaceMembersResponseDto>(`/workspaces/${workspaceId}/members`, { method: 'GET' }, token),
+
+    removeMember: (
+      workspaceId: string,
+      userId: string,
+      token: string,
+    ): Promise<{ success: boolean; message: string }> =>
+      request<{ success: boolean; message: string }>(
+        `/workspaces/${workspaceId}/members/${userId}`,
+        { method: 'DELETE' },
+        token,
+      ),
+
+    leave: (
+      workspaceId: string,
+      token: string,
+    ): Promise<{ success: boolean; message: string }> =>
+      request<{ success: boolean; message: string }>(
+        `/workspaces/${workspaceId}/leave`,
+        { method: 'POST' },
+        token,
+      ),
+
+    createInvitation: (
+      workspaceId: string,
+      data: CreateInvitationDto,
+      token: string,
+    ): Promise<WorkspaceInvitationDto> =>
+      request<WorkspaceInvitationDto>(
+        `/workspaces/${workspaceId}/invitations`,
+        { method: 'POST', body: JSON.stringify(data) },
+        token,
+      ),
+
+    listInvitations: (
+      workspaceId: string,
+      token: string,
+    ): Promise<WorkspaceInvitationDto[]> =>
+      request<WorkspaceInvitationDto[]>(
+        `/workspaces/${workspaceId}/invitations`,
+        { method: 'GET' },
+        token,
+      ),
+
+    revokeInvitation: (
+      workspaceId: string,
+      invitationId: string,
+      token: string,
+    ): Promise<{ success: boolean; message: string }> =>
+      request<{ success: boolean; message: string }>(
+        `/workspaces/${workspaceId}/invitations/${invitationId}`,
+        { method: 'DELETE' },
+        token,
+      ),
+
+    getDiscussions: (
+      workspaceId: string,
+      token: string,
+      limit = 50,
+      before?: string,
+    ): Promise<DiscussionMessagesListResponseDto> => {
+      const q = new URLSearchParams();
+      if (limit) q.set('limit', String(limit));
+      if (before) q.set('before', before);
+      const qs = q.toString() ? `?${q.toString()}` : '';
+      return request<DiscussionMessagesListResponseDto>(
+        `/workspaces/${workspaceId}/discussions${qs}`,
+        { method: 'GET' },
+        token,
+      );
+    },
+
+    createDiscussion: (
+      workspaceId: string,
+      data: CreateDiscussionMessageDto,
+      token: string,
+    ): Promise<DiscussionMessageDto> =>
+      request<DiscussionMessageDto>(
+        `/workspaces/${workspaceId}/discussions`,
+        { method: 'POST', body: JSON.stringify(data) },
+        token,
+      ),
+
+    createSharedConversation: (
+      workspaceId: string,
+      data: CreateSharedConversationDto,
+      token: string,
+    ): Promise<SharedConversationSnapshotDto> =>
+      request<SharedConversationSnapshotDto>(
+        `/workspaces/${workspaceId}/shared-conversations`,
+        { method: 'POST', body: JSON.stringify(data) },
+        token,
+      ),
+
+    listSharedConversations: (
+      workspaceId: string,
+      token: string,
+    ): Promise<SharedConversationsListResponseDto> =>
+      request<SharedConversationsListResponseDto>(
+        `/workspaces/${workspaceId}/shared-conversations`,
+        { method: 'GET' },
+        token,
+      ),
+
+    revokeSharedConversation: (
+      workspaceId: string,
+      shareId: string,
+      token: string,
+    ): Promise<{ success: boolean; message: string }> =>
+      request<{ success: boolean; message: string }>(
+        `/workspaces/${workspaceId}/shared-conversations/${shareId}`,
+        { method: 'DELETE' },
+        token,
+      ),
+  },
+
+  invitations: {
+    getPublicDetails: (token: string): Promise<PublicInvitationDetailsDto> =>
+      request<PublicInvitationDetailsDto>(`/invitations/${token}`, { method: 'GET' }),
+
+    accept: (
+      token: string,
+      accessToken: string,
+    ): Promise<AcceptInvitationResponseDto> =>
+      request<AcceptInvitationResponseDto>(
+        `/invitations/${token}/accept`,
+        { method: 'POST' },
+        accessToken,
       ),
   },
 

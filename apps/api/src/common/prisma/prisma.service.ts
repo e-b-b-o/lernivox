@@ -99,6 +99,18 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     return this.client.workspaceMember;
   }
 
+  get workspaceInvitation(): PrismaClient['workspaceInvitation'] {
+    return this.client.workspaceInvitation;
+  }
+
+  get workspaceDiscussionMessage(): PrismaClient['workspaceDiscussionMessage'] {
+    return this.client.workspaceDiscussionMessage;
+  }
+
+  get sharedConversationSnapshot(): PrismaClient['sharedConversationSnapshot'] {
+    return this.client.sharedConversationSnapshot;
+  }
+
   get $transaction(): PrismaClient['$transaction'] {
     return this.client.$transaction.bind(this.client);
   }

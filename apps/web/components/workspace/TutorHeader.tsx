@@ -17,6 +17,10 @@ import { ProfileMenu } from './ProfileMenu';
 interface TutorHeaderProps {
   document: DocumentDto | null;
   workspaceType?: WorkspaceType;
+  isOwner?: boolean;
+  memberCount?: number;
+  onOpenConvertModal?: () => void;
+  onOpenManageGroupModal?: () => void;
   outlineOpen: boolean;
   onToggleOutline: () => void;
   copilotOpen: boolean;
@@ -27,6 +31,10 @@ interface TutorHeaderProps {
 export function TutorHeader({
   document: doc,
   workspaceType = 'PERSONAL',
+  isOwner = false,
+  memberCount,
+  onOpenConvertModal,
+  onOpenManageGroupModal,
   outlineOpen,
   onToggleOutline,
   copilotOpen,
@@ -35,7 +43,7 @@ export function TutorHeader({
 }: TutorHeaderProps) {
   return (
     <header className="w-full h-14 bg-[#FAF8F4] border-b-[2px] border-[#1B3428]/15 px-3 sm:px-5 flex items-center justify-between shrink-0 select-none z-30 shadow-xs">
-      {/* 1. LEFT ZONE: Outline Toggle, Document Identity & Workspace Badge */}
+      {/* 1. LEFT ZONE: Outline Toggle, Document Identity & Workspace Controls */}
       <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
         {/* Single Authoritative Contents Toggle Control */}
         <button
@@ -58,29 +66,63 @@ export function TutorHeader({
             <BookOpen className="w-3.5 h-3.5" />
           </div>
           <h2
-            className="font-display font-bold text-xs sm:text-sm text-[#14261D] truncate max-w-[130px] sm:max-w-[220px] md:max-w-[340px]"
+            className="font-display font-bold text-xs sm:text-sm text-[#14261D] truncate max-w-[110px] sm:max-w-[180px] md:max-w-[260px]"
             title={doc?.title || 'Document Reader'}
           >
             {doc?.title || 'Study Textbook'}
           </h2>
 
-          {/* Workspace Type Badge */}
+          {/* Workspace Type Badge & Action */}
           {workspaceType === 'GROUP' ? (
-            <span
-              className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#E8722C]/10 text-[#E8722C] text-[10px] font-mono font-bold tracking-wide uppercase border border-[#E8722C]/25 shrink-0"
-              title="Shared Group Workspace"
-            >
-              <Users className="w-2.5 h-2.5" />
-              Group
-            </span>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span
+                className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#E8722C]/10 text-[#E8722C] text-[10px] font-mono font-bold tracking-wide uppercase border border-[#E8722C]/25 shrink-0"
+                title="Shared Group Workspace"
+              >
+                <Users className="w-2.5 h-2.5" />
+                Group
+              </span>
+
+              {onOpenManageGroupModal && (
+                <button
+                  type="button"
+                  onClick={onOpenManageGroupModal}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-[#1B3428]/20 bg-[#FAF8F4] text-[#14261D] font-display font-bold text-xs hover:bg-[#F4F0E5] shadow-2xs hover:-translate-y-0.5 transition-all shrink-0"
+                  title="Manage group members and invitations"
+                >
+                  <Users className="w-3 h-3 text-[#1B3428]" />
+                  <span className="hidden md:inline">{isOwner ? 'Manage Group' : 'Members'}</span>
+                  {memberCount !== undefined && memberCount > 0 && (
+                    <span className="font-mono text-[10px] text-[#14261D]/70 font-bold">
+                      ({memberCount})
+                    </span>
+                  )}
+                </button>
+              )}
+            </div>
           ) : (
-            <span
-              className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#1B3428]/10 text-[#1B3428] text-[10px] font-mono font-bold tracking-wide uppercase border border-[#1B3428]/20 shrink-0"
-              title="Personal Workspace"
-            >
-              <User className="w-2.5 h-2.5" />
-              Personal
-            </span>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span
+                className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#1B3428]/10 text-[#1B3428] text-[10px] font-mono font-bold tracking-wide uppercase border border-[#1B3428]/20 shrink-0"
+                title="Personal Workspace"
+              >
+                <User className="w-2.5 h-2.5" />
+                Personal
+              </span>
+
+              {/* Owner Convert to Group Action */}
+              {isOwner && onOpenConvertModal && (
+                <button
+                  type="button"
+                  onClick={onOpenConvertModal}
+                  className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[#1B3428]/25 bg-[#FAF8F4] text-[#14261D] font-display font-bold text-xs hover:bg-[#FBE8DC] hover:border-[#E8722C] shadow-2xs hover:-translate-y-0.5 transition-all shrink-0"
+                  title="Convert this personal workspace to a shared group workspace"
+                >
+                  <Users className="w-3 h-3 text-[#E8722C]" />
+                  <span>Convert to Group</span>
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>

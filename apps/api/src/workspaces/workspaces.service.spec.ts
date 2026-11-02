@@ -38,6 +38,7 @@ describe('WorkspacesService', () => {
     name: 'Operating Systems Concepts',
     type: 'PERSONAL',
     ownerId: mockOwnerId,
+    owner: { id: mockOwnerId, name: 'Owner User', email: 'owner@test.com' },
     document: mockDocument,
     members: [
       {
@@ -58,6 +59,7 @@ describe('WorkspacesService', () => {
     name: 'Distributed Systems',
     type: 'GROUP',
     ownerId: mockOwnerId,
+    owner: { id: mockOwnerId, name: 'Owner User', email: 'owner@test.com' },
     document: {
       ...mockDocument,
       id: 'doc-2',
@@ -101,6 +103,35 @@ describe('WorkspacesService', () => {
       },
       workspaceMember: {
         create: jest.fn(),
+        delete: jest.fn(),
+        deleteMany: (jest.fn() as any).mockResolvedValue({ count: 1 }),
+        findUnique: jest.fn(),
+        findFirst: jest.fn(),
+        findMany: jest.fn(),
+      },
+      workspaceInvitation: {
+        create: jest.fn(),
+        findMany: jest.fn(),
+        findFirst: jest.fn(),
+        findUnique: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+      },
+      workspaceDiscussionMessage: {
+        create: jest.fn(),
+        findMany: jest.fn(),
+        count: jest.fn(),
+      },
+      sharedConversationSnapshot: {
+        create: jest.fn(),
+        findMany: jest.fn(),
+        findFirst: jest.fn(),
+        findUnique: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+      },
+      user: {
+        findUnique: jest.fn(),
       },
       documentReadingProgress: {
         findMany: jest.fn(),
@@ -108,6 +139,7 @@ describe('WorkspacesService', () => {
       },
       conversation: {
         updateMany: jest.fn(),
+        findUnique: jest.fn(),
       },
       $transaction: (jest.fn() as any).mockImplementation((cb: (tx: any) => any) => cb(prisma)),
     };
@@ -283,6 +315,359 @@ describe('WorkspacesService', () => {
       await expect(
         service.verifyDocumentAccess(mockStrangerId, 'doc-1'),
       ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('Workspace Members Management', () => {
+    it('should allow members to list workspace members', async () => {
+      prisma.workspace.findUnique.mockResolvedValue(mockGroupWorkspace);
+
+      const result = await service.getWorkspaceMembers(mockMemberId, 'ws-2');
+      expect(result.total).toBe(2);
+      expect(result.members[0]?.role).toBe('OWNER');
+      expect(result.members[1]?.role).toBe('MEMBER');
+    });
+
+    it('should deny non-members from listing workspace members', async () => {
+      prisma.workspace.findUnique.mockResolvedValue(mockGroupWorkspace);
+
+      await expect(
+        service.getWorkspaceMembers(mockStrangerId, 'ws-2'),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should allow owner to remove non-owner member', async () => {
+      prisma.workspace.findUnique.mockResolvedValue(mockGroupWorkspace);
+      prisma.workspaceMember.deleteMany.mockResolvedValue({ count: 1 });
+
+      const res = await service.removeMember(mockOwnerId, 'ws-2', mockMemberId);
+      expect(res.success).toBe(true);
+      expect(prisma.workspaceMember.deleteMany).toHaveBeenCalledWith({
+        where: { workspaceId: 'ws-2', userId: mockMemberId },
+      });
+    });
+
+    it('should prevent removing the workspace owner', async () => {
+      prisma.workspace.findUnique.mockResolvedValue(mockGroupWorkspace);
+
+      await expect(
+        service.removeMember(mockOwnerId, 'ws-2', mockOwnerId),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should prevent non-owner member from removing other members', async () => {
+      prisma.workspace.findUnique.mockResolvedValue(mockGroupWorkspace);
+
+      await expect(
+        service.removeMember(mockMemberId, 'ws-2', mockOwnerId),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should allow non-owner member to leave workspace', async () => {
+      prisma.workspace.findUnique.mockResolvedValue(mockGroupWorkspace);
+      prisma.workspaceMember.delete.mockResolvedValue({ id: 'member-2' });
+
+      const res = await service.leaveWorkspace(mockMemberId, 'ws-2');
+      expect(res.success).toBe(true);
+    });
+
+    it('should prevent workspace owner from leaving workspace', async () => {
+      prisma.workspace.findUnique.mockResolvedValue(mockGroupWorkspace);
+
+      await expect(
+        service.leaveWorkspace(mockOwnerId, 'ws-2'),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('Workspace Invitations', () => {
+    it('should allow owner to create an invitation link with 7-day expiry', async () => {
+      prisma.workspace.findUnique.mockResolvedValue(mockGroupWorkspace);
+      prisma.workspaceInvitation.create.mockImplementation((args: any) => ({
+        id: 'inv-1',
+        ...args.data,
+        createdAt: new Date(),
+        acceptedAt: null,
+        revokedAt: null,
+        createdBy: { name: 'Owner User' },
+      }));
+
+      const res = await service.createInvitation(mockOwnerId, 'ws-2', {});
+      expect(res.id).toBe('inv-1');
+      expect(res.inviteToken).toBeDefined();
+      expect(typeof res.inviteToken).toBe('string');
+      expect(prisma.workspaceInvitation.create).toHaveBeenCalled();
+    });
+
+    it('should reject invitation creation on PERSONAL workspaces', async () => {
+      prisma.workspace.findUnique.mockResolvedValue(mockPersonalWorkspace);
+
+      await expect(
+        service.createInvitation(mockOwnerId, 'ws-1', {}),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should reject invitation creation by non-owner members', async () => {
+      prisma.workspace.findUnique.mockResolvedValue(mockGroupWorkspace);
+
+      await expect(
+        service.createInvitation(mockMemberId, 'ws-2', {}),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should allow owner to list active invitations', async () => {
+      prisma.workspace.findUnique.mockResolvedValue(mockGroupWorkspace);
+      prisma.workspaceInvitation.findMany.mockResolvedValue([
+        {
+          id: 'inv-1',
+          workspaceId: 'ws-2',
+          email: null,
+          role: 'MEMBER',
+          expiresAt: new Date(Date.now() + 86400000),
+          acceptedAt: null,
+          revokedAt: null,
+          createdAt: new Date(),
+          createdBy: { name: 'Owner User' },
+        },
+      ]);
+
+      const list = await service.listInvitations(mockOwnerId, 'ws-2');
+      expect(list).toHaveLength(1);
+      expect(list[0]?.id).toBe('inv-1');
+    });
+
+    it('should allow owner to revoke pending invitation', async () => {
+      prisma.workspace.findUnique.mockResolvedValue(mockGroupWorkspace);
+      prisma.workspaceInvitation.findFirst.mockResolvedValue({
+        id: 'inv-1',
+        workspaceId: 'ws-2',
+        revokedAt: null,
+      });
+      prisma.workspaceInvitation.update.mockResolvedValue({ id: 'inv-1' });
+
+      const res = await service.revokeInvitation(mockOwnerId, 'ws-2', 'inv-1');
+      expect(res.success).toBe(true);
+      expect(prisma.workspaceInvitation.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'inv-1' },
+          data: expect.objectContaining({ revokedAt: expect.any(Date) }),
+        }),
+      );
+    });
+
+    it('should resolve public invitation details accurately for valid token', async () => {
+      prisma.workspaceInvitation.findUnique.mockResolvedValue({
+        id: 'inv-1',
+        workspaceId: 'ws-2',
+        role: 'MEMBER',
+        expiresAt: new Date(Date.now() + 86400000),
+        acceptedAt: null,
+        revokedAt: null,
+        workspace: {
+          id: 'ws-2',
+          name: 'Distributed Systems',
+          owner: { name: 'Owner User' },
+        },
+        createdBy: { name: 'Owner User' },
+      });
+
+      const details = await service.getPublicInvitationDetails('some-raw-token');
+      expect(details.isValid).toBe(true);
+      expect(details.status).toBe('VALID');
+      expect(details.workspaceTitle).toBe('Distributed Systems');
+    });
+
+    it('should report EXPIRED status for expired invitations', async () => {
+      prisma.workspaceInvitation.findUnique.mockResolvedValue({
+        id: 'inv-1',
+        workspaceId: 'ws-2',
+        role: 'MEMBER',
+        expiresAt: new Date(Date.now() - 100000),
+        acceptedAt: null,
+        revokedAt: null,
+        workspace: {
+          id: 'ws-2',
+          name: 'Distributed Systems',
+          owner: { name: 'Owner User' },
+        },
+        createdBy: { name: 'Owner User' },
+      });
+
+      const details = await service.getPublicInvitationDetails('some-raw-token');
+      expect(details.isValid).toBe(false);
+      expect(details.status).toBe('EXPIRED');
+    });
+
+    it('should allow user to accept invitation and join workspace as MEMBER', async () => {
+      prisma.workspaceInvitation.findUnique.mockResolvedValue({
+        id: 'inv-1',
+        workspaceId: 'ws-2',
+        role: 'MEMBER',
+        expiresAt: new Date(Date.now() + 86400000),
+        acceptedAt: null,
+        revokedAt: null,
+        workspace: {
+          id: 'ws-2',
+          name: 'Distributed Systems',
+          members: [{ userId: mockOwnerId }],
+        },
+      });
+      prisma.workspaceMember.create.mockResolvedValue({ id: 'member-3' });
+      prisma.workspaceInvitation.update.mockResolvedValue({ id: 'inv-1' });
+
+      const res = await service.acceptInvitation(mockStrangerId, 'raw-token');
+      expect(res.success).toBe(true);
+      expect(res.role).toBe('MEMBER');
+      expect(prisma.workspaceMember.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          workspaceId: 'ws-2',
+          userId: mockStrangerId,
+          role: 'MEMBER',
+        }),
+      });
+    });
+  });
+
+  describe('Group Discussions (People <-> People)', () => {
+    it('should allow member to post discussion message anchored to page', async () => {
+      prisma.workspace.findUnique.mockResolvedValue(mockGroupWorkspace);
+      prisma.user.findUnique.mockResolvedValue({
+        id: mockMemberId,
+        name: 'Collab Member',
+        email: 'member@test.com',
+      });
+      prisma.workspaceDiscussionMessage.create.mockResolvedValue({
+        id: 'msg-1',
+        workspaceId: 'ws-2',
+        userId: mockMemberId,
+        content: 'Check page 42 regarding Paxos consensus',
+        pageNumber: 42,
+        chapter: 'Consensus',
+        createdAt: new Date(),
+        user: { id: mockMemberId, name: 'Collab Member', email: 'member@test.com' },
+      });
+
+      const msg = await service.createDiscussionMessage(mockMemberId, 'ws-2', {
+        content: 'Check page 42 regarding Paxos consensus',
+        pageNumber: 42,
+        chapter: 'Consensus',
+      });
+
+      expect(msg.id).toBe('msg-1');
+      expect(msg.pageNumber).toBe(42);
+      expect(msg.userInitials).toBe('CM');
+    });
+
+    it('should reject discussion message on PERSONAL workspace', async () => {
+      prisma.workspace.findUnique.mockResolvedValue(mockPersonalWorkspace);
+
+      await expect(
+        service.createDiscussionMessage(mockOwnerId, 'ws-1', { content: 'Hello' }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should deny stranger from reading group discussion', async () => {
+      prisma.workspace.findUnique.mockResolvedValue(mockGroupWorkspace);
+
+      await expect(
+        service.getDiscussionMessages(mockStrangerId, 'ws-2'),
+      ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('Shared AI Conversation Snapshots', () => {
+    it('should create an immutable snapshot of conversation for group workspace', async () => {
+      prisma.workspace.findUnique.mockResolvedValue(mockGroupWorkspace);
+      prisma.conversation.findUnique.mockResolvedValue({
+        id: 'conv-1',
+        userId: mockMemberId,
+        title: 'Tutor Session on Raft',
+        messages: [
+          { id: 'm-1', sender: 'USER', content: 'What is Raft?', citations: [], createdAt: new Date() },
+          { id: 'm-2', sender: 'ASSISTANT', content: 'Raft is a consensus algorithm...', citations: [], createdAt: new Date() },
+        ],
+      });
+      prisma.user.findUnique.mockResolvedValue({
+        id: mockMemberId,
+        name: 'Collab Member',
+      });
+      prisma.sharedConversationSnapshot.create.mockResolvedValue({
+        id: 'snap-1',
+        workspaceId: 'ws-2',
+        conversationId: 'conv-1',
+        sharedById: mockMemberId,
+        title: 'Raft Overview',
+        snapshotData: {
+          title: 'Raft Overview',
+          messages: [],
+          sharedAt: new Date().toISOString(),
+        },
+        createdAt: new Date(),
+        sharedBy: { name: 'Collab Member' },
+      });
+
+      const snap = await service.createSharedConversation(mockMemberId, 'ws-2', {
+        conversationId: 'conv-1',
+        title: 'Raft Overview',
+      });
+
+      expect(snap.id).toBe('snap-1');
+      expect(snap.sharedByName).toBe('Collab Member');
+    });
+
+    it('should prevent sharing another user private conversation', async () => {
+      prisma.workspace.findUnique.mockResolvedValue(mockGroupWorkspace);
+      prisma.conversation.findUnique.mockResolvedValue({
+        id: 'conv-owner',
+        userId: mockOwnerId, // belongs to owner, stranger tries to share
+        title: 'Owner Private Chat',
+        messages: [],
+      });
+
+      await expect(
+        service.createSharedConversation(mockStrangerId, 'ws-2', {
+          conversationId: 'conv-owner',
+        }),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should allow group members to list shared conversation snapshots', async () => {
+      prisma.workspace.findUnique.mockResolvedValue(mockGroupWorkspace);
+      prisma.sharedConversationSnapshot.findMany.mockResolvedValue([
+        {
+          id: 'snap-1',
+          workspaceId: 'ws-2',
+          conversationId: 'conv-1',
+          sharedById: mockMemberId,
+          title: 'Raft Overview',
+          snapshotData: { title: 'Raft Overview', messages: [] },
+          createdAt: new Date(),
+          sharedBy: { name: 'Collab Member' },
+        },
+      ]);
+
+      const res = await service.listSharedConversations(mockOwnerId, 'ws-2');
+      expect(res.total).toBe(1);
+      expect(res.shares[0]?.title).toBe('Raft Overview');
+    });
+
+    it('should allow author or workspace owner to revoke a shared snapshot', async () => {
+      prisma.workspace.findUnique.mockResolvedValue(mockGroupWorkspace);
+      prisma.sharedConversationSnapshot.findUnique.mockResolvedValue({
+        id: 'snap-1',
+        workspaceId: 'ws-2',
+        sharedById: mockMemberId,
+      });
+      prisma.sharedConversationSnapshot.update.mockResolvedValue({ id: 'snap-1' });
+
+      const res = await service.revokeSharedConversation(mockMemberId, 'ws-2', 'snap-1');
+      expect(res.success).toBe(true);
+      expect(prisma.sharedConversationSnapshot.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'snap-1' },
+          data: expect.objectContaining({ revokedAt: expect.any(Date) }),
+        }),
+      );
     });
   });
 });

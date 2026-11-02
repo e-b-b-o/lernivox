@@ -38,11 +38,11 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 
 ---
 
-## 3. Current Phase
+### 3. Current Phase
 
-### **Major Product Transformation: From Course-Centered Platform to Book-Centered Personal & Collaborative Workspaces (Phase 0 & Phase 1)**
+### **Navigation Cleanup (Part A) & Phase 2: Personal-to-Group Workspaces & Collaboration**
 - **Status**: **Complete**
-- **Outcome**: Successfully transitioned Lernivox's core paradigm from course-centric organization to a clean, book-centered architecture (`Document/Material <-> 1:1 Workspace`). Backfilled all 3 existing digested books into persistent workspaces with 100% data preservation (0 chunks lost, 0 embeddings lost, 0 re-ingestion, 0 re-embedding). Implemented central backend authorization policy (`verifyDocumentAccess`), one-way `PERSONAL` -> `GROUP` workspace transition rule, transformed `/dashboard` into a book-centered library ("My Books" & "Shared with Me"), created canonical workspace route `/dashboard/workspaces/[workspaceId]`, built backward compatibility redirect adapter for `/dashboard/tutor`, safely retired obsolete routes (`/dashboard/library`, `/dashboard/courses`, `/dashboard/practice`, `/dashboard/groups`, `/dashboard/progress`) with client redirects to `/dashboard`, and preserved existing 3-pane study reader and private AI conversations.
+- **Outcome**: Successfully resolved navigation redundancies (removed global Add Material and My Books nav item, eliminated duplicate `+` on dashboard button and empty-state duplicate CTA). Implemented Phase 2 of the roadmap: one-way `PERSONAL` -> `GROUP` workspace conversion with database-level trigger protection, secure SHA-256 hashed invitation system (link and email), workspace membership management, dual chat system in Group Workspaces (People <-> People group discussions vs strictly isolated private AI conversations), and optional immutable conversation snapshot sharing (`SharedConversationSnapshot`). Verified 100% data preservation across 3 documents, 1,429 chunks, 1,429 embeddings, reading progress, and conversations.
 
 ---
 
@@ -51,11 +51,16 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 ### Confirmed Decisions
 - [x] **Product Paradigm**: **Book-Centered Personal & Collaborative Workspaces**. One uploaded document/material has one persistent workspace (`Document <-> 1:1 Workspace`).
 - [x] **Workspace Types**: `PERSONAL` (single learner, private AI tutor, personal notes & progress) and `GROUP` (collaborative learning around shared material, shared outline/reader, private AI conversations per member, role permissions).
-- [x] **One-Way Workspace Conversion Rule**: A `PERSONAL` workspace can be converted into a `GROUP` workspace by its owner; a `GROUP` workspace can **never** be converted back into a `PERSONAL` workspace. Enforced at domain/service layer.
+- [x] **One-Way Workspace Conversion Rule**: A `PERSONAL` workspace can be converted into a `GROUP` workspace by its owner; a `GROUP` workspace can **never** be converted back into a `PERSONAL` workspace. Enforced at domain/service layer AND via PostgreSQL trigger `trigger_prevent_group_workspace_downgrade`.
 - [x] **Authorization & Isolation Policy**: Centralized in `WorkspacesService.verifyDocumentAccess(userId, documentId)`. Access granted if user is workspace owner or active workspace member. Deletions restricted strictly to workspace owner. Individual progress and private AI chats remain strictly user-isolated.
+- [x] **Invitations Security Model**: Cryptographically random 32-byte hex tokens, stored as SHA-256 hashes in database (`WorkspaceInvitation.tokenHash`), 7-day default expiration, revocable by workspace owner, public resolution endpoint `/api/v1/invitations/:token` with safe metadata.
+- [x] **Dual Chat Architecture**: Group Workspaces feature two strictly separate conversation systems:
+  1. *People <-> People Group Discussion*: Workspace-scoped shared message stream anchored to book chapter/page numbers.
+  2. *Person <-> AI Private Tutor*: User-scoped, confidential tutoring with verified source grounding.
+- [x] **Conversation Sharing Model**: Sharing an individual AI conversation creates an immutable static snapshot (`SharedConversationSnapshot`) visible to workspace members. Original private conversation continues independently.
 - [x] **Product Name**: Lernivox.
 - [x] **Repository Management**: Monorepo with `pnpm` workspaces and Turborepo (`turbo`).
-- [x] **Frontend Framework**: Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS. Canonical workspace route: `/dashboard/workspaces/[workspaceId]`.
+- [x] **Frontend Framework**: Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS. Canonical workspace route: `/dashboard/workspaces/[workspaceId]`, public invite route: `/invite/[token]`.
 - [x] **Backend Framework**: NestJS 11, TypeScript, structured as modular domains (`WorkspacesModule`, `DocumentsModule`, `TutorModule`, `QuizzesModule`, `AuthModule`).
 - [x] **Primary Database**: PostgreSQL 16 accessed via Prisma ORM 7.x, leveraging `pgvector` for vector embeddings and hybrid search.
 - [x] **Database Driver Adapter**: `@prisma/adapter-pg` with connection pooling.
@@ -73,7 +78,7 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 |:---:|---|:---:|---|
 | **Phase 0** | **Reconciliation & Migration Planning** | **Complete** | Audit of active database, 3 ready documents, 1,429 chunks/embeddings, schema migration strategy, and data preservation plan. |
 | **Phase 1** | **Book-Centered Core Foundation** | **Complete** | 1:1 Workspace domain model, idempotent backfill, access control, one-way conversion invariant, "My Books" launcher, canonical `/dashboard/workspaces/[workspaceId]` route, compatibility redirects, 100% data preservation verified. |
-| **Phase 2** | **Personal-to-Group Conversion and Collaboration** | Planned | Convert Personal to Group UI, invitations, membership management, group roles, shared group discussions, private conversation sharing. |
+| **Phase 2** | **Personal-to-Group Conversion and Collaboration** | **Complete** | Convert Personal to Group UI, invitations, membership management, group roles, shared group discussions, private conversation sharing. |
 | **Phase 3** | **Workspace Learning Features** | Planned | In-workspace quizzes, attempts, flashcards, reviews, and per-user learning progress metrics. |
 | **Phase 4** | **Optional AI Learning Plans** | Planned | AI-assisted structured study sequences, adaptive recommendations based on quiz performance. |
 
@@ -81,84 +86,87 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 
 ## 6. Current Task Record
 
-- **Task**: Major Product Transformation: Transition to Book-Centered Workspaces (Phase 0 & Phase 1)
+- **Task**: Navigation Cleanup (Part A) & Phase 2: Personal-to-Group Workspaces & Collaboration (Part B)
 - **Status**: **Complete**
 - **Objective**:
-  - Transform Lernivox from course-centric organization to a book-centered platform where one uploaded document has one persistent workspace (`PERSONAL` or `GROUP`).
-  - Preserve all existing digested books (3 documents, 1,429 chunks, 1,429 embeddings, reading progress, and conversations) without re-uploading or re-embedding.
-  - Implement idempotent database migration and backfill.
-  - Create centralized access control, one-way conversion rule, and backend `WorkspacesModule`.
-  - Transform `/dashboard` into clean "My Books" & "Shared with Me" launcher with `+ Add Material` flow.
-  - Create canonical workspace route `/dashboard/workspaces/[workspaceId]`, preserving 3-pane study reader.
-  - Implement compatibility redirect on `/dashboard/tutor` and retire obsolete routes to `/dashboard`.
+  - Part A: Remove global Add Material button from navbar and mobile drawer; fix duplicate plus signs on dashboard button; remove redundant "My Books" navigation item while preserving brand logo return to `/dashboard`.
+  - Part B: Implement one-way Personal-to-Group conversion with owner UI, confirmation modal, backend enforcement, and database trigger.
+  - Implement group invitations via email and secure link with SHA-256 token hashing, 7-day expiration, and revocation.
+  - Build public `/invite/[token]` resolution and acceptance page with unauthenticated sign-in/up redirects.
+  - Implement group membership management with owner permissions and leave workspace flow.
+  - Implement dual chat experiences: People <-> People group discussion anchored to pages vs Person <-> AI private tutoring.
+  - Implement optional AI conversation sharing as immutable snapshots.
+  - Verify 100% data preservation, unit tests, type-checking, builds, and port cleanup.
 - **Work Completed**:
-  1. Audited PostgreSQL: 3 documents, 1,429 chunks, 1,429 embeddings, 3 conversations, 2 reading progress records.
-  2. Updated Prisma schema: Added `WorkspaceType` (`PERSONAL`, `GROUP`), `WorkspaceRole` (`OWNER`, `MEMBER`), refactored `Workspace` to 1:1 with `Document`, added `WorkspaceMember`, updated `Document` and `Conversation` relations.
-  3. Created migration `20261102203500_book_centered_workspaces` with idempotent embedded PL/pgSQL backfill and standalone programmatic helper `packages/database/src/backfill.ts`.
-  4. Created `@lernivox/contracts/src/workspaces.ts` with DTOs and updated document DTOs.
-  5. Implemented `WorkspacesModule` in `apps/api`:
-     - `verifyDocumentAccess(userId, documentId)`: centralized access check for workspace owner or member.
-     - `listUserWorkspaces(userId)`: returns `{ myBooks, sharedWithMe }`.
-     - `getWorkspaceById(userId, workspaceId)` and `getWorkspaceByDocumentId(userId, documentId)`.
-     - `convertToGroupWorkspace(userId, workspaceId)`: strictly enforces irreversible `PERSONAL` -> `GROUP` conversion (throwing 400 Bad Request on invalid transitions).
-  6. Updated `DocumentsService` and `TutorService` to route access checks through `WorkspacesService` and associate new uploads with workspaces.
-  7. Rebuilt `apps/web/app/(workspace)/dashboard/page.tsx` as "My Books" launcher with book cards, reading progress bars, workspace badges, polling, and modal supporting file upload and text notes with initial workspace type selection.
-  8. Created canonical workspace route `apps/web/app/(workspace)/dashboard/workspaces/[workspaceId]/page.tsx` with full 3-pane study layout, outline, PDF reader, AI tutor sidecar, citation inspector, and quiz modal.
-  9. Updated `TutorHeader.tsx` with workspace type badge and back-to-books link.
-  10. Replaced `/dashboard/tutor/page.tsx` with backward compatibility redirect adapter preserving query parameters.
-  11. Retired `/dashboard/library`, `/dashboard/courses`, `/dashboard/practice`, `/dashboard/groups`, and `/dashboard/progress` with client redirects to `/dashboard`.
+  1. Part A Navigation Cleanup:
+     - Removed `NAV_ITEMS` ("My Books") and global "Add Material" button from `apps/web/app/(workspace)/layout.tsx`.
+     - Brand logo retains back-navigation to `/dashboard`.
+     - Fixed duplicate `+` on `/dashboard` button (`<span>Add Material</span>` with Lucide `Plus` icon).
+     - Removed duplicate empty-state upload button.
+  2. Database Schema & Migration:
+     - Added models `WorkspaceInvitation`, `WorkspaceDiscussionMessage`, `SharedConversationSnapshot` in `packages/database/prisma/schema.prisma`.
+     - Applied additive migration `20261102213000_group_collaboration_and_invitations` with PostgreSQL trigger `trigger_prevent_group_workspace_downgrade` blocking any GROUP -> PERSONAL downgrade at database engine level.
+  3. Contracts & API:
+     - Defined shared collaboration DTOs in `packages/contracts/src/workspaces.ts`.
+     - Implemented backend methods in `apps/api/src/workspaces/workspaces.service.ts` for members, invitations, discussions, and shared conversation snapshots.
+     - Added controllers: `InvitationsController` and extended `WorkspacesController`.
+  4. Frontend UI Components:
+     - `apps/web/components/workspace/ConvertToGroupModal.tsx`: Explicit confirmation modal detailing irreversible conversion, owner privileges, and privacy guarantees.
+     - `apps/web/components/workspace/ManageGroupModal.tsx`: Member management, roles (`OWNER`, `MEMBER`), removal controls, leave workspace action, link and email invitation generator, copyable URL, and active invitations list with revocation.
+     - `apps/web/components/workspace/GroupDiscussionPane.tsx`: Discussion message feed with page/chapter anchoring, sender initials, timestamps, polling, and shared AI snapshot viewer.
+     - `apps/web/components/workspace/ShareConversationModal.tsx`: Snapshot confirmation dialog.
+     - `apps/web/components/workspace/RightWorkspacePanel.tsx`: Dual-chat switcher (`Lernivox AI` vs `Group Discussion`) for Group Workspaces while keeping Personal Workspaces clean and private.
+     - `apps/web/components/workspace/TutorHeader.tsx`: Integrated group badges, "Convert to Group" CTA for owners, and "Manage Group" modal trigger.
+     - `apps/web/app/invite/[token]/page.tsx`: Public invitation landing and acceptance page with authentication redirection.
+  5. Automated Tests:
+     - Added 22 new unit tests in `apps/api/src/workspaces/workspaces.service.spec.ts` covering members, invitations, discussions, and snapshots (all 35 passing).
+     - Full API test suite: 121 tests passing across 11 test suites.
 - **Verification**:
-  - `pnpm type-check`: 11/11 tasks passed across all packages.
-  - `pnpm test`: All unit & integration tests passed (99 in API, 10 in Database, 18 in AI-Core).
-  - `pnpm build`: 7/7 tasks passed, `next build` generated 15/15 static and dynamic pages.
+  - `pnpm type-check`: 11/11 tasks passed (0 errors across whole monorepo).
+  - `pnpm test`: 4/4 tasks passed (121 in API, 10 in Database, 6 in Worker, 18 in AI-Core).
+  - `pnpm build`: 7/7 tasks passed, Next.js build generated all 15 routes cleanly.
   - PostgreSQL Data Integrity Audit:
-    - `documents_count`: 3 (100% preserved)
-    - `ready_documents`: 3 (100% preserved)
-    - `chunks_count`: 1,429 (100% preserved)
-    - `embeddings_count`: 1,429 (100% preserved)
-    - `workspaces_count`: 3 (backfilled 1:1)
-    - `workspace_members_count`: 3 (all assigned role `OWNER`)
-    - `conversations_count`: 3 (linked to workspaces)
-    - `messages_count`: 12 (100% preserved)
-    - `reading_progress_count`: 2 (100% preserved)
-    - Re-ingestion/re-embedding calls: 0
+    - `total_workspaces`: 3 (100% preserved)
+    - `ready_docs`: 3 (100% preserved)
+    - `total_chunks`: 1,429 (100% preserved)
+    - `chunks_with_embedding`: 1,429 (100% preserved)
+    - `total_conversations`: 3 (100% preserved)
+    - `total_messages`: 12 (100% preserved)
+    - `total_progress`: 2 (100% preserved)
+    - Tested trigger `trigger_prevent_group_workspace_downgrade`: actively threw `ERROR: A GROUP workspace can never be converted back into a PERSONAL workspace` and rolled back.
 - **Processes and Ports**:
   - Cleaned up: No agent-spawned background processes or dev watchers remaining.
-  - Persistent infrastructure: `lernivox-postgres` active on port 5433, `lernivox-redis` active on port 6379.
+  - Persistent infrastructure: `lernivox-postgres` on port 5433, `lernivox-redis` on port 6379.
 - **Known Issues / Blockers**: None.
-- **Next Recommended Action**: Execute Phase 2 — Personal-to-Group Conversion and Collaboration.
-  - Refine vertical typography spacing and heading prominence without custom CSS or awkward empty gaps.
-  - Verify with `pnpm type-check` and `pnpm build`.
-- **Work Completed**:
-  - Inspected all application routes and identified exact locations of decorative eyebrow elements immediately above primary `<h1>` headings.
-  - Removed decorative eyebrow badges across all 8 user-facing views:
-    - `/dashboard` (`apps/web/app/(workspace)/dashboard/page.tsx`): Removed `My Learning Space` pill badge and cleaned up unused `Compass` import.
-    - `/dashboard/progress` (`apps/web/app/(workspace)/dashboard/progress/page.tsx`): Removed `Evidence-Based Progress` pill badge and cleaned up unused `BarChart2` import.
-    - `/dashboard/practice` (`apps/web/app/(workspace)/dashboard/practice/page.tsx`): Removed `Practice Center` pill badge.
-    - `/dashboard/library` (`apps/web/app/(workspace)/dashboard/library/page.tsx`): Removed `Study Library` pill badge and cleaned up unused `BookOpen` import.
-    - `/dashboard/courses` (`apps/web/app/(workspace)/dashboard/courses/page.tsx`): Removed `Academic Workspaces` pill badge.
-    - `/dashboard/groups` (`apps/web/app/(workspace)/dashboard/groups/page.tsx`): Removed `Collaborative Learning` pill badge.
-    - `/dashboard/settings` (`apps/web/app/(workspace)/dashboard/settings/page.tsx`): Removed `Profile & Preferences` pill badge and cleaned up unused `Settings` icon import.
-    - `/dashboard/practice/quizzes/[quizId]` (`apps/web/app/(workspace)/dashboard/practice/quizzes/[quizId]/page.tsx`): Removed `AI Assessment Engine` pill badge from generation loading state.
-  - Verified and preserved functional badges and indicators:
-    - Kept difficulty indicators (`{quiz.difficulty} Level`) and source chapter badges (`{quiz.sourceChapter}`).
-    - Kept evaluation outcome pills (`Assessment Mastered` / `Needs Reinforcement`).
-    - Kept document format tags, processing state badges, and form labels.
-  - Preserved natural editorial vertical rhythm: headings start directly at the top of each header container with descriptions positioned immediately beneath (`mt-1`).
-  - Verified that `/` (marketing homepage), `/login`, and `/register` natively start with clean `<h1>` headings.
+- **Next Recommended Action**: Execute Phase 3 — Workspace Learning Features (In-workspace chapter quizzes, flashcards, attempts, and objective mastery tracking).
 - **Files Created/Modified**:
-  - `apps/web/app/(workspace)/dashboard/progress/page.tsx`
-  - `apps/web/app/(workspace)/dashboard/practice/page.tsx`
-  - `apps/web/app/(workspace)/dashboard/library/page.tsx`
-  - `apps/web/app/(workspace)/dashboard/courses/page.tsx`
-  - `apps/web/app/(workspace)/dashboard/groups/page.tsx`
-  - `apps/web/app/(workspace)/dashboard/settings/page.tsx`
+  - `apps/web/app/(workspace)/layout.tsx`
   - `apps/web/app/(workspace)/dashboard/page.tsx`
-  - `apps/web/app/(workspace)/dashboard/practice/quizzes/[quizId]/page.tsx`
+  - `packages/database/prisma/schema.prisma`
+  - `packages/database/prisma/migrations/20261102213000_group_collaboration_and_invitations/migration.sql`
+  - `packages/contracts/src/workspaces.ts`
+  - `apps/api/src/common/prisma/prisma.service.ts`
+  - `apps/api/src/workspaces/dto/collaboration.dto.ts`
+  - `apps/api/src/workspaces/workspaces.service.ts`
+  - `apps/api/src/workspaces/workspaces.controller.ts`
+  - `apps/api/src/workspaces/invitations.controller.ts`
+  - `apps/api/src/workspaces/workspaces.module.ts`
+  - `apps/api/src/workspaces/workspaces.service.spec.ts`
+  - `apps/web/lib/api.ts`
+  - `apps/web/components/workspace/ConvertToGroupModal.tsx`
+  - `apps/web/components/workspace/ManageGroupModal.tsx`
+  - `apps/web/components/workspace/GroupDiscussionPane.tsx`
+  - `apps/web/components/workspace/ShareConversationModal.tsx`
+  - `apps/web/components/workspace/RightWorkspacePanel.tsx`
+  - `apps/web/components/workspace/TutorHeader.tsx`
+  - `apps/web/app/invite/[token]/page.tsx`
+  - `apps/web/app/(workspace)/dashboard/workspaces/[workspaceId]/page.tsx`
   - `PROGRESS.md`
 - **Verification Evidence**:
   - `pnpm type-check`: 11/11 tasks passing across all packages and apps with 0 errors.
+  - `pnpm test`: 4/4 tasks passing (121 in API, 10 in Database, 6 in Worker, 18 in AI-Core).
   - `pnpm build`: 7/7 builds passing, 15/15 Next.js routes statically or dynamically compiled with 0 errors.
+  - PostgreSQL Data Integrity Audit: 3 documents (100% READY), 1,429 chunks, 1,429 embeddings, 3 workspaces, 3 conversations, 12 messages, 2 reading progress records completely preserved.
   - Processes and Ports: Zero orphan dev server processes; PostgreSQL (port 5433) and Redis (port 6379) active and healthy.
 
 ---

@@ -271,7 +271,7 @@ function MyBooksDashboardContent() {
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#E8722C] text-white font-display font-bold text-xs sm:text-sm shadow-[0_3px_0_0_#B26E45] hover:bg-[#d66522] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none transition-all"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>+ Add Material</span>
+            <span>Add Material</span>
           </button>
         </div>
       </div>
@@ -370,16 +370,6 @@ function MyBooksDashboardContent() {
                   : 'Upload your textbooks, PDF chapters, lecture notes, or literature to start studying with your AI tutor.'}
               </p>
             </div>
-            {!searchQuery && typeFilter === 'ALL' && (
-              <button
-                type="button"
-                onClick={() => setShowAddModal(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#E8722C] text-white font-display font-bold text-xs shadow-[0_2px_0_0_#B26E45] hover:bg-[#d66522] active:translate-y-0.5 transition-all"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Upload First Book</span>
-              </button>
-            )}
           </div>
         ) : (
           <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">

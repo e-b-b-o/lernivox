@@ -21,8 +21,10 @@ import { api } from '../../../../../lib/api';
 import { TutorHeader } from '../../../../../components/workspace/TutorHeader';
 import { DocumentOutlinePane } from '../../../../../components/workspace/DocumentOutlinePane';
 import { DocumentReader } from '../../../../../components/workspace/DocumentReader';
-import { CopilotSidecar } from '../../../../../components/workspace/CopilotSidecar';
+import { RightWorkspacePanel } from '../../../../../components/workspace/RightWorkspacePanel';
 import { GenerateQuizModal } from '../../../../../components/workspace/GenerateQuizModal';
+import { ConvertToGroupModal } from '../../../../../components/workspace/ConvertToGroupModal';
+import { ManageGroupModal } from '../../../../../components/workspace/ManageGroupModal';
 
 function WorkspaceInner() {
   const router = useRouter();
@@ -108,6 +110,47 @@ function WorkspaceInner() {
   const [chunkDetail, setChunkDetail] = useState<TutorChunkDetailDto | null>(null);
   const [loadingChunk, setLoadingChunk] = useState(false);
   const [chunkError, setChunkError] = useState<string | null>(null);
+
+  // Group Collaboration & Modal States
+  const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
+  const [isConverting, setIsConverting] = useState(false);
+  const [isManageGroupModalOpen, setIsManageGroupModalOpen] = useState(false);
+  const [isSharingConversation, setIsSharingConversation] = useState(false);
+
+  const isOwner = Boolean(
+    workspace && (workspace.ownerId === user?.id || workspace.myRole === 'OWNER'),
+  );
+
+  const handleConvertToGroup = async () => {
+    if (!accessToken || !workspaceId || isConverting) return;
+    setIsConverting(true);
+    try {
+      const res = await api.workspaces.convertToGroup(workspaceId, accessToken);
+      setWorkspace(res.workspace);
+      setIsConvertModalOpen(false);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Failed to convert workspace to group');
+    } finally {
+      setIsConverting(false);
+    }
+  };
+
+  const handleShareConversation = async (conversationId: string, title: string) => {
+    if (!accessToken || !workspaceId || isSharingConversation) return;
+    setIsSharingConversation(true);
+    try {
+      await api.workspaces.createSharedConversation(
+        workspaceId,
+        { conversationId, title },
+        accessToken,
+      );
+      alert('Snapshot of this conversation has been shared with workspace members.');
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Failed to share conversation');
+    } finally {
+      setIsSharingConversation(false);
+    }
+  };
 
   // Debounce ref for reading progress updates
   const progressDebounceTimer = useRef<NodeJS.Timeout | null>(null);
@@ -683,6 +726,10 @@ function WorkspaceInner() {
         <TutorHeader
           document={currentDoc}
           workspaceType={workspace.type}
+          isOwner={isOwner}
+          memberCount={workspace.members?.length || 1}
+          onOpenConvertModal={() => setIsConvertModalOpen(true)}
+          onOpenManageGroupModal={() => setIsManageGroupModalOpen(true)}
           outlineOpen={mobileDrawer === 'toc' || (outlineOpen && mobileDrawer === 'none')}
           onToggleOutline={toggleToc}
           copilotOpen={mobileDrawer === 'chat' || (copilotOpen && mobileDrawer === 'none')}
@@ -728,8 +775,15 @@ function WorkspaceInner() {
           />
         </main>
 
-        {/* PANE 3: DESKTOP RIGHT LERNIVOX AI SIDECAR */}
-        <CopilotSidecar
+        {/* PANE 3: DESKTOP RIGHT WORKSPACE PANEL (Lernivox AI or Group Discussion) */}
+        <RightWorkspacePanel
+          workspaceType={workspace.type}
+          workspaceId={workspace.id}
+          currentUserId={user?.id || ''}
+          currentPage={currentPage}
+          currentChapter={
+            [...outlineItems].reverse().find((o) => o.pageNumber <= currentPage)?.title || ''
+          }
           isOpen={copilotOpen}
           onToggle={() => setCopilotOpen((c) => !c)}
           document={currentDoc}
@@ -754,6 +808,8 @@ function WorkspaceInner() {
           onOpenCitationInspector={handleOpenCitationInspector}
           preparedQuestion={preparedQuestion}
           onClearPreparedQuestion={() => setPreparedQuestion(null)}
+          onShareConversation={handleShareConversation}
+          isSharingConversation={isSharingConversation}
         />
 
         {/* 4. MOBILE SLIDE-OVER OVERLAYS (Single Winner, Mutually Exclusive) */}
@@ -789,13 +845,20 @@ function WorkspaceInner() {
               </div>
             )}
 
-            {/* AI Chat Mobile Drawer */}
+            {/* AI Chat / Group Discussion Mobile Drawer */}
             {mobileDrawer === 'chat' && (
               <div
                 className="absolute inset-y-0 right-0 w-[90%] max-w-md bg-[#FAF8F4] border-l-[2px] border-[#1B3428] shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-200"
                 onClick={(e) => e.stopPropagation()}
               >
-                <CopilotSidecar
+                <RightWorkspacePanel
+                  workspaceType={workspace.type}
+                  workspaceId={workspace.id}
+                  currentUserId={user?.id || ''}
+                  currentPage={currentPage}
+                  currentChapter={
+                    [...outlineItems].reverse().find((o) => o.pageNumber <= currentPage)?.title || ''
+                  }
                   isOpen={true}
                   onToggle={closeMobileDrawer}
                   document={currentDoc}
@@ -823,6 +886,8 @@ function WorkspaceInner() {
                   onOpenCitationInspector={handleOpenCitationInspector}
                   preparedQuestion={preparedQuestion}
                   onClearPreparedQuestion={() => setPreparedQuestion(null)}
+                  onShareConversation={handleShareConversation}
+                  isSharingConversation={isSharingConversation}
                   isMobileDrawer={true}
                   onCloseMobileDrawer={closeMobileDrawer}
                 />
@@ -937,6 +1002,31 @@ function WorkspaceInner() {
           [...outlineItems].reverse().find((o) => o.pageNumber <= currentPage)?.title || ''
         }
       />
+
+      {/* Convert to Group Confirmation Modal */}
+      {workspace && (
+        <ConvertToGroupModal
+          isOpen={isConvertModalOpen}
+          onClose={() => setIsConvertModalOpen(false)}
+          onConfirm={handleConvertToGroup}
+          isConverting={isConverting}
+          workspaceName={workspace.name || currentDoc?.title || 'Book Workspace'}
+        />
+      )}
+
+      {/* Group Members and Invitations Modal */}
+      {workspace && (
+        <ManageGroupModal
+          isOpen={isManageGroupModalOpen}
+          onClose={() => setIsManageGroupModalOpen(false)}
+          workspaceId={workspace.id}
+          workspaceTitle={workspace.name || currentDoc?.title || 'Group Workspace'}
+          isOwner={isOwner}
+          currentUserId={user?.id || ''}
+          onWorkspaceUpdated={fetchWorkspace}
+          onLeaveSuccess={() => router.replace('/dashboard')}
+        />
+      )}
     </div>
   );
 }

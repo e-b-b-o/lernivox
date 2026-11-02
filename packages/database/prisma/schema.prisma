@@ -177,6 +177,10 @@ model User {
   sessions              UserSession[]
   readingProgress       DocumentReadingProgress[]
   bookmarks             DocumentBookmark[]
+  workspaceInvitationsCreated WorkspaceInvitation[]         @relation("CreatedWorkspaceInvitations")
+  workspaceInvitationsAccepted WorkspaceInvitation[]        @relation("AcceptedWorkspaceInvitations")
+  discussionMessages          WorkspaceDiscussionMessage[]  @relation("UserDiscussionMessages")
+  sharedConversationSnapshots SharedConversationSnapshot[]  @relation("UserSharedConversations")
 
   @@map("users")
 }
@@ -247,16 +251,19 @@ model Subscription {
 // -------------------------------------------------------------
 
 model Workspace {
-  id            String            @id @default(uuid())
-  name          String
-  type          WorkspaceType     @default(PERSONAL)
-  ownerId       String
-  owner         User              @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  document      Document?
-  members       WorkspaceMember[]
-  conversations Conversation[]
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  id                  String                       @id @default(uuid())
+  name                String
+  type                WorkspaceType                @default(PERSONAL)
+  ownerId             String
+  owner               User                         @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  document            Document?
+  members             WorkspaceMember[]
+  conversations       Conversation[]
+  invitations         WorkspaceInvitation[]
+  discussions         WorkspaceDiscussionMessage[]
+  sharedConversations SharedConversationSnapshot[]
+  createdAt           DateTime                     @default(now())
+  updatedAt           DateTime                     @updatedAt
 
   @@index([ownerId])
   @@map("workspaces")
@@ -275,6 +282,64 @@ model WorkspaceMember {
   @@index([workspaceId])
   @@index([userId])
   @@map("workspace_members")
+}
+
+model WorkspaceInvitation {
+  id           String        @id @default(uuid())
+  workspaceId  String
+  workspace    Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  email        String?
+  tokenHash    String        @unique
+  role         WorkspaceRole @default(MEMBER)
+  expiresAt    DateTime
+  acceptedAt   DateTime?
+  acceptedById String?
+  acceptedBy   User?         @relation("AcceptedWorkspaceInvitations", fields: [acceptedById], references: [id], onDelete: SetNull)
+  revokedAt    DateTime?
+  createdById  String
+  createdBy    User          @relation("CreatedWorkspaceInvitations", fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt    DateTime      @default(now())
+
+  @@index([workspaceId])
+  @@index([tokenHash])
+  @@index([email])
+  @@map("workspace_invitations")
+}
+
+model WorkspaceDiscussionMessage {
+  id          String    @id @default(uuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation("UserDiscussionMessages", fields: [userId], references: [id], onDelete: Cascade)
+  content     String
+  pageNumber  Int?
+  chapter     String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([workspaceId, createdAt])
+  @@index([userId])
+  @@map("workspace_discussion_messages")
+}
+
+model SharedConversationSnapshot {
+  id             String       @id @default(uuid())
+  workspaceId    String
+  workspace      Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sharedById     String
+  sharedBy       User         @relation("UserSharedConversations", fields: [sharedById], references: [id], onDelete: Cascade)
+  title          String
+  snapshotData   Json
+  revokedAt      DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([workspaceId, createdAt])
+  @@index([conversationId])
+  @@index([sharedById])
+  @@map("shared_conversation_snapshots")
 }
 
 // -------------------------------------------------------------
@@ -513,9 +578,10 @@ model Conversation {
   document    Document?             @relation(fields: [documentId], references: [id], onDelete: SetNull)
   workspaceId String?
   workspace   Workspace?            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  title       String
-  messages    ConversationMessage[]
-  createdAt   DateTime              @default(now())
+  title           String
+  messages        ConversationMessage[]
+  sharedSnapshots SharedConversationSnapshot[]
+  createdAt       DateTime              @default(now())
   updatedAt   DateTime              @updatedAt
 
   @@index([userId])
