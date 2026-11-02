@@ -4,11 +4,14 @@
 lernivox/
 ├── apps/
 │   ├── web/                    # Next.js App Router frontend application
-│   │   ├── app/                # App Router routes ((marketing), (auth), (workspace))
-│   │   ├── components/         # Reusable UI & feature components
+│   │   ├── app/                # App Router routes ((marketing), (auth), (workspace/dashboard, tutor))
+│   │   ├── components/         # Feature components (marketing, auth, workspace: BookCard, Reader, Copilot)
 │   │   ├── styles/             # Global CSS and Tailwind definitions
 │   │   └── tailwind.config.ts  # Tailwind theme with BrightPath color tokens
 │   ├── api/                    # NestJS REST API application
+│   │   ├── src/auth/           # Authentication domain & token rotation
+│   │   ├── src/documents/      # Document management, byte-range file streaming, outline & progress
+│   │   ├── src/tutor/          # AI Tutor, pgvector cosine retrieval, conversation lifecycle
 │   │   ├── src/common/         # Exception filters, validation pipes, logging
 │   │   ├── src/config/         # Validated environment configuration
 │   │   ├── src/health/         # Readiness & health check endpoints

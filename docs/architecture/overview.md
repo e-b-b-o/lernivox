@@ -114,3 +114,26 @@ AiProvider generates completion with citations
        v
 apps/web renders response with interactive, verified citation cards
 ```
+
+### C. Three-Pane Document-Centric Study Workspace Flow
+```
+User selects book in Study Library (/dashboard)
+       |
+       v
+apps/web routes to full-viewport workspace (/dashboard/tutor?documentId=...)
+       |
+       +--> Left Pane: Requests deterministic TOC outline (/api/v1/documents/:id/outline),
+       |               bookmarks (/bookmarks), and restores saved reading progress (/progress)
+       |
+       +--> Center Pane: Typesets serif reading canvas or streams byte-range PDF (/file).
+       |                 Provides folio navigation, zoom, and "Explain this paragraph" contextual action.
+       |
+       +--> Right Pane: Connects to AI Copilot sidecar (/api/v1/tutor).
+                        Preserves active conversation history and session switcher.
+       |
+       v
+Clicking citation pill [S1] in Copilot:
+       |
+       v
+Center reader navigates to source page, auto-scrolls to passage, and highlights snippet in soft peach.
+```
