@@ -1,111 +1,114 @@
 'use client';
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useState, useRef, useCallback, useMemo, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   BookOpen,
-  CheckCircle2,
+  Plus,
+  Loader2,
+  Search,
+  Filter,
+  Users,
+  User,
+  UploadCloud,
+  X,
   AlertCircle,
   FileText,
-  UploadCloud,
-  Loader2,
-  LogOut,
-  Trash2,
-  Eye,
-  RefreshCw,
-  Plus,
-  Layers,
-  X,
-  Database,
-  Cpu,
-  Clock,
-  ArrowRight,
+  RotateCw,
 } from 'lucide-react';
-import type { DocumentChunkDto, DocumentDto } from '@lernivox/contracts';
-import { Button } from '../../../components/ui/button';
+import type {
+  WorkspaceListItemDto,
+  WorkspacesListResponseDto,
+  WorkspaceType,
+} from '@lernivox/contracts';
 import { useAuth } from '../../../context/AuthContext';
 import { api } from '../../../lib/api';
+import { BookCard } from '../../../components/workspace/BookCard';
 
 const MAX_SIZE_BYTES = 25 * 1024 * 1024;
 const ALLOWED_EXTS = ['.pdf', '.docx', '.txt'];
 
-export default function DashboardPage() {
-  const router = useRouter();
-  const { user, isAuthenticated, isLoading, accessToken, logout } = useAuth();
+type FileTypeFilter = 'ALL' | 'PDF' | 'DOCX' | 'TXT';
 
-  const [documents, setDocuments] = useState<DocumentDto[]>([]);
-  const [loadingDocs, setLoadingDocs] = useState(true);
+function MyBooksDashboardContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { user, isAuthenticated, isLoading, accessToken } = useAuth();
+
+  const [workspacesData, setWorkspacesData] = useState<WorkspacesListResponseDto>({
+    myBooks: [],
+    sharedWithMe: [],
+  });
+  const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
-  // Upload Modal State
-  const [showUploadModal, setShowUploadModal] = useState(false);
+  // Search & Filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState<FileTypeFilter>('ALL');
+
+  // Add Material Modal State
+  const [showAddModal, setShowAddModal] = useState(false);
   const [uploadTab, setUploadTab] = useState<'file' | 'text'>('file');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [customTitle, setCustomTitle] = useState('');
+  const [selectedWorkspaceType, setSelectedWorkspaceType] = useState<WorkspaceType>('PERSONAL');
   const [pastedTitle, setPastedTitle] = useState('');
   const [pastedContent, setPastedContent] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Chunks Inspector Modal State
-  const [inspectingDoc, setInspectingDoc] = useState<DocumentDto | null>(null);
-  const [chunks, setChunks] = useState<DocumentChunkDto[]>([]);
-  const [loadingChunks, setLoadingChunks] = useState(false);
-  const [chunkError, setChunkError] = useState<string | null>(null);
+  // Deletion Modal State
+  const [deletingDoc, setDeletingDoc] = useState<{ id: string; title: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  // Deletion State
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  // Check auth
+  // Open Add Material modal if ?action=upload is in URL
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.replace('/login?redirect=/dashboard');
+    if (searchParams.get('action') === 'upload') {
+      setShowAddModal(true);
     }
-  }, [isLoading, isAuthenticated, router]);
+  }, [searchParams]);
 
-  // Load documents
-  const loadDocuments = useCallback(async () => {
+  // Load Workspaces list
+  const loadWorkspaces = useCallback(async () => {
     if (!accessToken) return;
     try {
-      const data = await api.documents.list(accessToken);
-      setDocuments(data);
+      const data = await api.workspaces.list(accessToken);
+      setWorkspacesData(data);
       setFetchError(null);
-    } catch (err: any) {
-      setFetchError(err.message || 'Failed to load documents.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to load your study materials.';
+      setFetchError(msg);
     } finally {
-      setLoadingDocs(false);
+      setLoading(false);
     }
   }, [accessToken]);
 
   useEffect(() => {
     if (accessToken) {
-      loadDocuments();
+      loadWorkspaces();
     }
-  }, [accessToken, loadDocuments]);
+  }, [accessToken, loadWorkspaces]);
 
-  // Polling: if any document is in progress, poll every 3 seconds
+  // Polling for processing materials: check every 3s if any book is ingesting
   useEffect(() => {
     if (!accessToken) return;
 
-    const hasActiveJobs = documents.some((d) =>
-      ['UPLOADED', 'PROCESSING', 'EXTRACTING', 'CHUNKING', 'EMBEDDING'].includes(d.status),
+    const allItems = [...workspacesData.myBooks, ...workspacesData.sharedWithMe];
+    const hasIngestingBooks = allItems.some((item) =>
+      ['UPLOADED', 'PROCESSING', 'EXTRACTING', 'CHUNKING', 'EMBEDDING'].includes(
+        item.document.status,
+      ),
     );
 
-    if (!hasActiveJobs) return;
+    if (!hasIngestingBooks) return;
 
     const interval = setInterval(() => {
-      loadDocuments();
+      loadWorkspaces();
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [documents, accessToken, loadDocuments]);
-
-  const handleLogout = async () => {
-    await logout();
-    router.replace('/login');
-  };
+  }, [workspacesData, accessToken, loadWorkspaces]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -128,583 +131,571 @@ export default function DashboardPage() {
     }
   };
 
-  const handleUploadSubmit = async () => {
-    if (!accessToken) return;
-    setUploadError(null);
+  const handleFileUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedFile || !accessToken) return;
+
     setUploading(true);
+    setUploadError(null);
 
     try {
-      if (uploadTab === 'file') {
-        if (!selectedFile) {
-          setUploadError('Please choose a file to upload.');
-          setUploading(false);
-          return;
-        }
-
-        await api.documents.uploadFile(selectedFile, accessToken, customTitle);
-      } else {
-        if (!pastedTitle.trim()) {
-          setUploadError('Please provide a title for your study notes.');
-          setUploading(false);
-          return;
-        }
-        if (!pastedContent.trim() || pastedContent.trim().length < 20) {
-          setUploadError('Please enter at least 20 characters of study notes.');
-          setUploading(false);
-          return;
-        }
-
-        await api.documents.createFromText(
-          {
-            title: pastedTitle.trim(),
-            content: pastedContent.trim(),
-          },
-          accessToken,
-        );
-      }
-
-      // Reset modal state
+      await api.documents.uploadFile(
+        selectedFile,
+        accessToken,
+        customTitle.trim() || undefined,
+        selectedWorkspaceType,
+      );
+      setShowAddModal(false);
       setSelectedFile(null);
       setCustomTitle('');
-      setPastedTitle('');
-      setPastedContent('');
-      setShowUploadModal(false);
-
-      // Refresh documents
-      await loadDocuments();
-    } catch (err: any) {
-      setUploadError(err.message || 'Upload failed.');
+      setSelectedWorkspaceType('PERSONAL');
+      await loadWorkspaces();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Upload failed. Please try again.';
+      setUploadError(msg);
     } finally {
       setUploading(false);
     }
   };
 
-  const handleDelete = async (docId: string, title: string) => {
-    if (!accessToken) return;
-    if (!confirm(`Are you sure you want to delete "${title}"? This will remove all storage files and vector embeddings.`)) {
-      return;
-    }
+  const handlePastedTextSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pastedContent.trim() || !accessToken) return;
 
-    setDeletingId(docId);
+    setUploading(true);
+    setUploadError(null);
+
     try {
-      await api.documents.delete(docId, accessToken);
-      setDocuments((prev) => prev.filter((d) => d.id !== docId));
-      if (inspectingDoc?.id === docId) {
-        setInspectingDoc(null);
+      await api.documents.createFromText(
+        {
+          title: pastedTitle.trim() || 'Untitled Study Notes',
+          content: pastedContent.trim(),
+          workspaceType: selectedWorkspaceType,
+        },
+        accessToken,
+      );
+      setShowAddModal(false);
+      setPastedTitle('');
+      setPastedContent('');
+      setSelectedWorkspaceType('PERSONAL');
+      await loadWorkspaces();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to save notes. Please try again.';
+      setUploadError(msg);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingDoc || !accessToken) return;
+
+    setIsDeleting(true);
+    try {
+      await api.documents.delete(deletingDoc.id, accessToken);
+      setDeletingDoc(null);
+      await loadWorkspaces();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to delete workspace.';
+      alert(msg);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Filter helper
+  const filterList = (items: WorkspaceListItemDto[]) => {
+    return items.filter((item) => {
+      // Type filter
+      if (typeFilter !== 'ALL') {
+        const mime = item.document.mimeType;
+        const name = item.document.fileName || '';
+        if (typeFilter === 'PDF' && !mime.includes('pdf') && !name.endsWith('.pdf')) return false;
+        if (typeFilter === 'DOCX' && !mime.includes('word') && !name.endsWith('.docx')) return false;
+        if (typeFilter === 'TXT' && !mime.includes('text') && !name.endsWith('.txt')) return false;
       }
-    } catch (err: any) {
-      alert(`Failed to delete document: ${err.message}`);
-    } finally {
-      setDeletingId(null);
-    }
+      // Search query
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const matchesTitle = item.document.title.toLowerCase().includes(query);
+        const matchesFile = item.document.fileName?.toLowerCase().includes(query);
+        if (!matchesTitle && !matchesFile) return false;
+      }
+      return true;
+    });
   };
 
-  const handleInspectChunks = async (doc: DocumentDto) => {
-    if (!accessToken) return;
-    setInspectingDoc(doc);
-    setLoadingChunks(true);
-    setChunkError(null);
+  const filteredMyBooks = useMemo(
+    () => filterList(workspacesData.myBooks),
+    [workspacesData.myBooks, typeFilter, searchQuery],
+  );
 
-    try {
-      const data = await api.documents.getChunks(doc.id, accessToken);
-      setChunks(data);
-    } catch (err: any) {
-      setChunkError(err.message || 'Failed to fetch document chunks.');
-    } finally {
-      setLoadingChunks(false);
-    }
-  };
+  const filteredSharedWithMe = useMemo(
+    () => filterList(workspacesData.sharedWithMe),
+    [workspacesData.sharedWithMe, typeFilter, searchQuery],
+  );
 
-  const renderStatusBadge = (status: string) => {
-    switch (status) {
-      case 'READY':
-        return (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 px-3.5 py-1 text-xs font-bold text-emerald-800 shadow-subtle">
-            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-            Ready for Tutoring
-          </span>
-        );
-      case 'FAILED':
-        return (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 border border-red-200/80 px-3.5 py-1 text-xs font-bold text-red-800 shadow-subtle">
-            <AlertCircle className="h-3.5 w-3.5 text-red-600" />
-            Processing Failed
-          </span>
-        );
-      case 'EXTRACTING':
-        return (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-200/80 px-3.5 py-1 text-xs font-bold text-blue-800 shadow-subtle">
-            <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-600" />
-            Extracting Text...
-          </span>
-        );
-      case 'CHUNKING':
-        return (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 border border-indigo-200/80 px-3.5 py-1 text-xs font-bold text-indigo-800 shadow-subtle">
-            <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-600" />
-            Generating Chunks...
-          </span>
-        );
-      case 'EMBEDDING':
-        return (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-50 border border-purple-200/80 px-3.5 py-1 text-xs font-bold text-purple-800 shadow-subtle">
-            <Loader2 className="h-3.5 w-3.5 animate-spin text-purple-600" />
-            Indexing Vectors...
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200/80 px-3.5 py-1 text-xs font-bold text-amber-800 shadow-subtle">
-            <Clock className="h-3.5 w-3.5 text-amber-600" />
-            Queued in Worker
-          </span>
-        );
-    }
-  };
-
-  if (isLoading || !isAuthenticated || !user) {
+  if (isLoading || !isAuthenticated) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-lernivox-cream px-4">
-        <Loader2 className="h-10 w-10 animate-spin text-lernivox-forest" />
-        <p className="mt-4 text-base font-medium text-stone-600">
-          Loading student workspace...
+      <div className="flex-1 flex flex-col items-center justify-center p-8">
+        <div className="w-12 h-12 rounded-2xl bg-[#E8722C] text-white flex items-center justify-center shadow-[0_4px_0_0_#1B3428] mb-4">
+          <Loader2 className="h-6 w-6 animate-spin text-white" />
+        </div>
+        <p className="font-display font-bold text-base text-[#14261D]">
+          Opening your library...
         </p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-lernivox-cream text-lernivox-forest selection:bg-lernivox-peach selection:text-lernivox-forest">
-      {/* Workspace Header */}
-      <header className="border-b border-stone-200/80 bg-white/85 backdrop-blur-md sticky top-0 z-40 transition-all">
-        <div className="mx-auto flex h-20 md:h-24 max-w-[1440px] items-center justify-between px-6 md:px-12 xl:px-16">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="flex items-center gap-3.5 group"
-            >
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-lernivox-forest text-lernivox-peach shadow-sm transition-transform group-hover:scale-105">
-                <BookOpen className="h-5 w-5" />
-              </div>
-              <span className="font-display text-2xl md:text-3xl font-extrabold tracking-tight text-lernivox-forest">
-                Lernivox
-              </span>
-            </Link>
-            <span className="hidden sm:inline-flex rounded-full bg-lernivox-peach/70 px-4 py-1 text-xs font-bold text-lernivox-forest">
-              Student Workspace
-            </span>
-          </div>
-
-          <div className="flex items-center gap-5">
-            <div className="hidden sm:flex flex-col text-right">
-              <span className="text-base font-semibold text-lernivox-forest">
-                {user.name || user.email.split('@')[0]}
-              </span>
-              <span className="text-xs text-stone-500">{user.email}</span>
-            </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleLogout}
-              className="gap-2 px-5 text-sm font-semibold text-stone-700 hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition-colors"
-            >
-              <LogOut className="h-4 w-4" />
-              Sign Out
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Workspace Area */}
-      <main className="mx-auto max-w-[1440px] px-6 md:px-12 xl:px-16 py-12 md:py-16">
-        {/* Top Action Bar */}
-        <div className="mb-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-          <div>
-            <h1 className="font-display text-4xl sm:text-5xl font-extrabold tracking-tight text-lernivox-forest">
-              Document Library
-            </h1>
-            <p className="text-base md:text-lg text-stone-600 mt-2">
-              Upload, monitor asynchronous ingestion, and inspect vector-indexed learning materials.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3.5">
-            <Button
-              variant="outline"
-              size="md"
-              onClick={loadDocuments}
-              className="gap-2 bg-white"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Refresh
-            </Button>
-
-            <Button
-              variant="secondary"
-              size="md"
-              onClick={() => setShowUploadModal(true)}
-              className="gap-2 shadow-glow-terracotta"
-            >
-              <Plus className="h-5 w-5" />
-              Upload New Material
-            </Button>
-          </div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-10 flex-1 w-full">
+      {/* =========================================================================
+          PAGE INTRODUCTION: "My Books"
+          ========================================================================= */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-[#1B3428]/10">
+        <div>
+          <h1 className="font-display font-black text-2xl sm:text-3xl lg:text-4xl text-[#14261D] tracking-tight">
+            My Books
+          </h1>
+          <p className="font-sans text-xs sm:text-sm text-[#14261D]/75 mt-1 max-w-xl">
+            Your books, your learning spaces. Pick up where you left off.
+          </p>
         </div>
 
-        {/* Global Error Notice */}
-        {fetchError && (
-          <div className="mb-8 flex items-center gap-3.5 rounded-2xl bg-red-50 border border-red-200 p-5 text-red-900 text-sm md:text-base animate-fadeIn">
-            <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
-            <span>{fetchError}</span>
-          </div>
-        )}
+        {/* Primary Action Button */}
+        <div className="flex items-center gap-3 shrink-0">
+          <button
+            type="button"
+            onClick={() => setShowAddModal(true)}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#E8722C] text-white font-display font-bold text-xs sm:text-sm shadow-[0_3px_0_0_#B26E45] hover:bg-[#d66522] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none transition-all"
+          >
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>+ Add Material</span>
+          </button>
+        </div>
+      </div>
 
-        {/* Documents Content */}
-        {loadingDocs ? (
-          <div className="flex flex-col items-center justify-center py-28 bg-white/80 backdrop-blur-md rounded-[2.5rem] border border-stone-200/80 shadow-subtle">
-            <Loader2 className="h-10 w-10 animate-spin text-lernivox-forest" />
-            <p className="mt-4 text-base text-stone-600">Fetching your learning materials...</p>
-          </div>
-        ) : documents.length === 0 ? (
-          <div className="text-center py-24 px-8 bg-white/85 backdrop-blur-md rounded-[2.5rem] border border-stone-200/80 shadow-card">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-lernivox-peach/70 text-lernivox-terracotta mb-6 shadow-sm">
-              <UploadCloud className="h-10 w-10" />
-            </div>
-            <h3 className="font-display text-2xl md:text-3xl font-bold text-lernivox-forest">
-              No course documents yet
-            </h3>
-            <p className="mt-3 text-base md:text-lg text-stone-600 max-w-lg mx-auto leading-relaxed">
-              Upload your first textbook, syllabus, or lecture slides to trigger asynchronous text extraction, semantic chunking, and vector indexing.
-            </p>
-            <Button
-              variant="secondary"
-              size="lg"
-              onClick={() => setShowUploadModal(true)}
-              className="mt-8 px-8 shadow-glow-terracotta"
-            >
-              <Plus className="mr-2 h-5 w-5" />
-              Upload Textbook Now
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-5">
-            <div className="grid gap-5">
-              {documents.map((doc) => {
-                const isDeleting = deletingId === doc.id;
-                const isReady = doc.status === 'READY';
-                const isFailed = doc.status === 'FAILED';
-
-                return (
-                  <div
-                    key={doc.id}
-                    className="flex flex-col md:flex-row md:items-center justify-between gap-6 rounded-[2rem] border border-stone-200/80 bg-white/90 backdrop-blur-md p-8 md:p-10 shadow-card hover:shadow-card-hover transition-all duration-300"
-                  >
-                    <div className="flex items-start gap-5">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-stone-100 text-lernivox-forest border border-stone-200 flex-shrink-0 mt-0.5 shadow-subtle">
-                        <FileText className="h-7 w-7" />
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex flex-wrap items-center gap-3">
-                          <h3 className="font-display text-xl md:text-2xl font-bold text-lernivox-forest">
-                            {doc.title}
-                          </h3>
-                          {renderStatusBadge(doc.status)}
-                        </div>
-
-                        <div className="flex flex-wrap items-center gap-3 text-sm text-stone-500">
-                          <span>File: {doc.fileName || 'Pasted Notes'}</span>
-                          <span>•</span>
-                          <span>Size: {(doc.sizeBytes / 1024).toFixed(1)} KB</span>
-                          {doc.pageCount && (
-                            <>
-                              <span>•</span>
-                              <span>{doc.pageCount} Pages</span>
-                            </>
-                          )}
-                          {doc.totalTokens && (
-                            <>
-                              <span>•</span>
-                              <span>~{doc.totalTokens} Tokens</span>
-                            </>
-                          )}
-                          <span>•</span>
-                          <span>Uploaded: {new Date(doc.createdAt).toLocaleDateString()}</span>
-                        </div>
-
-                        {/* Error info if failed */}
-                        {isFailed && doc.errorMessage && (
-                          <div className="mt-3 text-sm text-red-700 bg-red-50 p-3 rounded-2xl border border-red-200 font-medium">
-                            {doc.errorMessage}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-3 self-end md:self-center">
-                      {isReady && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleInspectChunks(doc)}
-                          className="gap-2 px-5 text-sm font-semibold"
-                        >
-                          <Eye className="h-4 w-4 text-lernivox-forest" />
-                          Inspect Chunks
-                        </Button>
-                      )}
-
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={isDeleting}
-                        onClick={() => handleDelete(doc.id, doc.title)}
-                        className="text-red-600 hover:bg-red-50 hover:text-red-700 p-2.5 h-11 w-11 rounded-full"
-                        title="Delete document"
-                      >
-                        {isDeleting ? (
-                          <Loader2 className="h-5 w-5 animate-spin" />
-                        ) : (
-                          <Trash2 className="h-5 w-5" />
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </main>
-
-      {/* Upload Modal */}
-      {showUploadModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fadeIn">
-          <div className="w-full max-w-2xl rounded-[2.5rem] border border-stone-200/80 bg-white p-8 sm:p-12 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      {/* =========================================================================
+          SEARCH & FILTER CONTROLS BAR
+          ========================================================================= */}
+      <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+        {/* Search Input */}
+        <div className="relative w-full sm:max-w-xs">
+          <Search className="w-4 h-4 text-[#14261D]/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search books & materials..."
+            className="w-full pl-9 pr-4 py-2 rounded-full bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/20 text-xs font-sans text-[#14261D] placeholder:text-[#14261D]/40 focus:outline-none focus:border-[#E8722C] focus:ring-1 focus:ring-[#E8722C] transition-all"
+          />
+          {searchQuery && (
             <button
               type="button"
-              onClick={() => !uploading && setShowUploadModal(false)}
-              className="absolute top-6 right-6 text-stone-500 hover:text-lernivox-forest p-2 rounded-full hover:bg-stone-100 transition"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#14261D]/40 hover:text-[#14261D]"
             >
-              <X className="h-6 w-6" />
+              <X className="w-3.5 h-3.5" />
             </button>
+          )}
+        </div>
 
-            <h2 className="font-display text-2xl md:text-3xl font-bold text-lernivox-forest mb-2">
-              Add Learning Material
+        {/* File Type Filter Pills */}
+        <div className="flex items-center gap-1.5 self-start sm:self-auto overflow-x-auto pb-1 sm:pb-0 w-full sm:w-auto">
+          {(['ALL', 'PDF', 'DOCX', 'TXT'] as FileTypeFilter[]).map((ft) => (
+            <button
+              key={ft}
+              type="button"
+              onClick={() => setTypeFilter(ft)}
+              className={`px-3 py-1.5 rounded-full text-xs font-display font-bold transition-all shrink-0 ${
+                typeFilter === ft
+                  ? 'bg-[#14261D] text-white shadow-xs'
+                  : 'bg-[#FAF8F4] border border-[#1B3428]/15 text-[#14261D]/70 hover:bg-[#FBE8DC]/60 hover:text-[#14261D]'
+              }`}
+            >
+              {ft === 'ALL' ? 'All Materials' : ft}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {fetchError && (
+        <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center justify-between">
+          <span>{fetchError}</span>
+          <button
+            type="button"
+            onClick={loadWorkspaces}
+            className="font-bold underline ml-4 flex items-center gap-1"
+          >
+            <RotateCw className="w-3 h-3" /> Retry
+          </button>
+        </div>
+      )}
+
+      {/* =========================================================================
+          SECTION 1: "MY BOOKS"
+          ========================================================================= */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h2 className="font-display font-bold text-lg sm:text-xl text-[#14261D] tracking-tight">
+              My Books
             </h2>
-            <p className="text-sm md:text-base text-stone-600 mb-6">
-              Files will be stored securely and queued for extraction, chunking, and vector indexing.
-            </p>
+            <span className="px-2 py-0.5 rounded-full bg-[#1B3428]/10 text-[#14261D] font-mono text-[11px] font-bold">
+              {filteredMyBooks.length}
+            </span>
+          </div>
+        </div>
 
-            {/* Tab switch */}
-            <div className="flex rounded-full bg-stone-100 p-1.5 mb-6 border border-stone-200/80">
+        {loading ? (
+          <div className="py-16 flex flex-col items-center justify-center text-[#14261D]/60 space-y-3">
+            <Loader2 className="w-8 h-8 animate-spin text-[#E8722C]" />
+            <p className="font-display font-bold text-sm">Loading your personal library...</p>
+          </div>
+        ) : filteredMyBooks.length === 0 ? (
+          <div className="rounded-[24px] bg-[#FAF8F4] border-[2px] border-dashed border-[#1B3428]/20 p-8 sm:p-12 text-center flex flex-col items-center justify-center space-y-4">
+            <div className="w-14 h-14 rounded-2xl bg-[#E2EBD8] text-[#497E64] flex items-center justify-center border border-[#1B3428]/20 shadow-[0_3px_0_0_#1B3428]">
+              <BookOpen className="w-7 h-7" />
+            </div>
+            <div className="max-w-md">
+              <h3 className="font-display font-bold text-base sm:text-lg text-[#14261D]">
+                {searchQuery || typeFilter !== 'ALL'
+                  ? 'No matching books found'
+                  : 'Your book collection is empty'}
+              </h3>
+              <p className="text-xs sm:text-sm text-[#14261D]/70 mt-1">
+                {searchQuery || typeFilter !== 'ALL'
+                  ? 'Try clearing your search or filter criteria to see your books.'
+                  : 'Upload your textbooks, PDF chapters, lecture notes, or literature to start studying with your AI tutor.'}
+              </p>
+            </div>
+            {!searchQuery && typeFilter === 'ALL' && (
+              <button
+                type="button"
+                onClick={() => setShowAddModal(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#E8722C] text-white font-display font-bold text-xs shadow-[0_2px_0_0_#B26E45] hover:bg-[#d66522] active:translate-y-0.5 transition-all"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Upload First Book</span>
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+            {filteredMyBooks.map((item) => (
+              <BookCard
+                key={item.id}
+                document={item.document}
+                workspaceId={item.id}
+                workspaceType={item.type}
+                isOwner={item.isOwner}
+                readingProgress={item.myReadingProgress}
+                onDelete={(docId, title) => setDeletingDoc({ id: docId, title })}
+                isDeleting={isDeleting && deletingDoc?.id === item.document.id}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* =========================================================================
+          SECTION 2: "SHARED WITH ME"
+          ========================================================================= */}
+      <section className="space-y-4 pt-6 border-t border-[#1B3428]/10">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h2 className="font-display font-bold text-lg sm:text-xl text-[#14261D] tracking-tight">
+              Shared with Me
+            </h2>
+            <span className="px-2 py-0.5 rounded-full bg-[#E8EFFB] text-[#2F65B9] font-mono text-[11px] font-bold">
+              {filteredSharedWithMe.length}
+            </span>
+          </div>
+        </div>
+
+        {filteredSharedWithMe.length === 0 ? (
+          <div className="rounded-[20px] bg-[#FAF8F4]/60 border border-[#1B3428]/10 p-6 text-center text-[#14261D]/60 text-xs">
+            <Users className="w-6 h-6 mx-auto mb-2 text-[#14261D]/40" />
+            <p className="font-display font-bold text-xs text-[#14261D]/80">
+              No shared workspaces yet
+            </p>
+            <p className="text-[11px] text-[#14261D]/60 mt-0.5">
+              When classmates or study partners invite you to their group workspaces, those books will appear here.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+            {filteredSharedWithMe.map((item) => (
+              <BookCard
+                key={item.id}
+                document={item.document}
+                workspaceId={item.id}
+                workspaceType={item.type}
+                isOwner={false}
+                readingProgress={item.myReadingProgress}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* =========================================================================
+          ADD MATERIAL MODAL (Supports File, Pasted Text, and Workspace Type)
+          ========================================================================= */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-lg rounded-[28px] bg-[#FAF8F4] border-[2px] border-[#1B3428] shadow-[0_12px_0_0_#1B3428] p-6 sm:p-8 space-y-6 relative max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-[#1B3428]/10">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-[#E8722C] text-white flex items-center justify-center shadow-xs">
+                  <UploadCloud className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-display font-bold text-base sm:text-lg text-[#14261D] leading-tight">
+                    Add Learning Material
+                  </h3>
+                  <p className="text-[11px] font-sans text-[#14261D]/65">
+                    Choose your book and initial workspace configuration
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddModal(false)}
+                className="w-8 h-8 rounded-full border border-[#1B3428]/20 flex items-center justify-center text-[#14261D]/60 hover:text-[#14261D] hover:bg-black/5"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Workspace Type Selector */}
+            <div className="space-y-2">
+              <label className="block font-display font-bold text-xs text-[#14261D]">
+                Initial Workspace Type:
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedWorkspaceType('PERSONAL')}
+                  className={`p-3 rounded-2xl border-[1.5px] text-left transition-all ${
+                    selectedWorkspaceType === 'PERSONAL'
+                      ? 'border-[#1B3428] bg-[#E2EBD8] shadow-[0_2px_0_0_#1B3428]'
+                      : 'border-[#1B3428]/20 bg-white/60 hover:bg-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5 font-display font-bold text-xs text-[#14261D]">
+                    <User className="w-3.5 h-3.5 text-[#497E64]" />
+                    <span>Personal Workspace</span>
+                  </div>
+                  <p className="text-[10px] text-[#14261D]/70 mt-1 leading-normal">
+                    Private workspace with personal AI tutor and individual progress.
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedWorkspaceType('GROUP')}
+                  className={`p-3 rounded-2xl border-[1.5px] text-left transition-all ${
+                    selectedWorkspaceType === 'GROUP'
+                      ? 'border-[#1B3428] bg-[#E8EFFB] shadow-[0_2px_0_0_#1B3428]'
+                      : 'border-[#1B3428]/20 bg-white/60 hover:bg-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5 font-display font-bold text-xs text-[#14261D]">
+                    <Users className="w-3.5 h-3.5 text-[#2F65B9]" />
+                    <span>Group Workspace</span>
+                  </div>
+                  <p className="text-[10px] text-[#14261D]/70 mt-1 leading-normal">
+                    Collaborative workspace ready for group study and peer learning.
+                  </p>
+                </button>
+              </div>
+            </div>
+
+            {/* Tab Selector: Upload File vs Pasted Text */}
+            <div className="flex rounded-full bg-[#1B3428]/5 p-1">
               <button
                 type="button"
                 onClick={() => setUploadTab('file')}
-                className={`flex-1 py-2.5 text-xs md:text-sm font-semibold rounded-full transition-all ${
+                className={`flex-1 py-1.5 rounded-full text-xs font-display font-bold transition-all ${
                   uploadTab === 'file'
-                    ? 'bg-lernivox-forest text-white shadow-sm'
-                    : 'text-stone-600 hover:text-lernivox-forest'
+                    ? 'bg-white text-[#14261D] shadow-xs'
+                    : 'text-[#14261D]/60 hover:text-[#14261D]'
                 }`}
               >
-                Upload File (PDF, DOCX, TXT)
+                Upload Document (PDF, DOCX, TXT)
               </button>
               <button
                 type="button"
                 onClick={() => setUploadTab('text')}
-                className={`flex-1 py-2.5 text-xs md:text-sm font-semibold rounded-full transition-all ${
+                className={`flex-1 py-1.5 rounded-full text-xs font-display font-bold transition-all ${
                   uploadTab === 'text'
-                    ? 'bg-lernivox-forest text-white shadow-sm'
-                    : 'text-stone-600 hover:text-lernivox-forest'
+                    ? 'bg-white text-[#14261D] shadow-xs'
+                    : 'text-[#14261D]/60 hover:text-[#14261D]'
                 }`}
               >
-                Paste Raw Notes
+                Paste Study Notes
               </button>
             </div>
 
             {uploadError && (
-              <div className="mb-6 flex items-start gap-3 rounded-2xl bg-red-50 p-4 text-sm text-red-700 border border-red-200">
-                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{uploadError}</span>
               </div>
             )}
 
+            {/* TAB 1: File Upload */}
             {uploadTab === 'file' ? (
-              <div className="space-y-5">
+              <form onSubmit={handleFileUpload} className="space-y-4">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.docx,.txt"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="cursor-pointer rounded-2xl border-2 border-dashed border-stone-300 bg-stone-50/60 p-8 text-center hover:bg-stone-50 hover:border-lernivox-forest transition"
+                  className="rounded-2xl border-[2px] border-dashed border-[#1B3428]/30 p-6 text-center cursor-pointer hover:bg-[#FBE8DC]/30 transition-all"
                 >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".pdf,.docx,.txt"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                  />
-                  <UploadCloud className="mx-auto h-10 w-10 text-lernivox-terracotta mb-3" />
+                  <UploadCloud className="w-8 h-8 text-[#E8722C] mx-auto mb-2" />
                   {selectedFile ? (
                     <div>
-                      <p className="text-sm md:text-base font-bold text-lernivox-forest truncate">
+                      <p className="font-display font-bold text-xs text-[#14261D]">
                         {selectedFile.name}
                       </p>
-                      <p className="text-xs text-stone-500 mt-1">
+                      <p className="font-mono text-[10px] text-[#14261D]/60 mt-0.5">
                         {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
                       </p>
                     </div>
                   ) : (
                     <div>
-                      <p className="text-sm md:text-base font-bold text-lernivox-forest">
-                        Select textbook or lecture file
+                      <p className="font-display font-bold text-xs text-[#14261D]">
+                        Click to select document file
                       </p>
-                      <p className="text-xs text-stone-500 mt-1">
-                        PDF, DOCX, TXT up to 25 MB
+                      <p className="text-[10px] text-[#14261D]/60 mt-1">
+                        Accepts PDF, DOCX, and TXT (up to 25 MB)
                       </p>
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <label htmlFor="custom-title-input" className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
-                    Document Title (Optional)
+                  <label className="block text-[11px] font-display font-bold text-[#14261D] mb-1">
+                    Book Title (Optional)
                   </label>
                   <input
-                    id="custom-title-input"
                     type="text"
                     value={customTitle}
                     onChange={(e) => setCustomTitle(e.target.value)}
-                    placeholder="e.g. Molecular Biology Chapter 4"
-                    className="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm text-lernivox-forest focus:outline-none focus:border-lernivox-forest"
+                    placeholder="e.g. Introduction to Algorithms"
+                    className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#1B3428]/20 text-xs text-[#14261D] focus:outline-none focus:border-[#E8722C]"
                   />
                 </div>
-              </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className="px-4 py-2 rounded-full border border-[#1B3428]/20 text-xs font-display font-bold text-[#14261D]"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={!selectedFile || uploading}
+                    className="px-5 py-2 rounded-full bg-[#E8722C] text-white text-xs font-display font-bold shadow-[0_2px_0_0_#B26E45] hover:bg-[#d66522] disabled:opacity-50 transition-all flex items-center gap-1.5"
+                  >
+                    {uploading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                    <span>{uploading ? 'Ingesting...' : 'Add Material'}</span>
+                  </button>
+                </div>
+              </form>
             ) : (
-              <div className="space-y-5">
+              /* TAB 2: Pasted Text */
+              <form onSubmit={handlePastedTextSubmit} className="space-y-4">
                 <div>
-                  <label htmlFor="pasted-title-modal-input" className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
-                    Notes Title *
+                  <label className="block text-[11px] font-display font-bold text-[#14261D] mb-1">
+                    Notes Title
                   </label>
                   <input
-                    id="pasted-title-modal-input"
                     type="text"
                     value={pastedTitle}
                     onChange={(e) => setPastedTitle(e.target.value)}
-                    placeholder="e.g. Microeconomics Elasticity Notes"
-                    className="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm text-lernivox-forest focus:outline-none focus:border-lernivox-forest"
+                    placeholder="e.g. Chapter 1 Summary"
+                    className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#1B3428]/20 text-xs text-[#14261D] focus:outline-none focus:border-[#E8722C]"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="pasted-content-modal-textarea" className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
-                    Content *
+                  <label className="block text-[11px] font-display font-bold text-[#14261D] mb-1">
+                    Text Content
                   </label>
                   <textarea
-                    id="pasted-content-modal-textarea"
                     rows={6}
                     value={pastedContent}
                     onChange={(e) => setPastedContent(e.target.value)}
-                    placeholder="Paste lecture notes or chapter excerpts here..."
-                    className="w-full rounded-2xl border border-stone-300 bg-white p-4 text-sm text-lernivox-forest focus:outline-none focus:border-lernivox-forest font-mono leading-relaxed"
+                    placeholder="Paste textbook excerpts, lecture notes, or syllabus content here..."
+                    className="w-full p-3 rounded-xl bg-white border border-[#1B3428]/20 text-xs text-[#14261D] focus:outline-none focus:border-[#E8722C] font-serif leading-relaxed"
                   />
                 </div>
-              </div>
-            )}
 
-            <div className="mt-8 flex items-center justify-end gap-3.5 pt-6 border-t border-stone-200">
-              <Button
-                variant="outline"
-                size="md"
-                disabled={uploading}
-                onClick={() => setShowUploadModal(false)}
-                className="px-6"
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="secondary"
-                size="md"
-                disabled={uploading || (uploadTab === 'file' && !selectedFile) || (uploadTab === 'text' && !pastedContent.trim())}
-                onClick={handleUploadSubmit}
-                className="px-6 shadow-glow-terracotta"
-              >
-                {uploading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Ingesting...
-                  </>
-                ) : (
-                  'Enqueue Ingestion'
-                )}
-              </Button>
-            </div>
+                <div className="flex items-center justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className="px-4 py-2 rounded-full border border-[#1B3428]/20 text-xs font-display font-bold text-[#14261D]"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={!pastedContent.trim() || uploading}
+                    className="px-5 py-2 rounded-full bg-[#E8722C] text-white text-xs font-display font-bold shadow-[0_2px_0_0_#B26E45] hover:bg-[#d66522] disabled:opacity-50 transition-all flex items-center gap-1.5"
+                  >
+                    {uploading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                    <span>{uploading ? 'Saving...' : 'Add Notes'}</span>
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
 
-      {/* Inspect Chunks Modal */}
-      {inspectingDoc && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fadeIn">
-          <div className="w-full max-w-4xl rounded-[2.5rem] border border-stone-200/80 bg-white p-8 sm:p-12 shadow-2xl relative max-h-[85vh] flex flex-col">
-            <button
-              type="button"
-              onClick={() => setInspectingDoc(null)}
-              className="absolute top-6 right-6 text-stone-500 hover:text-lernivox-forest p-2 rounded-full hover:bg-stone-100 transition"
-            >
-              <X className="h-6 w-6" />
-            </button>
-
-            <div className="border-b border-stone-200 pb-5 mb-6">
-              <h2 className="font-display text-2xl font-bold text-lernivox-forest">
-                Vector Indexed Chunks — {inspectingDoc.title}
-              </h2>
-              <p className="text-sm text-stone-500 mt-1">
-                Chunks stored in PostgreSQL with 768-dimensional pgvector embeddings.
-              </p>
-            </div>
-
-            {loadingChunks ? (
-              <div className="py-20 flex flex-col items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-lernivox-forest" />
-                <p className="text-sm text-stone-600 mt-3">Loading semantic chunks...</p>
-              </div>
-            ) : chunkError ? (
-              <div className="p-5 rounded-2xl bg-red-50 text-red-800 text-sm">{chunkError}</div>
-            ) : chunks.length === 0 ? (
-              <div className="py-16 text-center text-sm text-stone-500">
-                No chunks available for this document.
-              </div>
-            ) : (
-              <div className="flex-1 overflow-y-auto space-y-4 pr-3">
-                {chunks.map((chunk) => (
-                  <div
-                    key={chunk.id}
-                    className="p-5 rounded-2xl border border-stone-200/80 bg-stone-50/60 space-y-3"
-                  >
-                    <div className="flex items-center justify-between text-xs text-stone-500 font-semibold">
-                      <span>Chunk #{chunk.chunkIndex + 1}</span>
-                      <div className="flex items-center gap-3">
-                        {chunk.hasEmbedding && (
-                          <span className="rounded-full bg-purple-100 text-purple-800 px-3 py-0.5 font-bold">
-                            pgvector (768d)
-                          </span>
-                        )}
-                        <span>~{chunk.tokenCount} tokens</span>
-                      </div>
-                    </div>
-                    <p className="text-stone-800 font-mono text-xs md:text-sm leading-relaxed bg-white p-4 rounded-xl border border-stone-200 shadow-subtle">
-                      {chunk.content}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="mt-6 pt-5 border-t border-stone-200 flex justify-end">
-              <Button variant="outline" size="md" onClick={() => setInspectingDoc(null)} className="px-6">
-                Close
-              </Button>
+      {/* =========================================================================
+          DELETION CONFIRMATION MODAL
+          ========================================================================= */}
+      {deletingDoc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-sm rounded-[24px] bg-[#FAF8F4] border-[2px] border-[#1B3428] shadow-[0_8px_0_0_#1B3428] p-6 space-y-4">
+            <h3 className="font-display font-bold text-base text-[#14261D]">
+              Delete Workspace & Material?
+            </h3>
+            <p className="text-xs text-[#14261D]/70 leading-relaxed">
+              Are you sure you want to delete <span className="font-bold">&quot;{deletingDoc.title}&quot;</span>? This will permanently remove the textbook, its workspace, and your reading progress.
+            </p>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeletingDoc(null)}
+                className="px-3.5 py-1.5 rounded-full border border-[#1B3428]/20 text-xs font-display font-bold text-[#14261D]"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                className="px-4 py-1.5 rounded-full bg-red-600 text-white text-xs font-display font-bold shadow-[0_2px_0_0_#7F1D1D] hover:bg-red-700 disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {isDeleting && <Loader2 className="w-3 h-3 animate-spin" />}
+                <span>Delete</span>
+              </button>
             </div>
           </div>
         </div>
@@ -713,3 +704,16 @@ export default function DashboardPage() {
   );
 }
 
+export default function MyBooksDashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex-1 flex flex-col items-center justify-center p-8">
+          <Loader2 className="h-6 w-6 animate-spin text-[#E8722C]" />
+        </div>
+      }
+    >
+      <MyBooksDashboardContent />
+    </Suspense>
+  );
+}

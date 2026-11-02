@@ -35,8 +35,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${bricolage.variable} ${instrument.variable} scroll-smooth overflow-x-clip`}>
-      <body className="font-sans bg-[#F4F0E5] text-[#14261D] antialiased selection:bg-[#F9D8C0] selection:text-[#14261D] overflow-x-clip">
+    <html lang="en" className={`${bricolage.variable} ${instrument.variable}`}>
+      <body className="font-sans bg-[#F4F0E5] text-[#14261D] antialiased selection:bg-[#F9D8C0] selection:text-[#14261D]">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
