@@ -12,9 +12,36 @@ export type QuestionType =
 
 export type QuizDifficulty = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
 
+export type QuizScopeType = 'ENTIRE_DOCUMENT' | 'CUSTOM_RANGE';
+export type RangeSelectionType = 'CHAPTER' | 'SECTION' | 'PAGE' | 'CHUNK';
+
+export interface RangeBoundaryDto {
+  label: string; // e.g. "Chapter 2 — Functions", "Page 15", "Section 1.3"
+  pageNumber?: number | null;
+  sectionId?: string | null;
+  chapterTitle?: string | null;
+  chunkIndex?: number | null;
+}
+
+export interface QuizRangeScopeDto {
+  scopeType: QuizScopeType;
+  rangeType?: RangeSelectionType | null;
+  from?: RangeBoundaryDto | null;
+  to?: RangeBoundaryDto | null;
+  startPage?: number | null;
+  endPage?: number | null;
+  startChunkIndex?: number | null;
+  endChunkIndex?: number | null;
+  resolvedSections?: string[];
+  summaryLabel: string; // e.g. "Entire Material" or "Chapter 2 to Chapter 4" or "Pages 15–42"
+}
+
 export interface CreateQuizRequestDto {
+  workspaceId?: string;
+  documentId?: string;
   title?: string;
   sourceChapter?: string;
+  rangeScope?: QuizRangeScopeDto;
   sectionId?: string;
   numQuestions?: number;
   difficulty?: QuizDifficulty;
@@ -40,11 +67,13 @@ export interface QuizQuestionDto {
 export interface QuizSummaryDto {
   id: string;
   userId: string;
+  workspaceId?: string | null;
   documentId: string | null;
   documentTitle?: string;
   title: string;
   description: string | null;
   sourceChapter: string | null;
+  rangeScope?: QuizRangeScopeDto | null;
   difficulty: QuizDifficulty;
   status: QuizStatus;
   errorMessage: string | null;
@@ -56,11 +85,13 @@ export interface QuizSummaryDto {
 
 export interface QuizDetailDto {
   id: string;
+  workspaceId?: string | null;
+  documentId: string | null;
+  documentTitle?: string;
   title: string;
   description: string | null;
   sourceChapter: string | null;
-  documentId: string | null;
-  documentTitle?: string;
+  rangeScope?: QuizRangeScopeDto | null;
   difficulty: QuizDifficulty;
   status: QuizStatus;
   errorMessage: string | null;
@@ -125,11 +156,29 @@ export interface QuizAttemptResultDto {
   results: QuestionResultDto[];
 }
 
+export interface FailedQuestionDto {
+  questionId: string;
+  quizId: string;
+  quizTitle: string;
+  prompt: string;
+  questionType: QuestionType;
+  expectedAnswer: string;
+  submittedAnswer: string | null;
+  feedback: string | null;
+  explanation: string | null;
+  pageNumber: number | null;
+  sourceExcerpt: string | null;
+  lastFailedAt: string;
+  failCount: number;
+}
+
 export interface GenerateQuizJobPayload {
   quizId: string;
   userId: string;
   documentId: string;
+  workspaceId?: string;
   sourceChapter?: string;
+  rangeScope?: QuizRangeScopeDto;
   numQuestions: number;
   difficulty: QuizDifficulty;
   questionTypes: QuestionType[];

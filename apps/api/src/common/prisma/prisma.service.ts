@@ -111,6 +111,18 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     return this.client.sharedConversationSnapshot;
   }
 
+  get flashcardDeck(): PrismaClient['flashcardDeck'] {
+    return this.client.flashcardDeck;
+  }
+
+  get flashcardItem(): PrismaClient['flashcardItem'] {
+    return this.client.flashcardItem;
+  }
+
+  get userFlashcardReview(): PrismaClient['userFlashcardReview'] {
+    return this.client.userFlashcardReview;
+  }
+
   get $transaction(): PrismaClient['$transaction'] {
     return this.client.$transaction.bind(this.client);
   }

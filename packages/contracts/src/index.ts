@@ -7,6 +7,8 @@ export * from './documents';
 export * from './workspaces';
 export * from './tutor';
 export * from './quizzes';
+export * from './flashcards';
+export * from './progress';
 
 export enum QueueName {
   DOCUMENT_INGESTION = 'document-ingestion',
@@ -19,6 +21,7 @@ export enum JobType {
   GENERATE_EMBEDDINGS = 'GENERATE_EMBEDDINGS',
   GENERATE_SUMMARY = 'GENERATE_SUMMARY',
   GENERATE_QUIZ = 'GENERATE_QUIZ',
+  GENERATE_FLASHCARDS = 'GENERATE_FLASHCARDS',
 }
 
 export enum JobStatus {

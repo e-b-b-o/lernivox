@@ -181,6 +181,8 @@ model User {
   workspaceInvitationsAccepted WorkspaceInvitation[]        @relation("AcceptedWorkspaceInvitations")
   discussionMessages          WorkspaceDiscussionMessage[]  @relation("UserDiscussionMessages")
   sharedConversationSnapshots SharedConversationSnapshot[]  @relation("UserSharedConversations")
+  createdFlashcardDecks       FlashcardDeck[]               @relation("UserCreatedFlashcardDecks")
+  flashcardReviews            UserFlashcardReview[]         @relation("UserFlashcardReviews")
 
   @@map("users")
 }
@@ -262,6 +264,8 @@ model Workspace {
   invitations         WorkspaceInvitation[]
   discussions         WorkspaceDiscussionMessage[]
   sharedConversations SharedConversationSnapshot[]
+  quizzes             Quiz[]
+  flashcardDecks      FlashcardDeck[]
   createdAt           DateTime                     @default(now())
   updatedAt           DateTime                     @updatedAt
 
@@ -451,6 +455,7 @@ model Document {
   chunks              DocumentChunk[]
   learningMaterials   LearningMaterial[]
   quizzes             Quiz[]
+  flashcardDecks      FlashcardDeck[]
   messageCitations    MessageCitation[]
   materialCitations   MaterialCitation[]
   progress            StudentProgress[]
@@ -506,6 +511,7 @@ model DocumentChunk {
   messageCitations  MessageCitation[]
   materialCitations MaterialCitation[]
   quizQuestions     QuizQuestion[]
+  flashcardItems    FlashcardItem[]
 
   @@unique([documentId, chunkIndex])
   @@index([documentId])
@@ -698,6 +704,9 @@ model Quiz {
   course              Course?              @relation(fields: [courseId], references: [id], onDelete: SetNull)
   documentId          String?
   document            Document?            @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  workspaceId         String?
+  workspace           Workspace?           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  rangeScope          Json?
   title               String
   description         String?
   difficulty          DifficultyLevel      @default(INTERMEDIATE)
@@ -713,6 +722,7 @@ model Quiz {
   @@index([userId])
   @@index([courseId])
   @@index([documentId])
+  @@index([workspaceId])
   @@index([status])
   @@map("quizzes")
 }
@@ -926,4 +936,71 @@ model StudyGroupResource {
 
   @@index([groupId])
   @@map("study_group_resources")
+}
+
+// -------------------------------------------------------------
+// Workspace Flashcards & Spaced Repetition (SM-2)
+// -------------------------------------------------------------
+
+model FlashcardDeck {
+  id          String          @id @default(uuid())
+  workspaceId String
+  workspace   Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  documentId  String?
+  document    Document?       @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  createdById String
+  createdBy   User            @relation("UserCreatedFlashcardDecks", fields: [createdById], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  sourceRange Json?
+  cards       FlashcardItem[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([workspaceId])
+  @@index([documentId])
+  @@index([createdById])
+  @@map("flashcard_decks")
+}
+
+model FlashcardItem {
+  id            String                @id @default(uuid())
+  deckId        String
+  deck          FlashcardDeck         @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  front         String
+  back          String
+  hint          String?
+  sourceChunkId String?
+  sourceChunk   DocumentChunk?        @relation(fields: [sourceChunkId], references: [id], onDelete: SetNull)
+  pageNumber    Int?
+  chapter       String?
+  reviews       UserFlashcardReview[]
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  @@index([deckId])
+  @@index([sourceChunkId])
+  @@map("flashcard_items")
+}
+
+model UserFlashcardReview {
+  id             String        @id @default(uuid())
+  cardId         String
+  card           FlashcardItem @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User          @relation("UserFlashcardReviews", fields: [userId], references: [id], onDelete: Cascade)
+  repetition     Int           @default(0)
+  intervalDays   Int           @default(1)
+  easeFactor     Float         @default(2.5)
+  nextReviewAt   DateTime      @default(now())
+  lastReviewedAt DateTime?
+  lastRating     Int?
+  reviewCount    Int           @default(0)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@unique([userId, cardId])
+  @@index([userId, nextReviewAt])
+  @@index([cardId])
+  @@map("user_flashcard_reviews")
 }
