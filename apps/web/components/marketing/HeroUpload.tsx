@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../lib/api';
+import { ScrollReveal, StaggerContainer } from '../ui/scroll-reveal';
 
 const MAX_SIZE_BYTES = 25 * 1024 * 1024; // 25 MB
 const ALLOWED_EXTS = ['.pdf', '.docx', '.txt'];
@@ -161,74 +162,76 @@ export function HeroUpload() {
         />
       </div>
 
-      <div className="w-full max-w-[1380px] mx-auto px-4 sm:px-6 md:px-10 pt-12 sm:pt-16 md:pt-24 pb-20 sm:pb-28 md:pb-36">
+      <div className="w-full max-w-[1380px] mx-auto px-4 sm:px-6 md:px-10 pt-16 sm:pt-20 md:pt-24 pb-20 sm:pb-28 md:pb-36">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
           
           {/* Left Side (5 Columns / lg:col-span-5) — Editorial Context & Value Steps */}
           <div className="lg:col-span-5 text-left">
-            {/* Pill Tag */}
-            <span className="bg-[#F9D8C0] text-[#14261D] font-sans text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full inline-block mb-4 shadow-sm">
-              Interactive Workspace
-            </span>
-
-            {/* Left Column Heading */}
-            <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-[54px] text-[#14261D] tracking-tight leading-[1.08] mb-8">
-              From dense PDFs to clear, guided{' '}
-              <span
-                className="relative inline-block text-[#497E64] ml-1 select-none"
-                style={{
-                  transform: 'translateY(-3px) rotate(2.2deg)',
-                  transformOrigin: 'bottom right',
-                  display: 'inline-block'
-                }}
-              >
-                mastery.
-
-                {/* Multi-Stroke Hand-Drawn Marker Underline in #E8722C */}
-                <svg
-                  className="absolute -bottom-3 left-0 w-full h-[12px] sm:h-[16px] text-[#E8722C] pointer-events-none overflow-visible"
-                  viewBox="0 0 320 16"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  preserveAspectRatio="none"
-                >
-                  <path
-                    d="M 4 8 C 70 3, 200 4, 315 7"
-                    stroke="currentColor"
-                    strokeWidth="3.2"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M 16 12 C 100 6, 230 11, 300 5"
-                    stroke="currentColor"
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                    opacity="0.85"
-                  />
-                  <path
-                    d="M 45 10 C 120 6, 190 8, 250 11"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    opacity="0.6"
-                  />
-                </svg>
-
-                {/* Spark Ticks (//) top-right in #E8722C */}
-                <svg
-                  className="absolute -top-3.5 -right-6 w-5 h-5 text-[#E8722C] pointer-events-none rotate-[10deg]"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M4 14L8 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                  <path d="M12 16L16 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                </svg>
+            <ScrollReveal id="workspace-heading" delay={0.1}>
+              {/* Pill Tag */}
+              <span className="bg-[#F9D8C0] text-[#14261D] font-sans text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full inline-block mb-4 shadow-sm">
+                Interactive Workspace
               </span>
-            </h2>
+
+              {/* Left Column Heading */}
+              <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-[54px] text-[#14261D] tracking-tight leading-[1.08] mb-8">
+                From dense PDFs to clear, guided{' '}
+                <span
+                  className="relative inline-block text-[#497E64] ml-1 select-none"
+                  style={{
+                    transform: 'translateY(-3px) rotate(2.2deg)',
+                    transformOrigin: 'bottom right',
+                    display: 'inline-block'
+                  }}
+                >
+                  mastery.
+
+                  {/* Multi-Stroke Hand-Drawn Marker Underline in #E8722C */}
+                  <svg
+                    className="absolute -bottom-3 left-0 w-full h-[12px] sm:h-[16px] text-[#E8722C] pointer-events-none overflow-visible"
+                    viewBox="0 0 320 16"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    preserveAspectRatio="none"
+                  >
+                    <path
+                      d="M 4 8 C 70 3, 200 4, 315 7"
+                      stroke="currentColor"
+                      strokeWidth="3.2"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M 16 12 C 100 6, 230 11, 300 5"
+                      stroke="currentColor"
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                      opacity="0.85"
+                    />
+                    <path
+                      d="M 45 10 C 120 6, 190 8, 250 11"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      opacity="0.6"
+                    />
+                  </svg>
+
+                  {/* Spark Ticks (//) top-right in #E8722C */}
+                  <svg
+                    className="absolute -top-3.5 -right-6 w-5 h-5 text-[#E8722C] pointer-events-none rotate-[10deg]"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M4 14L8 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                    <path d="M12 16L16 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                  </svg>
+                </span>
+              </h2>
+            </ScrollReveal>
 
             {/* 3 Numbered Workflow Steps */}
-            <div className="space-y-4 font-sans text-[#14261D]/80">
+            <StaggerContainer id="workspace-steps" initialDelay={0.1} staggerDelay={0.1} className="space-y-4 font-sans text-[#14261D]/80">
               <div className="flex items-start gap-3.5">
                 <div className="w-7 h-7 rounded-full bg-[#1B3428] text-white font-display font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
                   1
@@ -255,11 +258,11 @@ export function HeroUpload() {
                   <strong className="text-[#14261D] font-semibold">Verify with practice</strong> — Test your understanding with active recall flashcards and worked methods.
                 </p>
               </div>
-            </div>
+            </StaggerContainer>
           </div>
 
           {/* Right Side (7 Columns / lg:col-span-7) — Tactile Framer Upload Card */}
-          <div className="lg:col-span-7 w-full max-w-full">
+          <ScrollReveal id="workspace-card" delay={0.25} distance={36} className="lg:col-span-7 w-full max-w-full">
             <div
               id="upload-card"
               className="w-full max-w-full bg-[#FAF8F4] border-[2px] border-[#1B3428] rounded-[24px] sm:rounded-[32px] shadow-[0_4px_0_0_#1B3428] sm:shadow-[0_6px_0_0_#1B3428] p-4 sm:p-6 md:p-8 transition-all duration-200"
@@ -493,7 +496,7 @@ export function HeroUpload() {
               </div>
 
             </div>
-          </div>
+          </ScrollReveal>
 
         </div>
       </div>

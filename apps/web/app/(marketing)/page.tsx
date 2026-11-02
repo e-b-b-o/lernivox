@@ -13,6 +13,7 @@ import {
 import { HeroUpload } from '../../components/marketing/HeroUpload';
 import { GuidedLearningPreview } from '../../components/marketing/GuidedLearningPreview';
 import { WavingRibbon } from '../../components/marketing/WavingRibbon';
+import { ScrollReveal, StaggerContainer } from '../../components/ui/scroll-reveal';
 
 export default function MarketingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -55,86 +56,92 @@ export default function MarketingPage() {
 
         <div className="mx-auto max-w-[1380px] px-4 sm:px-6 md:px-10 text-center">
           {/* Main Headline */}
-          <h1 className="font-display font-extrabold text-[32px] xs:text-[38px] sm:text-5xl md:text-7xl lg:text-8xl xl:text-[103px] leading-[1.08] tracking-tight text-[#14261D] max-w-6xl mx-auto text-center mb-6">
-            Turn your textbooks <br className="hidden md:block" />
-            into real{' '}
-            <span 
-              className="relative inline-block text-[#497E64] ml-1 sm:ml-1.5 select-none"
-              style={{
-                transform: 'translateY(-2px) rotate(2deg)',
-                transformOrigin: 'bottom right',
-                display: 'inline-block'
-              }}
-            >
-              understanding.
-
-              {/* Responsive SVG Doodle Underline */}
-              <svg
-                className="absolute -bottom-2 sm:-bottom-3 left-0 w-full h-[10px] sm:h-[14px] md:h-[18px] text-[#E8722C] pointer-events-none overflow-visible"
-                viewBox="0 0 320 16"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                preserveAspectRatio="none"
+          <ScrollReveal id="hero-headline" delay={0.1}>
+            <h1 className="font-display font-extrabold text-[32px] xs:text-[38px] sm:text-5xl md:text-7xl lg:text-8xl xl:text-[103px] leading-[1.08] tracking-tight text-[#14261D] max-w-6xl mx-auto text-center mb-6">
+              Turn your textbooks <br className="hidden md:block" />
+              into real{' '}
+              <span 
+                className="relative inline-block text-[#497E64] ml-1 sm:ml-1.5 select-none"
+                style={{
+                  transform: 'translateY(-2px) rotate(2deg)',
+                  transformOrigin: 'bottom right',
+                  display: 'inline-block'
+                }}
               >
-                <path d="M 4 8 C 70 3, 200 4, 315 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                <path d="M 16 12 C 100 6, 230 11, 300 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.85" />
-              </svg>
+                understanding.
 
-              {/* Spark Ticks */}
-              <svg
-                className="absolute -top-2.5 sm:-top-3.5 -right-4 sm:-right-6 w-3.5 h-3.5 sm:w-5 sm:h-5 text-[#E8722C] pointer-events-none rotate-[10deg]"
-                viewBox="0 0 20 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M4 14L8 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                <path d="M12 16L16 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-              </svg>
-            </span>
-          </h1>
+                {/* Responsive SVG Doodle Underline */}
+                <svg
+                  className="absolute -bottom-2 sm:-bottom-3 left-0 w-full h-[10px] sm:h-[14px] md:h-[18px] text-[#E8722C] pointer-events-none overflow-visible"
+                  viewBox="0 0 320 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  preserveAspectRatio="none"
+                >
+                  <path d="M 4 8 C 70 3, 200 4, 315 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                  <path d="M 16 12 C 100 6, 230 11, 300 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.85" />
+                </svg>
+
+                {/* Spark Ticks */}
+                <svg
+                  className="absolute -top-2.5 sm:-top-3.5 -right-4 sm:-right-6 w-3.5 h-3.5 sm:w-5 sm:h-5 text-[#E8722C] pointer-events-none rotate-[10deg]"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M4 14L8 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                  <path d="M12 16L16 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                </svg>
+              </span>
+            </h1>
+          </ScrollReveal>
 
           {/* Subheadline */}
-          <p className="font-sans font-normal text-base sm:text-lg md:text-xl text-[#14261D]/80 max-w-2xl mx-auto text-center leading-relaxed mt-4 sm:mt-6 mb-8">
-            Upload your notes, slides, or books. Lernivox turns them into clear explanations and practice questions grounded in your course.
-          </p>
+          <ScrollReveal id="hero-subheadline" delay={0.2}>
+            <p className="font-sans font-normal text-base sm:text-lg md:text-xl text-[#14261D]/80 max-w-2xl mx-auto text-center leading-relaxed mt-4 sm:mt-6 mb-8">
+              Upload your notes, slides, or books. Lernivox turns them into clear explanations and practice questions grounded in your course.
+            </p>
+          </ScrollReveal>
 
           {/* Action CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 mb-12 md:mb-16 w-full max-w-sm sm:max-w-none mx-auto">
-            <a
-              href="#how-it-works"
-              onClick={(e) => {
-                e.preventDefault();
-                const el = document.getElementById('how-it-works');
-                if (el) {
-                  el.scrollIntoView({ behavior: 'smooth' });
-                  window.history.pushState(null, '', '#how-it-works');
-                }
-              }}
-              className="w-full sm:w-auto h-[50px] sm:h-[54px] px-6 sm:px-[30px] py-[14px] sm:py-[16px] rounded-[100px] bg-[#E8722C] text-white font-sans text-sm sm:text-[16px] font-medium leading-[22.4px] shadow-[0_4px_0_0_#B26E45] hover:-translate-y-[1px] hover:shadow-[0_5px_0_0_#B26E45] active:translate-y-[2px] active:shadow-[0_2px_0_0_#B26E45] transition-all duration-150 inline-flex items-center justify-center select-none text-center"
-            >
-              Upload Course Material
-            </a>
-            <a
-              href="#sample-lesson"
-              onClick={(e) => {
-                e.preventDefault();
-                const el = document.getElementById('sample-lesson');
-                if (el) {
-                  el.scrollIntoView({ behavior: 'smooth' });
-                  window.history.pushState(null, '', '#sample-lesson');
-                }
-              }}
-              className="w-full sm:w-auto h-[50px] sm:h-[54px] px-6 sm:px-[30px] py-[14px] sm:py-[16px] rounded-[100px] bg-[#F4F0E5] text-[#14261D] font-sans text-sm sm:text-[16px] font-medium leading-[22.4px] border border-[#1B3428] shadow-[0_4px_0_0_#1B3428] hover:-translate-y-[1px] hover:shadow-[0_5px_0_0_#1B3428] active:translate-y-[2px] active:shadow-[0_2px_0_0_#1B3428] transition-all duration-150 inline-flex items-center justify-center select-none text-center"
-            >
-              Explore Sample Lesson
-            </a>
-          </div>
+          <ScrollReveal id="hero-ctas" delay={0.3}>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 mb-12 md:mb-16 w-full max-w-sm sm:max-w-none mx-auto">
+              <a
+                href="#how-it-works"
+                onClick={(e) => {
+                  e.preventDefault();
+                  const el = document.getElementById('how-it-works');
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth' });
+                    window.history.pushState(null, '', '#how-it-works');
+                  }
+                }}
+                className="w-full sm:w-auto h-[50px] sm:h-[54px] px-6 sm:px-[30px] py-[14px] sm:py-[16px] rounded-[100px] bg-[#E8722C] text-white font-sans text-sm sm:text-[16px] font-medium leading-[22.4px] shadow-[0_4px_0_0_#B26E45] hover:-translate-y-[1px] hover:shadow-[0_5px_0_0_#B26E45] active:translate-y-[2px] active:shadow-[0_2px_0_0_#B26E45] transition-all duration-150 inline-flex items-center justify-center select-none text-center"
+              >
+                Upload Course Material
+              </a>
+              <a
+                href="#sample-lesson"
+                onClick={(e) => {
+                  e.preventDefault();
+                  const el = document.getElementById('sample-lesson');
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth' });
+                    window.history.pushState(null, '', '#sample-lesson');
+                  }
+                }}
+                className="w-full sm:w-auto h-[50px] sm:h-[54px] px-6 sm:px-[30px] py-[14px] sm:py-[16px] rounded-[100px] bg-[#F4F0E5] text-[#14261D] font-sans text-sm sm:text-[16px] font-medium leading-[22.4px] border border-[#1B3428] shadow-[0_4px_0_0_#1B3428] hover:-translate-y-[1px] hover:shadow-[0_5px_0_0_#1B3428] active:translate-y-[2px] active:shadow-[0_2px_0_0_#1B3428] transition-all duration-150 inline-flex items-center justify-center select-none text-center"
+              >
+                Explore Sample Lesson
+              </a>
+            </div>
+          </ScrollReveal>
         </div>
 
         {/* ======================================================== */}
         {/* PHOTO SHOWCASE & FULL-BLEED WAVING RIBBON BAND */}
         {/* ======================================================== */}
-        <div className="relative w-full overflow-hidden py-4 mt-6 md:mt-8">
+        <ScrollReveal id="hero-photos" delay={0.4} distance={40} className="relative w-full overflow-hidden py-4 mt-6 md:mt-8">
           {/* Edge-to-edge animated waving ribbon band passing behind photos */}
           <WavingRibbon />
 
@@ -186,7 +193,7 @@ export default function MarketingPage() {
               </div>
             </div>
           </div>
-        </div>
+        </ScrollReveal>
       </section>
 
       {/* ======================================================== */}
@@ -199,26 +206,30 @@ export default function MarketingPage() {
       {/* ======================================================== */}
       <section
         id="features"
-        className="w-full bg-[#F4F0E5] pt-16 sm:pt-24 md:pt-32 pb-16 sm:pb-24 md:pb-32 px-4 sm:px-6 md:px-10 scroll-mt-0 overflow-hidden"
+        className="w-full bg-[#F4F0E5] pt-28 pb-20 sm:pt-32 sm:pb-24 md:pt-36 md:pb-32 px-4 sm:px-6 md:px-10 scroll-mt-0 overflow-hidden"
       >
         <div className="max-w-[1380px] mx-auto">
         {/* ======================================================== */}
         {/* SECTION 3: INTERACTIVE LESSON PREVIEW */}
         {/* ======================================================== */}
-        <div className="text-center max-w-4xl mx-auto mb-10 sm:mb-14">
-          <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-5xl md:text-6xl text-[#14261D] tracking-tight leading-[1.08] mb-4 sm:mb-6">
-            See how Lernivox deconstructs{' '}
-            <span className="text-[#497E64]">difficult topics.</span>
-          </h2>
-          <p className="font-sans text-base sm:text-lg md:text-xl text-[#14261D]/75 max-w-2xl mx-auto leading-relaxed">
-            Rather than generic summaries, Lernivox presents structured learning objectives, intuitive mental models, worked derivations, and instant comprehension checks.
-          </p>
-        </div>
+        <ScrollReveal id="lesson-preview-heading" delay={0.1}>
+          <div className="text-center max-w-4xl mx-auto mb-10 sm:mb-14">
+            <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-5xl md:text-6xl text-[#14261D] tracking-tight leading-[1.08] mb-4 sm:mb-6">
+              See how Lernivox deconstructs{' '}
+              <span className="text-[#497E64]">difficult topics.</span>
+            </h2>
+            <p className="font-sans text-base sm:text-lg md:text-xl text-[#14261D]/75 max-w-2xl mx-auto leading-relaxed">
+              Rather than generic summaries, Lernivox presents structured learning objectives, intuitive mental models, worked derivations, and instant comprehension checks.
+            </p>
+          </div>
+        </ScrollReveal>
 
         {/* Tactile Framer Lesson Preview Notebook */}
-        <div id="sample-lesson" className="scroll-mt-[86px]">
-          <GuidedLearningPreview />
-        </div>
+        <ScrollReveal id="lesson-preview-card" delay={0.25} distance={36}>
+          <div id="sample-lesson" className="scroll-mt-[86px]">
+            <GuidedLearningPreview />
+          </div>
+        </ScrollReveal>
 
         {/* ======================================================== */}
         {/* SECTION 4: CAPABILITIES / ASYMMETRIC RETENTION ENGINE */}
@@ -226,7 +237,7 @@ export default function MarketingPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-stretch mb-14 md:mb-16">
           
           {/* LEFT COLUMN */}
-          <div className="lg:col-span-5 flex flex-col justify-between">
+          <ScrollReveal id="retention-left" delay={0.1} className="lg:col-span-5 flex flex-col justify-between">
             <div>
               <h3 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-4xl lg:text-[44px] text-[#14261D] tracking-tight leading-[1.08] mb-3">
                 Engineered for genuine academic{' '}
@@ -278,11 +289,15 @@ export default function MarketingPage() {
                 className="w-full h-full object-cover"
               />
             </div>
-          </div>
+          </ScrollReveal>
 
           {/* RIGHT COLUMN: Scissor-Pinch Stacked Cards */}
-          <div className="lg:col-span-7 flex flex-col justify-start py-1">
-            
+          <StaggerContainer
+            id="retention-cards"
+            initialDelay={0.2}
+            staggerDelay={0.14}
+            className="lg:col-span-7 flex flex-col justify-start py-1"
+          >
             {/* Card 01: Tail dips slightly down */}
             <div 
               className="bg-white rounded-[26px] p-6 md:p-8 shadow-[0_4px_24px_rgba(20,38,29,0.06)] hover:shadow-[0_8px_32px_rgba(20,38,29,0.1)] transition-all duration-300 flex items-start gap-5 border border-black/[0.04] relative z-10"
@@ -351,182 +366,188 @@ export default function MarketingPage() {
               </div>
             </div>
 
-          </div>
+          </StaggerContainer>
 
         </div>
 
         {/* Part B: Bottom Supporting Shelf (Full-Width Peach Banner) */}
-        <div className="w-full rounded-[28px] bg-[#F9EAE1] border border-[#14261D]/[0.08] p-6 md:p-8 lg:p-10 shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Item 04 (Problem-Solving Challenges) */}
-            <div>
-              <div className="flex items-center gap-2.5 mb-2">
-                <div className="w-5 h-5 rounded-full bg-[#14261D] text-white flex items-center justify-center shrink-0">
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
+        <ScrollReveal id="retention-shelf" delay={0.35} distance={28}>
+          <div className="w-full rounded-[28px] bg-[#F9EAE1] border border-[#14261D]/[0.08] p-6 md:p-8 lg:p-10 shadow-sm">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Item 04 (Problem-Solving Challenges) */}
+              <div>
+                <div className="flex items-center gap-2.5 mb-2">
+                  <div className="w-5 h-5 rounded-full bg-[#14261D] text-white flex items-center justify-center shrink-0">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="font-display font-bold text-base text-[#14261D]">
+                    Problem-Solving Challenges
+                  </span>
                 </div>
-                <span className="font-display font-bold text-base text-[#14261D]">
-                  Problem-Solving Challenges
-                </span>
+                <p className="font-sans text-sm text-[#14261D]/75 leading-relaxed pl-7">
+                  Applies abstract principles to novel problem sets, encouraging conceptual mastery rather than rote memorization.
+                </p>
               </div>
-              <p className="font-sans text-sm text-[#14261D]/75 leading-relaxed pl-7">
-                Applies abstract principles to novel problem sets, encouraging conceptual mastery rather than rote memorization.
-              </p>
-            </div>
 
-            {/* Item 05 (Structured Revision Cards) */}
-            <div>
-              <div className="flex items-center gap-2.5 mb-2">
-                <div className="w-5 h-5 rounded-full bg-[#14261D] text-white flex items-center justify-center shrink-0">
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
+              {/* Item 05 (Structured Revision Cards) */}
+              <div>
+                <div className="flex items-center gap-2.5 mb-2">
+                  <div className="w-5 h-5 rounded-full bg-[#14261D] text-white flex items-center justify-center shrink-0">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="font-display font-bold text-base text-[#14261D]">
+                    Structured Revision Cards
+                  </span>
                 </div>
-                <span className="font-display font-bold text-base text-[#14261D]">
-                  Structured Revision Cards
-                </span>
+                <p className="font-sans text-sm text-[#14261D]/75 leading-relaxed pl-7">
+                  Condenses dense 50-page textbook chapters into high-yield summaries, formula sheets, and key concept decks.
+                </p>
               </div>
-              <p className="font-sans text-sm text-[#14261D]/75 leading-relaxed pl-7">
-                Condenses dense 50-page textbook chapters into high-yield summaries, formula sheets, and key concept decks.
-              </p>
-            </div>
 
-            {/* Item 06 (Verifiable Page Citations) */}
-            <div>
-              <div className="flex items-center gap-2.5 mb-2">
-                <div className="w-5 h-5 rounded-full bg-[#14261D] text-white flex items-center justify-center shrink-0">
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
+              {/* Item 06 (Verifiable Page Citations) */}
+              <div>
+                <div className="flex items-center gap-2.5 mb-2">
+                  <div className="w-5 h-5 rounded-full bg-[#14261D] text-white flex items-center justify-center shrink-0">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="font-display font-bold text-base text-[#14261D]">
+                    Verifiable Page Citations
+                  </span>
                 </div>
-                <span className="font-display font-bold text-base text-[#14261D]">
-                  Verifiable Page Citations
-                </span>
+                <p className="font-sans text-sm text-[#14261D]/75 leading-relaxed pl-7">
+                  Click any citation tag to jump directly to the exact textbook page, section number, and theorem.
+                </p>
               </div>
-              <p className="font-sans text-sm text-[#14261D]/75 leading-relaxed pl-7">
-                Click any citation tag to jump directly to the exact textbook page, section number, and theorem.
-              </p>
             </div>
           </div>
-        </div>
+        </ScrollReveal>
         </div>
       </section>
 
       {/* ======================================================== */}
       {/* SECTION 5: PROGRESS AND EXAM PREPARATION */}
       {/* ======================================================== */}
-      <section className="w-full bg-[#C9E0F2] pt-16 sm:pt-24 md:pt-32 pb-16 sm:pb-24 md:pb-32 px-4 sm:px-6 md:px-10 border-t border-[#14261D]/10 scroll-mt-0 overflow-hidden">
+      <section id="readiness" className="w-full bg-[#C9E0F2] pt-28 pb-20 sm:pt-32 sm:pb-24 md:pt-36 md:pb-32 px-4 sm:px-6 md:px-10 border-t border-[#14261D]/10 scroll-mt-0 overflow-hidden">
         <div className="mx-auto max-w-[1380px]">
           <div className="grid gap-12 lg:gap-16 lg:grid-cols-2 items-center">
-            <div>
-              <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-5xl lg:text-6xl text-[#14261D] tracking-tight leading-[1.08] mb-4 sm:mb-6">
-                Track exam readiness with verifiable{' '}
-                <span className="text-[#497E64]">certainty.</span>
-              </h2>
-              <p className="mt-4 sm:mt-6 text-base sm:text-lg md:text-xl text-[#14261D]/75 leading-relaxed">
-                Stop guessing whether you are prepared for test day. Lernivox tracks your chapter progress and quiz scores so you walk into every exam confident.
-              </p>
+            <ScrollReveal id="readiness-left" delay={0.1}>
+              <div>
+                <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-5xl lg:text-6xl text-[#14261D] tracking-tight leading-[1.08] mb-4 sm:mb-6">
+                  Track exam readiness with verifiable{' '}
+                  <span className="text-[#497E64]">certainty.</span>
+                </h2>
+                <p className="mt-4 sm:mt-6 text-base sm:text-lg md:text-xl text-[#14261D]/75 leading-relaxed">
+                  Stop guessing whether you are prepared for test day. Lernivox tracks your chapter progress and quiz scores so you walk into every exam confident.
+                </p>
 
-              <div className="mt-8 sm:mt-10 space-y-5 sm:space-y-6">
-                <div className="flex items-start gap-3.5 sm:gap-4">
-                  <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-emerald-100 text-[#497E64] flex-shrink-0 mt-0.5 font-bold text-sm">
-                    ✓
+                <div className="mt-8 sm:mt-10 space-y-5 sm:space-y-6">
+                  <div className="flex items-start gap-3.5 sm:gap-4">
+                    <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-emerald-100 text-[#497E64] flex-shrink-0 mt-0.5 font-bold text-sm">
+                      ✓
+                    </div>
+                    <div>
+                      <h4 className="text-base sm:text-lg font-bold text-[#14261D]">Chapter-by-Chapter Progress</h4>
+                      <p className="text-sm sm:text-base text-[#14261D]/70 mt-1">
+                        See exactly which chapters you&apos;ve mastered and which pages still need a quick review.
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-base sm:text-lg font-bold text-[#14261D]">Chapter-by-Chapter Progress</h4>
-                    <p className="text-sm sm:text-base text-[#14261D]/70 mt-1">
-                      See exactly which chapters you&apos;ve mastered and which pages still need a quick review.
-                    </p>
-                  </div>
-                </div>
 
-                <div className="flex items-start gap-3.5 sm:gap-4">
-                  <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-emerald-100 text-[#497E64] flex-shrink-0 mt-0.5 font-bold text-sm">
-                    ✓
+                  <div className="flex items-start gap-3.5 sm:gap-4">
+                    <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-emerald-100 text-[#497E64] flex-shrink-0 mt-0.5 font-bold text-sm">
+                      ✓
+                    </div>
+                    <div>
+                      <h4 className="text-base sm:text-lg font-bold text-[#14261D]">Weak Spot Finder</h4>
+                      <p className="text-sm sm:text-base text-[#14261D]/70 mt-1">
+                        Instantly spot the tricky formulas or concepts where you keep missing practice questions.
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-base sm:text-lg font-bold text-[#14261D]">Weak Spot Finder</h4>
-                    <p className="text-sm sm:text-base text-[#14261D]/70 mt-1">
-                      Instantly spot the tricky formulas or concepts where you keep missing practice questions.
-                    </p>
-                  </div>
-                </div>
 
-                <div className="flex items-start gap-3.5 sm:gap-4">
-                  <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-[#F9D8C0] text-[#E8722C] flex-shrink-0 mt-0.5 font-bold text-sm">
-                    ★
-                  </div>
-                  <div>
-                    <h4 className="text-base sm:text-lg font-bold text-[#14261D]">Smart Daily Review (Roadmap)</h4>
-                    <p className="text-sm sm:text-base text-[#14261D]/70 mt-1">
-                      Get friendly reminders to review difficult topics right before you&apos;re about to forget them.
-                    </p>
+                  <div className="flex items-start gap-3.5 sm:gap-4">
+                    <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-[#F9D8C0] text-[#E8722C] flex-shrink-0 mt-0.5 font-bold text-sm">
+                      ★
+                    </div>
+                    <div>
+                      <h4 className="text-base sm:text-lg font-bold text-[#14261D]">Smart Daily Review (Roadmap)</h4>
+                      <p className="text-sm sm:text-base text-[#14261D]/70 mt-1">
+                        Get friendly reminders to review difficult topics right before you&apos;re about to forget them.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </ScrollReveal>
 
             {/* Visual Metric Mockup Card */}
-            <div className="bg-white rounded-[24px] sm:rounded-[28px] p-4 sm:p-6 md:p-8 border-[2px] border-[#1B3428] shadow-[0_4px_0_0_#1B3428] sm:shadow-[0_6px_0_0_#1B3428]">
-              <div className="flex items-center justify-between border-b border-[#EAE4D3] pb-5 sm:pb-6 mb-6 sm:mb-8">
-                <div>
-                  <h3 className="font-display text-lg sm:text-xl font-bold text-[#14261D]">
-                    Stewart Calculus — Exam Readiness
-                  </h3>
-                  <p className="text-xs sm:text-sm text-[#14261D]/60 mt-0.5">4 of 6 chapters indexed</p>
+            <ScrollReveal id="readiness-card" delay={0.25} distance={36}>
+              <div className="bg-white rounded-[24px] sm:rounded-[28px] p-4 sm:p-6 md:p-8 border-[2px] border-[#1B3428] shadow-[0_4px_0_0_#1B3428] sm:shadow-[0_6px_0_0_#1B3428]">
+                <div className="flex items-center justify-between border-b border-[#EAE4D3] pb-5 sm:pb-6 mb-6 sm:mb-8">
+                  <div>
+                    <h3 className="font-display text-lg sm:text-xl font-bold text-[#14261D]">
+                      Stewart Calculus — Exam Readiness
+                    </h3>
+                    <p className="text-xs sm:text-sm text-[#14261D]/60 mt-0.5">4 of 6 chapters indexed</p>
+                  </div>
+                  <span className="rounded-full bg-emerald-100 px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-bold text-[#497E64]">
+                    78% Ready
+                  </span>
                 </div>
-                <span className="rounded-full bg-emerald-100 px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-bold text-[#497E64]">
-                  78% Ready
-                </span>
+
+                <div className="space-y-5 sm:space-y-6">
+                  <div>
+                    <div className="flex justify-between text-xs sm:text-sm font-semibold text-[#14261D] mb-1.5 sm:mb-2">
+                      <span>§ 2.1 Limits & Derivatives</span>
+                      <span className="text-[#497E64] font-bold">100% Mastered</span>
+                    </div>
+                    <div className="h-3 w-full rounded-full bg-[#FAF8F4] overflow-hidden border border-[#EAE4D3]">
+                      <div className="h-full bg-[#497E64] rounded-full w-full" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-xs sm:text-sm font-semibold text-[#14261D] mb-1.5 sm:mb-2">
+                      <span>§ 2.5 The Chain Rule</span>
+                      <span className="text-[#497E64] font-bold">85% Mastered</span>
+                    </div>
+                    <div className="h-3 w-full rounded-full bg-[#FAF8F4] overflow-hidden border border-[#EAE4D3]">
+                      <div className="h-full bg-[#497E64] rounded-full w-[85%]" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-xs sm:text-sm font-semibold text-[#14261D] mb-1.5 sm:mb-2">
+                      <span>§ 3.1 Implicit Differentiation</span>
+                      <span className="text-[#E8722C] font-bold">45% In Progress</span>
+                    </div>
+                    <div className="h-3 w-full rounded-full bg-[#FAF8F4] overflow-hidden border border-[#EAE4D3]">
+                      <div className="h-full bg-[#E8722C] rounded-full w-[45%]" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-xs sm:text-sm font-semibold text-[#14261D] mb-1.5 sm:mb-2">
+                      <span>§ 3.4 Related Rates</span>
+                      <span className="text-[#14261D]/50 font-medium">Queued for review</span>
+                    </div>
+                    <div className="h-3 w-full rounded-full bg-[#FAF8F4] overflow-hidden border border-[#EAE4D3]">
+                      <div className="h-full bg-stone-300 rounded-full w-[10%]" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-[#EAE4D3] flex items-center justify-between text-xs sm:text-sm text-[#14261D]/70 font-medium">
+                  <span>Verified Course Coverage • 142 textbook citations</span>
+                </div>
               </div>
-
-              <div className="space-y-5 sm:space-y-6">
-                <div>
-                  <div className="flex justify-between text-xs sm:text-sm font-semibold text-[#14261D] mb-1.5 sm:mb-2">
-                    <span>§ 2.1 Limits & Derivatives</span>
-                    <span className="text-[#497E64] font-bold">100% Mastered</span>
-                  </div>
-                  <div className="h-3 w-full rounded-full bg-[#FAF8F4] overflow-hidden border border-[#EAE4D3]">
-                    <div className="h-full bg-[#497E64] rounded-full w-full" />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between text-xs sm:text-sm font-semibold text-[#14261D] mb-1.5 sm:mb-2">
-                    <span>§ 2.5 The Chain Rule</span>
-                    <span className="text-[#497E64] font-bold">85% Mastered</span>
-                  </div>
-                  <div className="h-3 w-full rounded-full bg-[#FAF8F4] overflow-hidden border border-[#EAE4D3]">
-                    <div className="h-full bg-[#497E64] rounded-full w-[85%]" />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between text-xs sm:text-sm font-semibold text-[#14261D] mb-1.5 sm:mb-2">
-                    <span>§ 3.1 Implicit Differentiation</span>
-                    <span className="text-[#E8722C] font-bold">45% In Progress</span>
-                  </div>
-                  <div className="h-3 w-full rounded-full bg-[#FAF8F4] overflow-hidden border border-[#EAE4D3]">
-                    <div className="h-full bg-[#E8722C] rounded-full w-[45%]" />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between text-xs sm:text-sm font-semibold text-[#14261D] mb-1.5 sm:mb-2">
-                    <span>§ 3.4 Related Rates</span>
-                    <span className="text-[#14261D]/50 font-medium">Queued for review</span>
-                  </div>
-                  <div className="h-3 w-full rounded-full bg-[#FAF8F4] overflow-hidden border border-[#EAE4D3]">
-                    <div className="h-full bg-stone-300 rounded-full w-[10%]" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-[#EAE4D3] flex items-center justify-between text-xs sm:text-sm text-[#14261D]/70 font-medium">
-                <span>Verified Course Coverage • 142 textbook citations</span>
-              </div>
-            </div>
+            </ScrollReveal>
           </div>
         </div>
       </section>
@@ -536,52 +557,60 @@ export default function MarketingPage() {
       {/* ======================================================== */}
       <section className="w-full bg-[#F4F0E5] pt-16 sm:pt-24 md:pt-32 pb-16 sm:pb-24 md:pb-32 px-4 sm:px-6 md:px-10 border-t border-[#14261D]/10 scroll-mt-0 overflow-hidden">
         <div className="mx-auto max-w-[1380px] text-center">
-          <div className="text-center max-w-4xl mx-auto mb-12 sm:mb-16">
-            <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-5xl md:text-6xl text-[#14261D] tracking-tight leading-[1.08] mb-4 sm:mb-6">
-              Study groups built around shared course{' '}
-              <span
-                className="relative inline-block text-[#497E64] ml-1 select-none"
-                style={{
-                  transform: 'translateY(-2px) rotate(2deg)',
-                  transformOrigin: 'bottom right',
-                  display: 'inline-block'
-                }}
-              >
-                materials.
-
-                {/* Multi-Stroke Hand-Drawn Marker Underline */}
-                <svg
-                  className="absolute -bottom-2 sm:-bottom-3 left-0 w-full h-[12px] sm:h-[16px] text-[#E8722C] pointer-events-none overflow-visible"
-                  viewBox="0 0 240 16"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  preserveAspectRatio="none"
+          <ScrollReveal id="groups-heading" delay={0.1}>
+            <div className="text-center max-w-4xl mx-auto mb-12 sm:mb-16">
+              <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-5xl md:text-6xl text-[#14261D] tracking-tight leading-[1.08] mb-4 sm:mb-6">
+                Study groups built around shared course{' '}
+                <span
+                  className="relative inline-block text-[#497E64] ml-1 select-none"
+                  style={{
+                    transform: 'translateY(-2px) rotate(2deg)',
+                    transformOrigin: 'bottom right',
+                    display: 'inline-block'
+                  }}
                 >
-                  <path d="M 4 8 C 50 3, 150 4, 235 7" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
-                  <path d="M 12 12 C 70 6, 170 11, 225 5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" opacity="0.85" />
-                  <path d="M 35 10 C 90 6, 140 8, 185 11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" opacity="0.6" />
-                </svg>
+                  materials.
 
-                {/* Spark Ticks */}
-                <svg
-                  className="absolute -top-2.5 sm:-top-3.5 -right-4 sm:-right-6 w-3.5 h-3.5 sm:w-5 sm:h-5 text-[#E8722C] pointer-events-none rotate-[10deg]"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M4 14L8 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                  <path d="M12 16L16 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                </svg>
-              </span>
-            </h2>
-            <p className="font-sans text-lg md:text-xl text-[#14261D]/75 max-w-2xl mx-auto leading-relaxed">
-              Studying is easier together. Share one textbook across your group, challenge friends to quick chapter quizzes, and prep for finals as a team.
-            </p>
-          </div>
+                  {/* Multi-Stroke Hand-Drawn Marker Underline */}
+                  <svg
+                    className="absolute -bottom-2 sm:-bottom-3 left-0 w-full h-[12px] sm:h-[16px] text-[#E8722C] pointer-events-none overflow-visible"
+                    viewBox="0 0 240 16"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    preserveAspectRatio="none"
+                  >
+                    <path d="M 4 8 C 50 3, 150 4, 235 7" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
+                    <path d="M 12 12 C 70 6, 170 11, 225 5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" opacity="0.85" />
+                    <path d="M 35 10 C 90 6, 140 8, 185 11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" opacity="0.6" />
+                  </svg>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                  {/* Spark Ticks */}
+                  <svg
+                    className="absolute -top-2.5 sm:-top-3.5 -right-4 sm:-right-6 w-3.5 h-3.5 sm:w-5 sm:h-5 text-[#E8722C] pointer-events-none rotate-[10deg]"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M4 14L8 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                    <path d="M12 16L16 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                  </svg>
+                </span>
+              </h2>
+              <p className="font-sans text-lg md:text-xl text-[#14261D]/75 max-w-2xl mx-auto leading-relaxed">
+                Studying is easier together. Share one textbook across your group, challenge friends to quick chapter quizzes, and prep for finals as a team.
+              </p>
+            </div>
+          </ScrollReveal>
+
+          <StaggerContainer
+            id="groups-cards"
+            initialDelay={0.2}
+            staggerDelay={0.12}
+            className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto"
+            childClassName="h-full"
+          >
             {/* Card 1: One Shared Book */}
-            <div className="bg-white border-[1.5px] border-[#1B3428] rounded-[24px] p-8 shadow-[0_4px_0_0_#1B3428] hover:-translate-y-1 hover:shadow-[0_6px_0_0_#1B3428] transition-all text-left">
+            <div className="bg-white border-[1.5px] border-[#1B3428] rounded-[24px] p-8 shadow-[0_4px_0_0_#1B3428] hover:-translate-y-1 hover:shadow-[0_6px_0_0_#1B3428] transition-all text-left h-full">
               <div className="w-12 h-12 rounded-xl bg-[#E3EFFB] text-[#2B6CB0] flex items-center justify-center mb-6">
                 <Users className="h-6 w-6" />
               </div>
@@ -594,7 +623,7 @@ export default function MarketingPage() {
             </div>
 
             {/* Card 2: Group Quiz Battles */}
-            <div className="bg-white border-[1.5px] border-[#1B3428] rounded-[24px] p-8 shadow-[0_4px_0_0_#1B3428] hover:-translate-y-1 hover:shadow-[0_6px_0_0_#1B3428] transition-all text-left">
+            <div className="bg-white border-[1.5px] border-[#1B3428] rounded-[24px] p-8 shadow-[0_4px_0_0_#1B3428] hover:-translate-y-1 hover:shadow-[0_6px_0_0_#1B3428] transition-all text-left h-full">
               <div className="w-12 h-12 rounded-xl bg-[#E2EBD8] text-[#497E64] flex items-center justify-center mb-6">
                 <GraduationCap className="h-6 w-6" />
               </div>
@@ -607,7 +636,7 @@ export default function MarketingPage() {
             </div>
 
             {/* Card 3: Private Study Notes */}
-            <div className="bg-white border-[1.5px] border-[#1B3428] rounded-[24px] p-8 shadow-[0_4px_0_0_#1B3428] hover:-translate-y-1 hover:shadow-[0_6px_0_0_#1B3428] transition-all text-left">
+            <div className="bg-white border-[1.5px] border-[#1B3428] rounded-[24px] p-8 shadow-[0_4px_0_0_#1B3428] hover:-translate-y-1 hover:shadow-[0_6px_0_0_#1B3428] transition-all text-left h-full">
               <div className="w-12 h-12 rounded-xl bg-[#FBE8DC] text-[#E8722C] flex items-center justify-center mb-6">
                 <ShieldCheck className="h-6 w-6" />
               </div>
@@ -618,182 +647,19 @@ export default function MarketingPage() {
                 Your personal notes and incorrect quiz answers stay completely private. Only shared group decks are visible to your study group.
               </p>
             </div>
-          </div>
+          </StaggerContainer>
         </div>
       </section>
 
       {/* ======================================================== */}
       {/* SECTION 7: PRICING */}
       {/* ======================================================== */}
-      <section id="pricing" className="w-full bg-[#EAE4D3] pt-16 sm:pt-24 md:pt-32 pb-16 sm:pb-24 md:pb-32 px-4 sm:px-6 md:px-10 scroll-mt-0 overflow-hidden">
+      <section id="pricing" className="w-full bg-[#EAE4D3] pt-28 pb-20 sm:pt-32 sm:pb-24 md:pt-36 md:pb-32 px-4 sm:px-6 md:px-10 scroll-mt-0 overflow-hidden">
         {/* Left-Aligned Header Block */}
-        <div className="max-w-5xl mx-auto mb-10 sm:mb-14 text-left">
-          <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-4xl lg:text-[56px] text-[#14261D] tracking-tight leading-[1.08] mb-4">
-            Simple, accessible academic{' '}
-            <span
-              className="relative inline-block text-[#497E64] ml-1 select-none"
-              style={{
-                transform: 'translateY(-3px) rotate(2.2deg)',
-                transformOrigin: 'bottom right',
-                display: 'inline-block'
-              }}
-            >
-              plans.
-
-              {/* Multi-Stroke Hand-Drawn Marker Underline */}
-              <svg
-                className="absolute -bottom-3 left-0 w-full h-[12px] sm:h-[16px] text-[#E8722C] pointer-events-none overflow-visible"
-                viewBox="0 0 200 16"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                preserveAspectRatio="none"
-              >
-                <path d="M 4 8 C 45 3, 130 4, 195 7" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
-                <path d="M 12 12 C 60 6, 145 11, 185 5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" opacity="0.85" />
-                <path d="M 30 10 C 75 6, 120 8, 160 11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" opacity="0.6" />
-              </svg>
-
-              {/* Spark Ticks (//) top-right */}
-              <svg
-                className="absolute -top-3.5 -right-5 sm:-right-6 w-4 h-4 sm:w-5 sm:h-5 text-[#E8722C] pointer-events-none rotate-[10deg]"
-                viewBox="0 0 20 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M4 14L8 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                <path d="M12 16L16 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-              </svg>
-            </span>
-          </h2>
-          <p className="font-sans text-sm sm:text-base md:text-lg text-[#14261D]/75 max-w-xl leading-relaxed">
-            Every student gets genuine document grounding for free. Upgrade only when you manage an extensive multi-semester library.
-          </p>
-        </div>
-
-        {/* Pricing Cards Grid (Light vs Dark Contrast Pair) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-5xl mx-auto items-stretch">
-          {/* Left Card: Light Tactile Card (Free Starter) */}
-          <div className="bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/20 rounded-[24px] sm:rounded-[28px] p-5 sm:p-8 md:p-10 shadow-[0_4px_0_0_#1B3428] flex flex-col justify-between">
-            <div>
-              <h3 className="font-display text-xl font-bold text-[#14261D] mb-2">Free Starter</h3>
-              
-              <div className="flex items-baseline gap-2 mb-4">
-                <span className="font-display font-extrabold text-4xl xs:text-5xl md:text-6xl text-[#14261D] tracking-tight">
-                  0 Birr
-                </span>
-                <span className="font-sans text-sm sm:text-base text-[#14261D]/60 font-medium">/ forever</span>
-              </div>
-
-              <p className="font-sans text-sm text-[#14261D]/75 mb-6">
-                Ideal for students focusing on a core class or midterm syllabus this term.
-              </p>
-
-              <hr className="border-t border-[#14261D]/15 my-6" />
-
-              <ul className="space-y-4 font-sans text-sm md:text-[15px] text-[#14261D]/80">
-                <li className="flex items-center gap-3">
-                  <div className="w-5 h-5 rounded-full bg-[#497E64] text-white flex items-center justify-center shrink-0 text-xs font-bold">
-                    ✓
-                  </div>
-                  <span>Upload up to 3 active textbooks or syllabi</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="w-5 h-5 rounded-full bg-[#497E64] text-white flex items-center justify-center shrink-0 text-xs font-bold">
-                    ✓
-                  </div>
-                  <span>Files up to 25 MB (PDF, DOCX, TXT)</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="w-5 h-5 rounded-full bg-[#497E64] text-white flex items-center justify-center shrink-0 text-xs font-bold">
-                    ✓
-                  </div>
-                  <span>Standard asynchronous document processing</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="w-5 h-5 rounded-full bg-[#497E64] text-white flex items-center justify-center shrink-0 text-xs font-bold">
-                    ✓
-                  </div>
-                  <span>Full citation grounding & chapter practice quizzes</span>
-                </li>
-              </ul>
-            </div>
-
-            <Link href="/register" className="w-full mt-8 block">
-              <button className="w-full py-3.5 px-6 rounded-full bg-[#FAF8F4] text-[#14261D] font-display font-bold text-base border-[2px] border-[#14261D] shadow-[0_4px_0_0_#14261D] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#14261D] active:translate-y-1 active:shadow-[0_1px_0_0_#14261D] transition-all">
-                Start Learning Free
-              </button>
-            </Link>
-          </div>
-
-          {/* Right Card: Dark Forest Green Card (Freemium Tier) */}
-          <div className="bg-[#1B3428] border-[1.5px] border-[#14261D] rounded-[24px] sm:rounded-[28px] p-5 sm:p-8 md:p-10 shadow-[0_6px_0_0_#14261D] flex flex-col justify-between relative overflow-hidden">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-display text-xl font-bold text-white">Pro Scholar</h3>
-                <span className="bg-[#E8722C] text-white font-sans text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full shadow-sm">
-                  Popular
-                </span>
-              </div>
-
-              <div className="flex items-baseline gap-2 mb-4">
-                <span className="font-display font-extrabold text-4xl xs:text-5xl md:text-6xl text-white tracking-tight">
-                  Freemium
-                </span>
-                <span className="font-sans text-sm sm:text-base text-white/60 font-medium">/ tier</span>
-              </div>
-
-              <p className="font-sans text-sm text-white/75 mb-6">
-                For university students managing full course loads, research papers, and thesis materials.
-              </p>
-
-              <hr className="border-t border-white/15 my-6" />
-
-              <ul className="space-y-4 font-sans text-sm md:text-[15px] text-white/90">
-                <li className="flex items-center gap-3">
-                  <div className="w-5 h-5 rounded-full bg-[#497E64]/30 border border-[#497E64] text-[#86EFAC] flex items-center justify-center shrink-0 text-xs font-bold">
-                    ✓
-                  </div>
-                  <span>Unlimited document uploads and course libraries</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="w-5 h-5 rounded-full bg-[#497E64]/30 border border-[#497E64] text-[#86EFAC] flex items-center justify-center shrink-0 text-xs font-bold">
-                    ✓
-                  </div>
-                  <span>Priority background worker queueing</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="w-5 h-5 rounded-full bg-[#497E64]/30 border border-[#497E64] text-[#86EFAC] flex items-center justify-center shrink-0 text-xs font-bold">
-                    ✓
-                  </div>
-                  <span>Comprehensive multi-chapter vector indexing</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <div className="w-5 h-5 rounded-full bg-[#497E64]/30 border border-[#497E64] text-[#86EFAC] flex items-center justify-center shrink-0 text-xs font-bold">
-                    ✓
-                  </div>
-                  <span>Early access to study rooms and OCR pipelines</span>
-                </li>
-              </ul>
-            </div>
-
-            <Link href="/register" className="w-full mt-8 block">
-              <button className="w-full py-3.5 px-6 rounded-full bg-[#497E64] text-white font-display font-bold text-base shadow-[0_4px_0_0_#14261D] hover:bg-[#3D6B55] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#14261D] active:translate-y-1 active:shadow-[0_1px_0_0_#14261D] transition-all">
-                Register for Free Access
-              </button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ======================================================== */}
-      {/* SECTION 8: FREQUENTLY ASKED QUESTIONS */}
-      {/* ======================================================== */}
-      <section id="faq" className="w-full bg-[#F4EFE4] py-16 sm:py-24 md:py-32 px-4 sm:px-6 md:px-10 scroll-mt-0 overflow-hidden">
-        <div className="max-w-4xl mx-auto">
-          {/* Section Header */}
-          <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14 md:mb-16">
-            <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-5xl lg:text-6xl text-[#14261D] tracking-tight leading-[1.08]">
-              Frequently asked{' '}
+        <ScrollReveal id="pricing-header" delay={0.1}>
+          <div className="max-w-5xl mx-auto mb-10 sm:mb-14 text-left">
+            <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-4xl lg:text-[56px] text-[#14261D] tracking-tight leading-[1.08] mb-4">
+              Simple, accessible academic{' '}
               <span
                 className="relative inline-block text-[#497E64] ml-1 select-none"
                 style={{
@@ -802,19 +668,19 @@ export default function MarketingPage() {
                   display: 'inline-block'
                 }}
               >
-                questions.
+                plans.
 
                 {/* Multi-Stroke Hand-Drawn Marker Underline */}
                 <svg
                   className="absolute -bottom-3 left-0 w-full h-[12px] sm:h-[16px] text-[#E8722C] pointer-events-none overflow-visible"
-                  viewBox="0 0 240 16"
+                  viewBox="0 0 200 16"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
                   preserveAspectRatio="none"
                 >
-                  <path d="M 4 8 C 50 3, 150 4, 235 7" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
-                  <path d="M 12 12 C 70 6, 170 11, 225 5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" opacity="0.85" />
-                  <path d="M 35 10 C 90 6, 140 8, 185 11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" opacity="0.6" />
+                  <path d="M 4 8 C 45 3, 130 4, 195 7" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
+                  <path d="M 12 12 C 60 6, 145 11, 185 5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" opacity="0.85" />
+                  <path d="M 30 10 C 75 6, 120 8, 160 11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" opacity="0.6" />
                 </svg>
 
                 {/* Spark Ticks (//) top-right */}
@@ -829,10 +695,181 @@ export default function MarketingPage() {
                 </svg>
               </span>
             </h2>
+            <p className="font-sans text-sm sm:text-base md:text-lg text-[#14261D]/75 max-w-xl leading-relaxed">
+              Every student gets genuine document grounding for free. Upgrade only when you manage an extensive multi-semester library.
+            </p>
           </div>
+        </ScrollReveal>
+
+        {/* Pricing Cards Grid (Light vs Dark Contrast Pair) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-5xl mx-auto items-stretch">
+          {/* Left Card: Light Tactile Card (Free Starter) */}
+          <ScrollReveal id="pricing-free" delay={0.2} className="h-full">
+            <div className="bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/20 rounded-[24px] sm:rounded-[28px] p-5 sm:p-8 md:p-10 shadow-[0_4px_0_0_#1B3428] flex flex-col justify-between h-full">
+              <div>
+                <h3 className="font-display text-xl font-bold text-[#14261D] mb-2">Free Starter</h3>
+                
+                <div className="flex items-baseline gap-2 mb-4">
+                  <span className="font-display font-extrabold text-4xl xs:text-5xl md:text-6xl text-[#14261D] tracking-tight">
+                    0 Birr
+                  </span>
+                  <span className="font-sans text-sm sm:text-base text-[#14261D]/60 font-medium">/ forever</span>
+                </div>
+
+                <p className="font-sans text-sm text-[#14261D]/75 mb-6">
+                  Ideal for students focusing on a core class or midterm syllabus this term.
+                </p>
+
+                <hr className="border-t border-[#14261D]/15 my-6" />
+
+                <ul className="space-y-4 font-sans text-sm md:text-[15px] text-[#14261D]/80">
+                  <li className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-[#497E64] text-white flex items-center justify-center shrink-0 text-xs font-bold">
+                      ✓
+                    </div>
+                    <span>Upload up to 3 active textbooks or syllabi</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-[#497E64] text-white flex items-center justify-center shrink-0 text-xs font-bold">
+                      ✓
+                    </div>
+                    <span>Files up to 25 MB (PDF, DOCX, TXT)</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-[#497E64] text-white flex items-center justify-center shrink-0 text-xs font-bold">
+                      ✓
+                    </div>
+                    <span>Standard asynchronous document processing</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-[#497E64] text-white flex items-center justify-center shrink-0 text-xs font-bold">
+                      ✓
+                    </div>
+                    <span>Full citation grounding & chapter practice quizzes</span>
+                  </li>
+                </ul>
+              </div>
+
+              <Link href="/register" className="w-full mt-8 block">
+                <button className="w-full py-3.5 px-6 rounded-full bg-[#FAF8F4] text-[#14261D] font-display font-bold text-base border-[2px] border-[#14261D] shadow-[0_4px_0_0_#14261D] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#14261D] active:translate-y-1 active:shadow-[0_1px_0_0_#14261D] transition-all">
+                  Start Learning Free
+                </button>
+              </Link>
+            </div>
+          </ScrollReveal>
+
+          {/* Right Card: Dark Forest Green Card (Freemium Tier) */}
+          <ScrollReveal id="pricing-pro" delay={0.32} className="h-full">
+            <div className="bg-[#1B3428] border-[1.5px] border-[#14261D] rounded-[24px] sm:rounded-[28px] p-5 sm:p-8 md:p-10 shadow-[0_6px_0_0_#14261D] flex flex-col justify-between relative overflow-hidden h-full">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-display text-xl font-bold text-white">Pro Scholar</h3>
+                  <span className="bg-[#E8722C] text-white font-sans text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full shadow-sm">
+                    Popular
+                  </span>
+                </div>
+
+                <div className="flex items-baseline gap-2 mb-4">
+                  <span className="font-display font-extrabold text-4xl xs:text-5xl md:text-6xl text-white tracking-tight">
+                    Freemium
+                  </span>
+                  <span className="font-sans text-sm sm:text-base text-white/60 font-medium">/ tier</span>
+                </div>
+
+                <p className="font-sans text-sm text-white/75 mb-6">
+                  For university students managing full course loads, research papers, and thesis materials.
+                </p>
+
+                <hr className="border-t border-white/15 my-6" />
+
+                <ul className="space-y-4 font-sans text-sm md:text-[15px] text-white/90">
+                  <li className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-[#497E64]/30 border border-[#497E64] text-[#86EFAC] flex items-center justify-center shrink-0 text-xs font-bold">
+                      ✓
+                    </div>
+                    <span>Unlimited document uploads and course libraries</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-[#497E64]/30 border border-[#497E64] text-[#86EFAC] flex items-center justify-center shrink-0 text-xs font-bold">
+                      ✓
+                    </div>
+                    <span>Priority background worker queueing</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-[#497E64]/30 border border-[#497E64] text-[#86EFAC] flex items-center justify-center shrink-0 text-xs font-bold">
+                      ✓
+                    </div>
+                    <span>Comprehensive multi-chapter vector indexing</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-[#497E64]/30 border border-[#497E64] text-[#86EFAC] flex items-center justify-center shrink-0 text-xs font-bold">
+                      ✓
+                    </div>
+                    <span>Early access to study rooms and OCR pipelines</span>
+                  </li>
+                </ul>
+              </div>
+
+              <Link href="/register" className="w-full mt-8 block">
+                <button className="w-full py-3.5 px-6 rounded-full bg-[#497E64] text-white font-display font-bold text-base shadow-[0_4px_0_0_#14261D] hover:bg-[#3D6B55] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#14261D] active:translate-y-1 active:shadow-[0_1px_0_0_#14261D] transition-all">
+                  Register for Free Access
+                </button>
+              </Link>
+            </div>
+          </ScrollReveal>
+        </div>
+      </section>
+
+      {/* ======================================================== */}
+      {/* SECTION 8: FREQUENTLY ASKED QUESTIONS */}
+      {/* ======================================================== */}
+      <section id="faq" className="w-full bg-[#F4EFE4] pt-28 pb-20 sm:pt-32 sm:pb-24 md:pt-36 md:pb-32 px-4 sm:px-6 md:px-10 scroll-mt-0 overflow-hidden">
+        <div className="max-w-4xl mx-auto">
+          {/* Section Header */}
+          <ScrollReveal id="faq-header" delay={0.1}>
+            <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14 md:mb-16">
+              <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-5xl lg:text-6xl text-[#14261D] tracking-tight leading-[1.08]">
+                Frequently asked{' '}
+                <span
+                  className="relative inline-block text-[#497E64] ml-1 select-none"
+                  style={{
+                    transform: 'translateY(-3px) rotate(2.2deg)',
+                    transformOrigin: 'bottom right',
+                    display: 'inline-block'
+                  }}
+                >
+                  questions.
+
+                  {/* Multi-Stroke Hand-Drawn Marker Underline */}
+                  <svg
+                    className="absolute -bottom-3 left-0 w-full h-[12px] sm:h-[16px] text-[#E8722C] pointer-events-none overflow-visible"
+                    viewBox="0 0 240 16"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    preserveAspectRatio="none"
+                  >
+                    <path d="M 4 8 C 50 3, 150 4, 235 7" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
+                    <path d="M 12 12 C 70 6, 170 11, 225 5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" opacity="0.85" />
+                    <path d="M 35 10 C 90 6, 140 8, 185 11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" opacity="0.6" />
+                  </svg>
+
+                  {/* Spark Ticks (//) top-right */}
+                  <svg
+                    className="absolute -top-3.5 -right-5 sm:-right-6 w-4 h-4 sm:w-5 sm:h-5 text-[#E8722C] pointer-events-none rotate-[10deg]"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M4 14L8 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                    <path d="M12 16L16 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                  </svg>
+                </span>
+              </h2>
+            </div>
+          </ScrollReveal>
 
           {/* Tactile Accordion Cards with Framer Plus/Minus Buttons */}
-          <div className="space-y-3 sm:space-y-4 md:space-y-5 max-w-4xl mx-auto">
+          <StaggerContainer id="faq-list" initialDelay={0.2} staggerDelay={0.08} className="space-y-3 sm:space-y-4 md:space-y-5 max-w-4xl mx-auto">
             {faqs.map((faq, idx) => {
               const isOpen = openFaq === idx;
               return (
@@ -882,7 +919,7 @@ export default function MarketingPage() {
                 </div>
               );
             })}
-          </div>
+          </StaggerContainer>
         </div>
       </section>
 
@@ -898,29 +935,44 @@ export default function MarketingPage() {
         <div className="absolute right-0 bottom-0 w-[220px] sm:w-[280px] lg:w-[400px] xl:w-[460px] h-[260px] sm:h-[320px] lg:h-[440px] bg-[#EED5BE] rounded-tl-[180px] pointer-events-none -z-0" />
 
         {/* Left Cutout: Friendly student reviewing notes with tablet */}
-        <div className="hidden lg:block absolute left-0 xl:left-4 bottom-0 w-[300px] lg:w-[380px] xl:w-[430px] z-10 pointer-events-none select-none">
+        <ScrollReveal
+          id="cta-cutout-left"
+          delay={0.2}
+          distance={40}
+          className="hidden lg:block absolute left-0 xl:left-4 bottom-0 w-[300px] lg:w-[380px] xl:w-[430px] z-10 pointer-events-none select-none"
+        >
           <img
             src="/assets/cta_student_female_left.png"
             alt="Student reviewing notes comfortably"
             className="w-full h-auto object-contain drop-shadow-sm"
           />
-        </div>
+        </ScrollReveal>
 
         {/* Right Cutout: Friendly student reading open textbook */}
-        <div className="hidden lg:block absolute right-0 xl:right-4 bottom-0 w-[280px] lg:w-[350px] xl:w-[400px] z-10 pointer-events-none select-none">
+        <ScrollReveal
+          id="cta-cutout-right"
+          delay={0.28}
+          distance={40}
+          className="hidden lg:block absolute right-0 xl:right-4 bottom-0 w-[280px] lg:w-[350px] xl:w-[400px] z-10 pointer-events-none select-none"
+        >
           <img
             src="/assets/cta_student_male_right.png"
             alt="Student reading open textbook"
             className="w-full h-auto object-contain drop-shadow-sm"
           />
-        </div>
+        </ScrollReveal>
 
         {/* Center Headline, Subcopy & Framer 3D Buttons */}
         <div className="relative z-20 max-w-2xl mx-auto text-center px-2 sm:px-4">
           {/* Intro Badge Pill with Floating Notebook Sticker to its upper-left */}
           <div className="relative flex justify-center mb-5">
             {/* Tilted Spiral Notebook Sticker (Floating to the Left) */}
-            <div className="absolute -top-10 left-2 xs:left-4 sm:left-8 lg:-left-12 pointer-events-none">
+            <ScrollReveal
+              id="cta-notebook"
+              delay={0.05}
+              distance={20}
+              className="absolute -top-10 left-2 xs:left-4 sm:left-8 lg:-left-12 pointer-events-none"
+            >
               <div className="relative">
                 {/* Curved Motion Trail Doodle with Arrowhead */}
                 <svg
@@ -971,80 +1023,86 @@ export default function MarketingPage() {
                   </div>
                 </div>
               </div>
-            </div>
+            </ScrollReveal>
 
             {/* Intro Badge Pill */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 border border-[#14261D]/15 text-xs text-[#14261D] font-medium shadow-sm backdrop-blur-sm select-none">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#E8722C]" />
-              Free Student Plan • Instant Setup
+            <ScrollReveal id="cta-badge" delay={0.1}>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 border border-[#14261D]/15 text-xs text-[#14261D] font-medium shadow-sm backdrop-blur-sm select-none">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#E8722C]" />
+                Free Student Plan • Instant Setup
+              </div>
+            </ScrollReveal>
+          </div>
+
+          <ScrollReveal id="cta-headline" delay={0.15}>
+            <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-5xl lg:text-[68px] text-[#14261D] tracking-tight leading-[1.08] mb-5">
+              Ready to study with{' '}
+              <br className="hidden sm:inline" />
+              verified{' '}
+              <span
+                className="relative inline-block text-[#497E64] ml-1 select-none"
+                style={{
+                  transform: 'translateY(-3px) rotate(2.2deg)',
+                  transformOrigin: 'bottom right',
+                  display: 'inline-block'
+                }}
+              >
+                certainty?
+
+                {/* Multi-Stroke Hand-Drawn Marker Underline */}
+                <svg
+                  className="absolute -bottom-3 left-0 w-full h-[12px] sm:h-[16px] text-[#E8722C] pointer-events-none overflow-visible"
+                  viewBox="0 0 240 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  preserveAspectRatio="none"
+                >
+                  <path d="M 4 8 C 50 3, 150 4, 235 7" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
+                  <path d="M 12 12 C 70 6, 170 11, 225 5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" opacity="0.85" />
+                  <path d="M 35 10 C 90 6, 140 8, 185 11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" opacity="0.6" />
+                </svg>
+
+                {/* Spark Ticks (//) top-right */}
+                <svg
+                  className="absolute -top-3.5 -right-5 sm:-right-6 w-4 h-4 sm:w-5 sm:h-5 text-[#E8722C] pointer-events-none rotate-[10deg]"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M4 14L8 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                  <path d="M12 16L16 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                </svg>
+              </span>
+            </h2>
+
+            <p className="font-sans text-xs xs:text-sm sm:text-base md:text-[17px] text-[#14261D]/75 max-w-xl mx-auto leading-relaxed mb-8">
+              Upload your first textbook chapter and experience learning grounded in real citations and zero hallucination.
+            </p>
+          </ScrollReveal>
+
+          {/* Dual Tactile CTA Buttons & Micro Trust Indicators */}
+          <ScrollReveal id="cta-buttons" delay={0.28}>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 mb-6 w-full max-w-md mx-auto sm:max-w-none">
+              {/* Primary Terracotta 3D Button */}
+              <Link href="/register" className="w-full sm:w-auto">
+                <button className="w-full sm:w-auto h-[50px] sm:h-[52px] px-6 sm:px-8 rounded-full bg-[#E8722C] text-white font-display font-bold text-sm sm:text-base shadow-[0_4px_0_0_#B26E45] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#B26E45] active:translate-y-1 active:shadow-[0_1px_0_0_#B26E45] transition-all">
+                  Create Free Student Account →
+                </button>
+              </Link>
+
+              {/* Secondary Light 3D Button */}
+              <a href="#how-it-works" className="w-full sm:w-auto">
+                <button className="w-full sm:w-auto h-[50px] sm:h-[52px] px-6 sm:px-8 rounded-full bg-[#FAF8F4] text-[#14261D] font-display font-bold text-sm sm:text-base border-[2px] border-[#1B3428] shadow-[0_4px_0_0_#1B3428] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#1B3428] active:translate-y-1 active:shadow-[0_1px_0_0_#1B3428] transition-all">
+                  Upload Document Now
+                </button>
+              </a>
             </div>
-          </div>
 
-          <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-5xl lg:text-[68px] text-[#14261D] tracking-tight leading-[1.08] mb-5">
-            Ready to study with{' '}
-            <br className="hidden sm:inline" />
-            verified{' '}
-            <span
-              className="relative inline-block text-[#497E64] ml-1 select-none"
-              style={{
-                transform: 'translateY(-3px) rotate(2.2deg)',
-                transformOrigin: 'bottom right',
-                display: 'inline-block'
-              }}
-            >
-              certainty?
-
-              {/* Multi-Stroke Hand-Drawn Marker Underline */}
-              <svg
-                className="absolute -bottom-3 left-0 w-full h-[12px] sm:h-[16px] text-[#E8722C] pointer-events-none overflow-visible"
-                viewBox="0 0 240 16"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                preserveAspectRatio="none"
-              >
-                <path d="M 4 8 C 50 3, 150 4, 235 7" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
-                <path d="M 12 12 C 70 6, 170 11, 225 5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" opacity="0.85" />
-                <path d="M 35 10 C 90 6, 140 8, 185 11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" opacity="0.6" />
-              </svg>
-
-              {/* Spark Ticks (//) top-right */}
-              <svg
-                className="absolute -top-3.5 -right-5 sm:-right-6 w-4 h-4 sm:w-5 sm:h-5 text-[#E8722C] pointer-events-none rotate-[10deg]"
-                viewBox="0 0 20 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M4 14L8 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                <path d="M12 16L16 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-              </svg>
-            </span>
-          </h2>
-
-          <p className="font-sans text-xs xs:text-sm sm:text-base md:text-[17px] text-[#14261D]/75 max-w-xl mx-auto leading-relaxed mb-8">
-            Upload your first textbook chapter and experience learning grounded in real citations and zero hallucination.
-          </p>
-
-          {/* Dual Tactile CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 mb-6 w-full max-w-md mx-auto sm:max-w-none">
-            {/* Primary Terracotta 3D Button */}
-            <Link href="/register" className="w-full sm:w-auto">
-              <button className="w-full sm:w-auto h-[50px] sm:h-[52px] px-6 sm:px-8 rounded-full bg-[#E8722C] text-white font-display font-bold text-sm sm:text-base shadow-[0_4px_0_0_#B26E45] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#B26E45] active:translate-y-1 active:shadow-[0_1px_0_0_#B26E45] transition-all">
-                Create Free Student Account →
-              </button>
-            </Link>
-
-            {/* Secondary Light 3D Button */}
-            <a href="#how-it-works" className="w-full sm:w-auto">
-              <button className="w-full sm:w-auto h-[50px] sm:h-[52px] px-6 sm:px-8 rounded-full bg-[#FAF8F4] text-[#14261D] font-display font-bold text-sm sm:text-base border-[2px] border-[#1B3428] shadow-[0_4px_0_0_#1B3428] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#1B3428] active:translate-y-1 active:shadow-[0_1px_0_0_#1B3428] transition-all">
-                Upload Document Now
-              </button>
-            </a>
-          </div>
-
-          {/* Micro Trust Indicators */}
-          <p className="font-sans text-xs text-[#14261D]/60 tracking-wide">
-            Free student plan • Strict private textbook storage • Instant setup
-          </p>
+            {/* Micro Trust Indicators */}
+            <p className="font-sans text-xs text-[#14261D]/60 tracking-wide">
+              Free student plan • Strict private textbook storage • Instant setup
+            </p>
+          </ScrollReveal>
         </div>
       </section>
     </div>
