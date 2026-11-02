@@ -38,11 +38,17 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 
 ---
 
-### 3. Current Phase
+#### 3. Current Phase
 
-### **Navigation Cleanup (Part A) & Phase 2: Personal-to-Group Workspaces & Collaboration**
+### **Phase 3: Workspace Learning Experience — Quizzes, Flashcards, Individual Progress and Book-Range Selection**
 - **Status**: **Complete**
-- **Outcome**: Successfully resolved navigation redundancies (removed global Add Material and My Books nav item, eliminated duplicate `+` on dashboard button and empty-state duplicate CTA). Implemented Phase 2 of the roadmap: one-way `PERSONAL` -> `GROUP` workspace conversion with database-level trigger protection, secure SHA-256 hashed invitation system (link and email), workspace membership management, dual chat system in Group Workspaces (People <-> People group discussions vs strictly isolated private AI conversations), and optional immutable conversation snapshot sharing (`SharedConversationSnapshot`). Verified 100% data preservation across 3 documents, 1,429 chunks, 1,429 embeddings, reading progress, and conversations.
+- **Outcome**: Successfully implemented the full Phase 3 learning experience anchored to book workspaces (`Book → Persistent Workspace → Learning`):
+  1. **Chapter- and Range-Grounded Quizzes**: Built `BookRangeSelector` with fallback hierarchy (Document TOC Outline -> Detected Section Headings -> Page Range -> Chunk Range) allowing students to select "Entire Material" or custom "From" and "To" inclusive boundaries. Backend validates range, bounds chunk retrieval strictly to selected scope, and permanently records scope on `Quiz.rangeScope`. Built dedicated in-workspace assessment interface (`WorkspaceQuizRunner`) supporting 4 question types (Multiple Choice, Short Answer, Fill in the Blank, True/False) with deterministic objective grading and semantic structured AI evaluation, retry mechanisms, explanations, and source citations.
+  2. **Failed-Question & Attempt History**: Saved independent attempts (`QuizAttempt`, `QuizAttemptAnswer`) per user and workspace. Added failed-questions review history isolated per student.
+  3. **Flashcards & SM-2 Spaced Repetition**: Built grounded flashcard generation (`generateFlashcards` in `@lernivox/ai-core` and BullMQ processor in `@lernivox/worker`) and deck management. Built dedicated distraction-free review runner (`FlashcardStudyRunner`) with 3D tactile card flip, keyboard shortcuts, and true SM-2 spaced repetition (`1`: Again, `2`: Hard, `3`: Good, `4`: Easy; calculating `easeFactor`, `intervalDays`, `repetition`, `nextReviewAt`).
+  4. **Multi-User Privacy in Group Workspaces**: Quizzes and flashcard decks are accessible to workspace members, but quiz attempts, failed questions, flashcard reviews, and progress metrics are strictly private per user.
+  5. **Individual Workspace Learning Progress**: Purely derived from persisted learning data (zero fabricated scores): reading progress, assessment metrics, flashcard retention rate, and a topic understanding matrix (`NOT_STARTED`, `LEARNING`, `NEEDS_REVIEW`, `CONFIDENT`).
+  6. **Workspace UI Integration**: Top navigation tabs (`Read` | `Quizzes` | `Flashcards` | `My Progress`) in `/dashboard/workspaces/[workspaceId]`, contextual "Practice this chapter" in outline pane, and "Practice this part" in PDF selection menu while preserving reading positions and private AI chat.
 
 ---
 
@@ -58,17 +64,12 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
   1. *People <-> People Group Discussion*: Workspace-scoped shared message stream anchored to book chapter/page numbers.
   2. *Person <-> AI Private Tutor*: User-scoped, confidential tutoring with verified source grounding.
 - [x] **Conversation Sharing Model**: Sharing an individual AI conversation creates an immutable static snapshot (`SharedConversationSnapshot`) visible to workspace members. Original private conversation continues independently.
-- [x] **Product Name**: Lernivox.
-- [x] **Repository Management**: Monorepo with `pnpm` workspaces and Turborepo (`turbo`).
-- [x] **Frontend Framework**: Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS. Canonical workspace route: `/dashboard/workspaces/[workspaceId]`, public invite route: `/invite/[token]`.
-- [x] **Backend Framework**: NestJS 11, TypeScript, structured as modular domains (`WorkspacesModule`, `DocumentsModule`, `TutorModule`, `QuizzesModule`, `AuthModule`).
-- [x] **Primary Database**: PostgreSQL 16 accessed via Prisma ORM 7.x, leveraging `pgvector` for vector embeddings and hybrid search.
-- [x] **Database Driver Adapter**: `@prisma/adapter-pg` with connection pooling.
-- [x] **Vector Dimensions**: `vector(768)` supporting standard modern embeddings (e.g., Google `gemini-embedding-2` / `text-embedding-004`).
-- [x] **Asynchronous Processing**: Dedicated worker service using NestJS, Redis 7, and BullMQ for reliable document processing.
-- [x] **AI Orchestration**: Native TypeScript RAG pipeline for parsing, chunking, embedding, source citation, and LLM orchestration (`@lernivox/ai-core`).
+- [x] **Book-Range Selection & Bounding**: Students can choose "Entire Material" or a custom inclusive range ("From" to "To"). The hierarchy resolves against: 1. Native PDF bookmarks/outline, 2. Extracted section headings, 3. Page range (`startPage` to `endPage`), 4. Chunk indices for text-only material. Range scope is validated on API, enforced during chunk retrieval in worker, and permanently persisted on `Quiz.rangeScope` and `FlashcardDeck.sourceRange`.
+- [x] **In-Workspace Assessment Interface**: Quizzes run in dedicated full-screen workspace view rather than cramped chat sidecars. Multi-question stepper, instant deterministic objective grading, semantic AI evaluation for short answers, explanatory feedback, citations, retry flow, and failed questions review.
+- [x] **SM-2 Spaced Repetition**: Standard SuperMemo SM-2 algorithm implemented with numeric ratings: `1` (Again: reset interval to 1 day), `2` (Hard: 1 day, reduced ease), `3` (Good: standard progression 6 days), `4` (Easy: 10 days, increased ease). Tracked per-user and per-card via `UserFlashcardReview`.
+- [x] **Multi-User Group Learning Privacy**: In `GROUP` workspaces, quizzes and flashcard decks are shared learning resources, but `QuizAttempt`, `QuizAttemptAnswer`, and `UserFlashcardReview` records are strictly private to `userId`. Progress endpoints only aggregate the calling student's records.
+- [x] **Objective Learning Progress**: Zero fabricated scores or arbitrary mastery percentages. Reading progress strictly from `DocumentReadingProgress`, assessment stats strictly from actual `QuizAttempt` scores, flashcard metrics strictly from `UserFlashcardReview` ratings, and topic understanding strictly classified (`NOT_STARTED`, `LEARNING`, `NEEDS_REVIEW`, `CONFIDENT`) based on demonstrated quiz accuracy and card retention.
 - [x] **Visual Design Direction**: Guided by the [BrightPath](https://brightpath-wbs.framer.website/) Framer aesthetic (warm cream `#f4f0e5`, elevated surfaces `#faf7f3` / `#ffffff`, borders `#eae4d3`, deep forest `#14261d`, terracotta `#e8722c`, soft peach `#f9d8c0`, typography: Bricolage Grotesque display, Instrument Sans body).
-- [x] **Route Retirement & Compatibility**: Retired routes (`/dashboard/library`, `/dashboard/courses`, `/dashboard/practice`, `/dashboard/groups`, `/dashboard/progress`) safely redirect to `/dashboard`. Compatibility adapter on `/dashboard/tutor?documentId=...` resolves and redirects to canonical `/dashboard/workspaces/[workspaceId]`.
 
 ---
 
@@ -79,95 +80,118 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 | **Phase 0** | **Reconciliation & Migration Planning** | **Complete** | Audit of active database, 3 ready documents, 1,429 chunks/embeddings, schema migration strategy, and data preservation plan. |
 | **Phase 1** | **Book-Centered Core Foundation** | **Complete** | 1:1 Workspace domain model, idempotent backfill, access control, one-way conversion invariant, "My Books" launcher, canonical `/dashboard/workspaces/[workspaceId]` route, compatibility redirects, 100% data preservation verified. |
 | **Phase 2** | **Personal-to-Group Conversion and Collaboration** | **Complete** | Convert Personal to Group UI, invitations, membership management, group roles, shared group discussions, private conversation sharing. |
-| **Phase 3** | **Workspace Learning Features** | Planned | In-workspace quizzes, attempts, flashcards, reviews, and per-user learning progress metrics. |
+| **Phase 3** | **Workspace Learning Experience** | **Complete** | Chapter- and range-grounded quizzes, attempts & failed question history, flashcard generation & SM-2 review, individual progress tracking, BrightPath workspace UI integration. |
 | **Phase 4** | **Optional AI Learning Plans** | Planned | AI-assisted structured study sequences, adaptive recommendations based on quiz performance. |
 
 ---
 
 ## 6. Current Task Record
 
-- **Task**: Navigation Cleanup (Part A) & Phase 2: Personal-to-Group Workspaces & Collaboration (Part B)
+- **Task**: Phase 3: Workspace Learning Experience — Quizzes, Flashcards, Individual Progress and Book-Range Selection
 - **Status**: **Complete**
 - **Objective**:
-  - Part A: Remove global Add Material button from navbar and mobile drawer; fix duplicate plus signs on dashboard button; remove redundant "My Books" navigation item while preserving brand logo return to `/dashboard`.
-  - Part B: Implement one-way Personal-to-Group conversion with owner UI, confirmation modal, backend enforcement, and database trigger.
-  - Implement group invitations via email and secure link with SHA-256 token hashing, 7-day expiration, and revocation.
-  - Build public `/invite/[token]` resolution and acceptance page with unauthenticated sign-in/up redirects.
-  - Implement group membership management with owner permissions and leave workspace flow.
-  - Implement dual chat experiences: People <-> People group discussion anchored to pages vs Person <-> AI private tutoring.
-  - Implement optional AI conversation sharing as immutable snapshots.
-  - Verify 100% data preservation, unit tests, type-checking, builds, and port cleanup.
+  - Implement chapter- and range-grounded quizzes with pre-generation content scope selection (Entire book vs Custom range from/to).
+  - Resolve content structure using native document outline -> extracted headings -> page range -> text chunk fallbacks.
+  - Enforce backend range validation and restrict AI retrieval strictly to the selected range.
+  - Implement dedicated in-workspace assessment runner, multi-type question support, deterministic objective grading, and semantic AI short-answer grading.
+  - Save independent quiz attempts and provide failed-questions review history per user and workspace.
+  - Implement grounded flashcard generation, deck management, and interactive review runner with SM-2 spaced repetition.
+  - Implement individual workspace learning progress strictly derived from persisted reading, assessment, and flashcard evidence.
+  - Guarantee privacy: one member in a GROUP workspace never sees another's attempts, reviews, or progress.
+  - Add workspace learning navigation (Read, Quizzes, Flashcards, My Progress) and contextual triggers ("Practice Chapter" and "Practice this part").
+  - Verify 100% data preservation, monorepo type-checking, automated tests, production builds, and clean process cleanup.
 - **Work Completed**:
-  1. Part A Navigation Cleanup:
-     - Removed `NAV_ITEMS` ("My Books") and global "Add Material" button from `apps/web/app/(workspace)/layout.tsx`.
-     - Brand logo retains back-navigation to `/dashboard`.
-     - Fixed duplicate `+` on `/dashboard` button (`<span>Add Material</span>` with Lucide `Plus` icon).
-     - Removed duplicate empty-state upload button.
-  2. Database Schema & Migration:
-     - Added models `WorkspaceInvitation`, `WorkspaceDiscussionMessage`, `SharedConversationSnapshot` in `packages/database/prisma/schema.prisma`.
-     - Applied additive migration `20261102213000_group_collaboration_and_invitations` with PostgreSQL trigger `trigger_prevent_group_workspace_downgrade` blocking any GROUP -> PERSONAL downgrade at database engine level.
-  3. Contracts & API:
-     - Defined shared collaboration DTOs in `packages/contracts/src/workspaces.ts`.
-     - Implemented backend methods in `apps/api/src/workspaces/workspaces.service.ts` for members, invitations, discussions, and shared conversation snapshots.
-     - Added controllers: `InvitationsController` and extended `WorkspacesController`.
-  4. Frontend UI Components:
-     - `apps/web/components/workspace/ConvertToGroupModal.tsx`: Explicit confirmation modal detailing irreversible conversion, owner privileges, and privacy guarantees.
-     - `apps/web/components/workspace/ManageGroupModal.tsx`: Member management, roles (`OWNER`, `MEMBER`), removal controls, leave workspace action, link and email invitation generator, copyable URL, and active invitations list with revocation.
-     - `apps/web/components/workspace/GroupDiscussionPane.tsx`: Discussion message feed with page/chapter anchoring, sender initials, timestamps, polling, and shared AI snapshot viewer.
-     - `apps/web/components/workspace/ShareConversationModal.tsx`: Snapshot confirmation dialog.
-     - `apps/web/components/workspace/RightWorkspacePanel.tsx`: Dual-chat switcher (`Lernivox AI` vs `Group Discussion`) for Group Workspaces while keeping Personal Workspaces clean and private.
-     - `apps/web/components/workspace/TutorHeader.tsx`: Integrated group badges, "Convert to Group" CTA for owners, and "Manage Group" modal trigger.
-     - `apps/web/app/invite/[token]/page.tsx`: Public invitation landing and acceptance page with authentication redirection.
-  5. Automated Tests:
-     - Added 22 new unit tests in `apps/api/src/workspaces/workspaces.service.spec.ts` covering members, invitations, discussions, and snapshots (all 35 passing).
-     - Full API test suite: 121 tests passing across 11 test suites.
-- **Verification**:
-  - `pnpm type-check`: 11/11 tasks passed (0 errors across whole monorepo).
-  - `pnpm test`: 4/4 tasks passed (121 in API, 10 in Database, 6 in Worker, 18 in AI-Core).
-  - `pnpm build`: 7/7 tasks passed, Next.js build generated all 15 routes cleanly.
-  - PostgreSQL Data Integrity Audit:
-    - `total_workspaces`: 3 (100% preserved)
-    - `ready_docs`: 3 (100% preserved)
-    - `total_chunks`: 1,429 (100% preserved)
-    - `chunks_with_embedding`: 1,429 (100% preserved)
-    - `total_conversations`: 3 (100% preserved)
-    - `total_messages`: 12 (100% preserved)
-    - `total_progress`: 2 (100% preserved)
-    - Tested trigger `trigger_prevent_group_workspace_downgrade`: actively threw `ERROR: A GROUP workspace can never be converted back into a PERSONAL workspace` and rolled back.
+  1. Database Schema & Migration:
+     - Updated `packages/database/prisma/schema.prisma` with relations for `Workspace.quizzes`, `Workspace.flashcardDecks`, `User.createdFlashcardDecks`, `User.flashcardReviews`, `Document.flashcardDecks`, `DocumentChunk.flashcardItems`, and `Quiz.workspaceId`/`rangeScope`.
+     - Added models `FlashcardDeck`, `FlashcardItem`, `UserFlashcardReview` with SM-2 scheduling fields (`easeFactor`, `intervalDays`, `repetition`, `nextReviewAt`, `lastRating`).
+     - Applied additive migration `20261102221500_workspace_learning_quizzes_and_flashcards`.
+  2. Shared Contracts (`packages/contracts`):
+     - `quizzes.ts`: Added `QuizScopeType`, `RangeSelectionType`, `RangeBoundaryDto`, `QuizRangeScopeDto`, `FailedQuestionDto`, and updated creation/summary DTOs.
+     - `flashcards.ts`: Added `FlashcardRating` (1 | 2 | 3 | 4), `FlashcardItemDto`, `FlashcardDeckSummaryDto`, `FlashcardDeckDetailDto`, `CreateFlashcardDeckDto`, `GenerateFlashcardsRequestDto`, `ReviewFlashcardDto`, `FlashcardReviewResultDto`.
+     - `progress.ts`: Added `TopicUnderstandingStatus`, `TopicUnderstandingDto`, `WorkspaceReadingProgressDto`, `WorkspaceAssessmentProgressDto`, `WorkspaceFlashcardProgressDto`, `WorkspaceProgressOverviewDto`.
+     - `index.ts`: Exported flashcard and progress contracts; registered `JobType.GENERATE_FLASHCARDS`.
+  3. AI-Core Package (`packages/ai-core`):
+     - Created `types/flashcard.types.ts` and `primitives/flashcard-generator.ts` with MockAiProvider and Gemini structured generation support.
+     - Added unit tests in `test/flashcard.test.ts`. 20/20 tests passing in `ai-core`.
+  4. Background Worker (`apps/worker`):
+     - Updated `QuizGenerationProcessor` to authorize workspace members and filter chunks strictly by `rangeScope` (page range or chunk range).
+     - Created `FlashcardGenerationProcessor` in `processors/flashcard-generation.processor.ts` for background deck generation.
+     - Registered processor in `WorkerModule` and added unit test suite. 8/8 tests passing in `worker`.
+  5. Backend API (`apps/api`):
+     - Extended `PrismaService` delegates.
+     - Updated `QuizzesService`: Added range validation, `rangeScope` storage, `getWorkspaceQuizzes`, `getFailedQuestions`, and workspace member authorization on quiz endpoints.
+     - Created `FlashcardsModule`: `FlashcardsService` with deck generation, manual deck creation, workspace decks listing, deck retrieval with user-specific review scheduling, and SM-2 review rating logic.
+     - Extended `WorkspacesService`: Added `getWorkspaceProgress` computing real reading progress, quiz metrics, flashcard retention rate, topic status matrix, and exam readiness level.
+     - Added unit tests in `quizzes.service.spec.ts`, `flashcards.service.spec.ts`, and `workspaces.service.spec.ts`. All 132 API tests passing.
+  6. Frontend Web (`apps/web`):
+     - `apps/web/lib/api.ts`: Added API client methods for quizzes by workspace, failed questions, flashcards endpoints, and workspace progress.
+     - `apps/web/components/workspace/BookRangeSelector.tsx`: Range selector supporting Entire Material vs Custom Range, section TOC selection, and page range fallback.
+     - `apps/web/components/workspace/GenerateQuizModal.tsx`: Updated with `BookRangeSelector`.
+     - `apps/web/components/workspace/WorkspaceQuizRunner.tsx`: Full-screen assessment runner with stepper, all 4 question types, deterministic/semantic AI grading, feedback, citations, and retry.
+     - `apps/web/components/workspace/WorkspaceQuizzesView.tsx`: Workspace Quizzes list and Failed Questions review tab.
+     - `apps/web/components/workspace/GenerateFlashcardsModal.tsx`: Range-aware flashcard generator modal.
+     - `apps/web/components/workspace/FlashcardStudyRunner.tsx`: Dedicated review runner with 3D tactile card flip, SM-2 ratings (`1-4`), keyboard shortcuts (`Space`, `1-4`), and completion breakdown.
+     - `apps/web/components/workspace/WorkspaceFlashcardsView.tsx`: Decks list, due count badges, and study launcher.
+     - `apps/web/components/workspace/WorkspaceProgressView.tsx`: Progress dashboard with reading bar, assessment stats, flashcard retention, topic matrix (`NOT_STARTED`, `LEARNING`, `NEEDS_REVIEW`, `CONFIDENT`), readiness badge, and privacy notice.
+     - `apps/web/components/workspace/TutorHeader.tsx`: Centered navigation switcher (`Read` | `Quizzes` | `Flashcards` | `My Progress`).
+     - `apps/web/components/workspace/DocumentOutlinePane.tsx`: Contextual "Practice" button on TOC chapters.
+     - `apps/web/components/workspace/DocumentReader.tsx`: Contextual "Practice this part" action in floating text-selection toolbar.
+     - `apps/web/app/(workspace)/dashboard/workspaces/[workspaceId]/page.tsx`: Integrated view switching, preserving reading canvas, outline, and AI copilot state.
+  7. Verification:
+     - `pnpm type-check`: 11/11 tasks passed (0 errors across monorepo).
+     - `pnpm test`: 170/170 tests passed (API: 132, Worker: 8, AI-Core: 20, Database: 10).
+     - `pnpm build`: 7/7 builds passed, Next.js build compiled 15/15 routes cleanly.
+     - PostgreSQL Data Integrity Audit: 3 workspaces, 3 documents (100% READY), 1,429 chunks, 1,429 embeddings, 2 quizzes, 0 lost data.
+     - Port Hygiene: Zero orphan processes; only PostgreSQL (5433) and Redis (6379) active.
+- **Files Created/Modified**:
+  - `packages/database/prisma/schema.prisma`
+  - `packages/database/prisma/migrations/20261102221500_workspace_learning_quizzes_and_flashcards/migration.sql`
+  - `packages/contracts/src/quizzes.ts`
+  - `packages/contracts/src/flashcards.ts`
+  - `packages/contracts/src/progress.ts`
+  - `packages/contracts/src/index.ts`
+  - `packages/ai-core/src/types/flashcard.types.ts`
+  - `packages/ai-core/src/primitives/flashcard-generator.ts`
+  - `packages/ai-core/src/index.ts`
+  - `packages/ai-core/test/flashcard.test.ts`
+  - `apps/worker/src/processors/quiz-generation.processor.ts`
+  - `apps/worker/src/processors/quiz-generation.processor.spec.ts`
+  - `apps/worker/src/processors/flashcard-generation.processor.ts`
+  - `apps/worker/src/processors/flashcard-generation.processor.spec.ts`
+  - `apps/worker/src/worker.module.ts`
+  - `apps/api/src/common/prisma/prisma.service.ts`
+  - `apps/api/src/quizzes/dto/quizzes.dto.ts`
+  - `apps/api/src/quizzes/quizzes.service.ts`
+  - `apps/api/src/quizzes/quizzes.controller.ts`
+  - `apps/api/src/quizzes/quizzes.service.spec.ts`
+  - `apps/api/src/flashcards/dto/flashcards.dto.ts`
+  - `apps/api/src/flashcards/flashcards.service.ts`
+  - `apps/api/src/flashcards/flashcards.controller.ts`
+  - `apps/api/src/flashcards/flashcards.module.ts`
+  - `apps/api/src/flashcards/flashcards.service.spec.ts`
+  - `apps/api/src/workspaces/workspaces.service.ts`
+  - `apps/api/src/workspaces/workspaces.controller.ts`
+  - `apps/api/src/workspaces/workspaces.service.spec.ts`
+  - `apps/api/src/app.module.ts`
+  - `apps/web/lib/api.ts`
+  - `apps/web/components/workspace/BookRangeSelector.tsx`
+  - `apps/web/components/workspace/GenerateQuizModal.tsx`
+  - `apps/web/components/workspace/WorkspaceQuizRunner.tsx`
+  - `apps/web/components/workspace/WorkspaceQuizzesView.tsx`
+  - `apps/web/components/workspace/GenerateFlashcardsModal.tsx`
+  - `apps/web/components/workspace/FlashcardStudyRunner.tsx`
+  - `apps/web/components/workspace/WorkspaceFlashcardsView.tsx`
+  - `apps/web/components/workspace/WorkspaceProgressView.tsx`
+  - `apps/web/components/workspace/TutorHeader.tsx`
+  - `apps/web/components/workspace/DocumentOutlinePane.tsx`
+  - `apps/web/components/workspace/DocumentReader.tsx`
+  - `apps/web/app/(workspace)/dashboard/workspaces/[workspaceId]/page.tsx`
+  - `PROGRESS.md`
 - **Processes and Ports**:
   - Cleaned up: No agent-spawned background processes or dev watchers remaining.
   - Persistent infrastructure: `lernivox-postgres` on port 5433, `lernivox-redis` on port 6379.
 - **Known Issues / Blockers**: None.
-- **Next Recommended Action**: Execute Phase 3 — Workspace Learning Features (In-workspace chapter quizzes, flashcards, attempts, and objective mastery tracking).
-- **Files Created/Modified**:
-  - `apps/web/app/(workspace)/layout.tsx`
-  - `apps/web/app/(workspace)/dashboard/page.tsx`
-  - `packages/database/prisma/schema.prisma`
-  - `packages/database/prisma/migrations/20261102213000_group_collaboration_and_invitations/migration.sql`
-  - `packages/contracts/src/workspaces.ts`
-  - `apps/api/src/common/prisma/prisma.service.ts`
-  - `apps/api/src/workspaces/dto/collaboration.dto.ts`
-  - `apps/api/src/workspaces/workspaces.service.ts`
-  - `apps/api/src/workspaces/workspaces.controller.ts`
-  - `apps/api/src/workspaces/invitations.controller.ts`
-  - `apps/api/src/workspaces/workspaces.module.ts`
-  - `apps/api/src/workspaces/workspaces.service.spec.ts`
-  - `apps/web/lib/api.ts`
-  - `apps/web/components/workspace/ConvertToGroupModal.tsx`
-  - `apps/web/components/workspace/ManageGroupModal.tsx`
-  - `apps/web/components/workspace/GroupDiscussionPane.tsx`
-  - `apps/web/components/workspace/ShareConversationModal.tsx`
-  - `apps/web/components/workspace/RightWorkspacePanel.tsx`
-  - `apps/web/components/workspace/TutorHeader.tsx`
-  - `apps/web/app/invite/[token]/page.tsx`
-  - `apps/web/app/(workspace)/dashboard/workspaces/[workspaceId]/page.tsx`
-  - `PROGRESS.md`
-- **Verification Evidence**:
-  - `pnpm type-check`: 11/11 tasks passing across all packages and apps with 0 errors.
-  - `pnpm test`: 4/4 tasks passing (121 in API, 10 in Database, 6 in Worker, 18 in AI-Core).
-  - `pnpm build`: 7/7 builds passing, 15/15 Next.js routes statically or dynamically compiled with 0 errors.
-  - PostgreSQL Data Integrity Audit: 3 documents (100% READY), 1,429 chunks, 1,429 embeddings, 3 workspaces, 3 conversations, 12 messages, 2 reading progress records completely preserved.
-  - Processes and Ports: Zero orphan dev server processes; PostgreSQL (port 5433) and Redis (port 6379) active and healthy.
+- **Next Recommended Action**: Execute Phase 4 — Adaptive AI Learning Plans (structured study sequences, adaptive practice recommendations based on student's demonstrated weak topics).
 
 ---
 
@@ -182,14 +206,24 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 
 ## 8. Next Recommended Action
 
-**Phase 3: Active Recall Flashcards & Spaced Repetition**:
-- Implement SM-2 algorithm scheduler, flashcard generation processor from document sections, interactive flipping deck study interface, and retention metrics.
+**Phase 4: Adaptive AI Learning Plans & Study Sequences**:
+- Implement AI-assisted structured study sequences and adaptive practice recommendations dynamically derived from student's topic understanding matrix (`NEEDS_REVIEW` topics).
 
----
+-----
 
 ## 9. Update History
 
 - **2026-11-02**:
+  - Completed Phase 3: Workspace Learning Experience (Quizzes, Flashcards, Individual Progress & Book-Range Selection):
+    - Implemented book-range selection (`BookRangeSelector`) resolving boundaries via hierarchy (TOC Outline -> Extracted Headings -> Page Range -> Text Chunks) for "Entire Material" or custom inclusive "From" - "To" ranges.
+    - Added backend range validation, bounds chunk retrieval to selected range in `QuizGenerationProcessor` and `FlashcardGenerationProcessor`, and stored scope on `Quiz.rangeScope` and `FlashcardDeck.sourceRange`.
+    - Implemented full-featured in-workspace assessment runner (`WorkspaceQuizRunner`) supporting 4 question types with deterministic objective evaluation and semantic AI grading for short answers.
+    - Implemented failed questions review history and saved independent attempts per student.
+    - Implemented grounded flashcard generation in `@lernivox/ai-core` and dedicated review runner (`FlashcardStudyRunner`) with 3D tactile flip and SM-2 spaced repetition (`1`: Again, `2`: Hard, `3`: Good, `4`: Easy).
+    - Guaranteed privacy in GROUP workspaces: shared quizzes and decks, but private attempts, reviews, and progress.
+    - Built objective workspace learning progress (`WorkspaceProgressView`) with reading bar, assessment stats, flashcard retention rate, topic matrix (`NOT_STARTED`, `LEARNING`, `NEEDS_REVIEW`, `CONFIDENT`), and exam readiness level with zero fabricated scores.
+    - Integrated top navigation tabs (`Read` | `Quizzes` | `Flashcards` | `My Progress`) in workspace view, plus contextual triggers in outline and PDF selection.
+    - Verified all 11 type-checks, 170 tests passing, 7/7 production builds, 0 port leaks, and 100% database integrity across 3 workspaces and 1,429 chunks.
   - Completed Remove Decorative Eyebrow Labels Above Page Headings:
     - Inspected all user-facing views across the application for decorative eyebrow labels, badges, or uppercase captions positioned immediately above primary page headings.
     - Removed decorative eyebrow badges across all 8 identified views (`/dashboard`, `/dashboard/progress`, `/dashboard/practice`, `/dashboard/library`, `/dashboard/courses`, `/dashboard/groups`, `/dashboard/settings`, and `/dashboard/practice/quizzes/[quizId]` generation state).

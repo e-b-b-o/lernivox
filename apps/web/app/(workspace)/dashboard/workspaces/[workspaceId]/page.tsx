@@ -18,13 +18,16 @@ import type {
 } from '@lernivox/contracts';
 import { useAuth } from '../../../../../context/AuthContext';
 import { api } from '../../../../../lib/api';
-import { TutorHeader } from '../../../../../components/workspace/TutorHeader';
+import { TutorHeader, type WorkspaceViewMode } from '../../../../../components/workspace/TutorHeader';
 import { DocumentOutlinePane } from '../../../../../components/workspace/DocumentOutlinePane';
 import { DocumentReader } from '../../../../../components/workspace/DocumentReader';
 import { RightWorkspacePanel } from '../../../../../components/workspace/RightWorkspacePanel';
 import { GenerateQuizModal } from '../../../../../components/workspace/GenerateQuizModal';
 import { ConvertToGroupModal } from '../../../../../components/workspace/ConvertToGroupModal';
 import { ManageGroupModal } from '../../../../../components/workspace/ManageGroupModal';
+import { WorkspaceQuizzesView } from '../../../../../components/workspace/WorkspaceQuizzesView';
+import { WorkspaceFlashcardsView } from '../../../../../components/workspace/WorkspaceFlashcardsView';
+import { WorkspaceProgressView } from '../../../../../components/workspace/WorkspaceProgressView';
 
 function WorkspaceInner() {
   const router = useRouter();
@@ -42,6 +45,9 @@ function WorkspaceInner() {
   const [loadingWorkspace, setLoadingWorkspace] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Workspace View State ('read' | 'quizzes' | 'flashcards' | 'progress')
+  const [activeView, setActiveView] = useState<WorkspaceViewMode>('read');
+
   // Pane layout state (collapsible on desktop, mutually exclusive drawer on mobile)
   const [outlineOpen, setOutlineOpen] = useState(true);
   const [copilotOpen, setCopilotOpen] = useState(true);
@@ -49,6 +55,8 @@ function WorkspaceInner() {
   type MobileDrawer = 'none' | 'toc' | 'chat';
   const [mobileDrawer, setMobileDrawer] = useState<MobileDrawer>('none');
   const [isPracticeModalOpen, setIsPracticeModalOpen] = useState(false);
+  const [preselectedPracticeChapter, setPreselectedPracticeChapter] = useState<string>('');
+  const [preselectedPracticePage, setPreselectedPracticePage] = useState<number | undefined>(undefined);
 
   const toggleToc = useCallback(() => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
@@ -728,174 +736,232 @@ function WorkspaceInner() {
           workspaceType={workspace.type}
           isOwner={isOwner}
           memberCount={workspace.members?.length || 1}
+          activeView={activeView}
+          onViewChange={setActiveView}
           onOpenConvertModal={() => setIsConvertModalOpen(true)}
           onOpenManageGroupModal={() => setIsManageGroupModalOpen(true)}
           outlineOpen={mobileDrawer === 'toc' || (outlineOpen && mobileDrawer === 'none')}
           onToggleOutline={toggleToc}
           copilotOpen={mobileDrawer === 'chat' || (copilotOpen && mobileDrawer === 'none')}
           onToggleCopilot={toggleChat}
-          onPractice={() => setIsPracticeModalOpen(true)}
+          onPractice={() => {
+            const currentChapter =
+              [...outlineItems].reverse().find((o) => o.pageNumber <= currentPage)?.title || '';
+            setPreselectedPracticeChapter(currentChapter);
+            setPreselectedPracticePage(currentPage);
+            setIsPracticeModalOpen(true);
+          }}
         />
       </header>
 
-      {/* 2. THREE-PANE MAIN WORKSPACE - Zero Outer Overflow */}
-      <div className="flex-1 min-h-0 flex w-full relative overflow-hidden">
-        {/* PANE 1: DESKTOP LEFT OUTLINE & NAVIGATION (Hidden on Mobile) */}
-        <DocumentOutlinePane
-          isOpen={outlineOpen}
-          onToggle={() => setOutlineOpen((o) => !o)}
-          outlineItems={outlineItems}
-          loadingOutline={loadingOutline}
-          isNativeOutline={isNativeOutline}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageSelect={handlePageChange}
-          bookmarks={bookmarks}
-          onAddBookmark={handleAddBookmark}
-          onDeleteBookmark={handleDeleteBookmark}
-        />
-
-        {/* PANE 2: CENTER DOCUMENT READER */}
-        <main className="w-full lg:flex-1 h-full min-h-0 flex flex-col min-w-0 bg-[#F4F0E5] relative overflow-hidden">
-          <DocumentReader
-            document={currentDoc}
-            readerContent={readerContent}
-            loadingContent={loadingContent}
+      {/* 2. DEDICATED WORKSPACE VIEW CONTAINER */}
+      {activeView === 'read' ? (
+        /* 2A. THREE-PANE MAIN WORKSPACE - Zero Outer Overflow */
+        <div className="flex-1 min-h-0 flex w-full relative overflow-hidden">
+          {/* PANE 1: DESKTOP LEFT OUTLINE & NAVIGATION (Hidden on Mobile) */}
+          <DocumentOutlinePane
+            isOpen={outlineOpen}
+            onToggle={() => setOutlineOpen((o) => !o)}
+            outlineItems={outlineItems}
+            loadingOutline={loadingOutline}
+            isNativeOutline={isNativeOutline}
             currentPage={currentPage}
-            onPageChange={handlePageChange}
             totalPages={totalPages}
-            onTotalPagesDetected={handleTotalPagesDetected}
-            onNativeOutlineLoaded={handleNativeOutlineLoaded}
-            activeCitationChunkId={activeCitationChunkId}
-            citationPage={chunkDetail?.pageNumber || null}
-            onExplainParagraph={handleExplainParagraph}
+            onPageSelect={handlePageChange}
+            bookmarks={bookmarks}
             onAddBookmark={handleAddBookmark}
-            fileUrl={fileUrl}
-            accessToken={accessToken || undefined}
+            onDeleteBookmark={handleDeleteBookmark}
+            onPracticeChapter={(item) => {
+              setPreselectedPracticeChapter(item.title);
+              setPreselectedPracticePage(item.pageNumber);
+              setIsPracticeModalOpen(true);
+            }}
           />
-        </main>
 
-        {/* PANE 3: DESKTOP RIGHT WORKSPACE PANEL (Lernivox AI or Group Discussion) */}
-        <RightWorkspacePanel
-          workspaceType={workspace.type}
-          workspaceId={workspace.id}
-          currentUserId={user?.id || ''}
-          currentPage={currentPage}
-          currentChapter={
-            [...outlineItems].reverse().find((o) => o.pageNumber <= currentPage)?.title || ''
-          }
-          isOpen={copilotOpen}
-          onToggle={() => setCopilotOpen((c) => !c)}
-          document={currentDoc}
-          conversations={conversations}
-          activeConversationId={activeConversationId}
-          activeConversation={activeConversation}
-          loadingConv={loadingConv}
-          onSelectConversation={setActiveConversationId}
-          onNewSession={handleNewSession}
-          onRenameSession={handleRenameSession}
-          onDeleteSession={handleDeleteSession}
-          onSendMessage={handleSendMessage}
-          sendingMessage={sendingMessage}
-          sendError={sendError}
-          onRetryMessage={() => {
-            if (activeConversation?.messages.length) {
-              const lastUser = [...activeConversation.messages].reverse().find((m) => m.sender === 'USER');
-              if (lastUser) handleSendMessage(lastUser.content);
+          {/* PANE 2: CENTER DOCUMENT READER */}
+          <main className="w-full lg:flex-1 h-full min-h-0 flex flex-col min-w-0 bg-[#F4F0E5] relative overflow-hidden">
+            <DocumentReader
+              document={currentDoc}
+              readerContent={readerContent}
+              loadingContent={loadingContent}
+              currentPage={currentPage}
+              onPageChange={handlePageChange}
+              totalPages={totalPages}
+              onTotalPagesDetected={handleTotalPagesDetected}
+              onNativeOutlineLoaded={handleNativeOutlineLoaded}
+              activeCitationChunkId={activeCitationChunkId}
+              citationPage={chunkDetail?.pageNumber || null}
+              onExplainParagraph={handleExplainParagraph}
+              onPracticeSelection={(page) => {
+                const currentChapter =
+                  [...outlineItems].reverse().find((o) => o.pageNumber <= page)?.title || '';
+                setPreselectedPracticeChapter(currentChapter);
+                setPreselectedPracticePage(page);
+                setIsPracticeModalOpen(true);
+              }}
+              onAddBookmark={handleAddBookmark}
+              fileUrl={fileUrl}
+              accessToken={accessToken || undefined}
+            />
+          </main>
+
+          {/* PANE 3: DESKTOP RIGHT WORKSPACE PANEL (Lernivox AI or Group Discussion) */}
+          <RightWorkspacePanel
+            workspaceType={workspace.type}
+            workspaceId={workspace.id}
+            currentUserId={user?.id || ''}
+            currentPage={currentPage}
+            currentChapter={
+              [...outlineItems].reverse().find((o) => o.pageNumber <= currentPage)?.title || ''
             }
-          }}
-          onCitationClick={handleCitationClick}
-          onOpenCitationInspector={handleOpenCitationInspector}
-          preparedQuestion={preparedQuestion}
-          onClearPreparedQuestion={() => setPreparedQuestion(null)}
-          onShareConversation={handleShareConversation}
-          isSharingConversation={isSharingConversation}
-        />
+            isOpen={copilotOpen}
+            onToggle={() => setCopilotOpen((c) => !c)}
+            document={currentDoc}
+            conversations={conversations}
+            activeConversationId={activeConversationId}
+            activeConversation={activeConversation}
+            loadingConv={loadingConv}
+            onSelectConversation={setActiveConversationId}
+            onNewSession={handleNewSession}
+            onRenameSession={handleRenameSession}
+            onDeleteSession={handleDeleteSession}
+            onSendMessage={handleSendMessage}
+            sendingMessage={sendingMessage}
+            sendError={sendError}
+            onRetryMessage={() => {
+              if (activeConversation?.messages.length) {
+                const lastUser = [...activeConversation.messages].reverse().find((m) => m.sender === 'USER');
+                if (lastUser) handleSendMessage(lastUser.content);
+              }
+            }}
+            onCitationClick={handleCitationClick}
+            onOpenCitationInspector={handleOpenCitationInspector}
+            preparedQuestion={preparedQuestion}
+            onClearPreparedQuestion={() => setPreparedQuestion(null)}
+            onShareConversation={handleShareConversation}
+            isSharingConversation={isSharingConversation}
+          />
 
-        {/* 4. MOBILE SLIDE-OVER OVERLAYS (Single Winner, Mutually Exclusive) */}
-        {mobileDrawer !== 'none' && (
-          <div
-            className="fixed inset-0 z-50 lg:hidden bg-black/40 backdrop-blur-xs transition-opacity flex"
-            onClick={closeMobileDrawer}
-          >
-            {/* TOC Mobile Drawer */}
-            {mobileDrawer === 'toc' && (
-              <div
-                className="absolute inset-y-0 left-0 w-[85%] max-w-sm bg-[#FAF8F4] border-r-[2px] border-[#1B3428] shadow-2xl flex flex-col z-10 animate-in slide-in-from-left duration-200"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <DocumentOutlinePane
-                  isOpen={true}
-                  onToggle={closeMobileDrawer}
-                  outlineItems={outlineItems}
-                  loadingOutline={loadingOutline}
-                  isNativeOutline={isNativeOutline}
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageSelect={(p) => {
-                    handlePageChange(p);
-                    closeMobileDrawer();
-                  }}
-                  bookmarks={bookmarks}
-                  onAddBookmark={handleAddBookmark}
-                  onDeleteBookmark={handleDeleteBookmark}
-                  isMobileDrawer={true}
-                  onCloseMobileDrawer={closeMobileDrawer}
-                />
-              </div>
-            )}
+          {/* 4. MOBILE SLIDE-OVER OVERLAYS (Single Winner, Mutually Exclusive) */}
+          {mobileDrawer !== 'none' && (
+            <div
+              className="fixed inset-0 z-50 lg:hidden bg-black/40 backdrop-blur-xs transition-opacity flex"
+              onClick={closeMobileDrawer}
+            >
+              {/* TOC Mobile Drawer */}
+              {mobileDrawer === 'toc' && (
+                <div
+                  className="absolute inset-y-0 left-0 w-[85%] max-w-sm bg-[#FAF8F4] border-r-[2px] border-[#1B3428] shadow-2xl flex flex-col z-10 animate-in slide-in-from-left duration-200"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <DocumentOutlinePane
+                    isOpen={true}
+                    onToggle={closeMobileDrawer}
+                    outlineItems={outlineItems}
+                    loadingOutline={loadingOutline}
+                    isNativeOutline={isNativeOutline}
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageSelect={(p) => {
+                      handlePageChange(p);
+                      closeMobileDrawer();
+                    }}
+                    bookmarks={bookmarks}
+                    onAddBookmark={handleAddBookmark}
+                    onDeleteBookmark={handleDeleteBookmark}
+                    onPracticeChapter={(item) => {
+                      setPreselectedPracticeChapter(item.title);
+                      setPreselectedPracticePage(item.pageNumber);
+                      closeMobileDrawer();
+                      setIsPracticeModalOpen(true);
+                    }}
+                    isMobileDrawer={true}
+                    onCloseMobileDrawer={closeMobileDrawer}
+                  />
+                </div>
+              )}
 
-            {/* AI Chat / Group Discussion Mobile Drawer */}
-            {mobileDrawer === 'chat' && (
-              <div
-                className="absolute inset-y-0 right-0 w-[90%] max-w-md bg-[#FAF8F4] border-l-[2px] border-[#1B3428] shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-200"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <RightWorkspacePanel
-                  workspaceType={workspace.type}
-                  workspaceId={workspace.id}
-                  currentUserId={user?.id || ''}
-                  currentPage={currentPage}
-                  currentChapter={
-                    [...outlineItems].reverse().find((o) => o.pageNumber <= currentPage)?.title || ''
-                  }
-                  isOpen={true}
-                  onToggle={closeMobileDrawer}
-                  document={currentDoc}
-                  conversations={conversations}
-                  activeConversationId={activeConversationId}
-                  activeConversation={activeConversation}
-                  loadingConv={loadingConv}
-                  onSelectConversation={setActiveConversationId}
-                  onNewSession={handleNewSession}
-                  onRenameSession={handleRenameSession}
-                  onDeleteSession={handleDeleteSession}
-                  onSendMessage={handleSendMessage}
-                  sendingMessage={sendingMessage}
-                  sendError={sendError}
-                  onRetryMessage={() => {
-                    if (activeConversation?.messages.length) {
-                      const lastUser = [...activeConversation.messages].reverse().find((m) => m.sender === 'USER');
-                      if (lastUser) handleSendMessage(lastUser.content);
+              {/* AI Chat / Group Discussion Mobile Drawer */}
+              {mobileDrawer === 'chat' && (
+                <div
+                  className="absolute inset-y-0 right-0 w-[90%] max-w-md bg-[#FAF8F4] border-l-[2px] border-[#1B3428] shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-200"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <RightWorkspacePanel
+                    workspaceType={workspace.type}
+                    workspaceId={workspace.id}
+                    currentUserId={user?.id || ''}
+                    currentPage={currentPage}
+                    currentChapter={
+                      [...outlineItems].reverse().find((o) => o.pageNumber <= currentPage)?.title || ''
                     }
-                  }}
-                  onCitationClick={(chunkId, pageNum) => {
-                    handleCitationClick(chunkId, pageNum);
-                    closeMobileDrawer();
-                  }}
-                  onOpenCitationInspector={handleOpenCitationInspector}
-                  preparedQuestion={preparedQuestion}
-                  onClearPreparedQuestion={() => setPreparedQuestion(null)}
-                  onShareConversation={handleShareConversation}
-                  isSharingConversation={isSharingConversation}
-                  isMobileDrawer={true}
-                  onCloseMobileDrawer={closeMobileDrawer}
-                />
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+                    isOpen={true}
+                    onToggle={closeMobileDrawer}
+                    document={currentDoc}
+                    conversations={conversations}
+                    activeConversationId={activeConversationId}
+                    activeConversation={activeConversation}
+                    loadingConv={loadingConv}
+                    onSelectConversation={setActiveConversationId}
+                    onNewSession={handleNewSession}
+                    onRenameSession={handleRenameSession}
+                    onDeleteSession={handleDeleteSession}
+                    onSendMessage={handleSendMessage}
+                    sendingMessage={sendingMessage}
+                    sendError={sendError}
+                    onRetryMessage={() => {
+                      if (activeConversation?.messages.length) {
+                        const lastUser = [...activeConversation.messages].reverse().find((m) => m.sender === 'USER');
+                        if (lastUser) handleSendMessage(lastUser.content);
+                      }
+                    }}
+                    onCitationClick={(chunkId, pageNum) => {
+                      handleCitationClick(chunkId, pageNum);
+                      closeMobileDrawer();
+                    }}
+                    onOpenCitationInspector={handleOpenCitationInspector}
+                    preparedQuestion={preparedQuestion}
+                    onClearPreparedQuestion={() => setPreparedQuestion(null)}
+                    onShareConversation={handleShareConversation}
+                    isSharingConversation={isSharingConversation}
+                    isMobileDrawer={true}
+                    onCloseMobileDrawer={closeMobileDrawer}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      ) : activeView === 'quizzes' ? (
+        <WorkspaceQuizzesView
+          workspaceId={workspace.id}
+          document={currentDoc}
+          onReturnToBook={() => setActiveView('read')}
+          preselectedChapter={preselectedPracticeChapter}
+          preselectedPage={preselectedPracticePage}
+        />
+      ) : activeView === 'flashcards' ? (
+        <WorkspaceFlashcardsView
+          workspaceId={workspace.id}
+          document={currentDoc}
+          onReturnToBook={() => setActiveView('read')}
+          preselectedChapter={preselectedPracticeChapter}
+          preselectedPage={preselectedPracticePage}
+        />
+      ) : (
+        <WorkspaceProgressView
+          workspaceId={workspace.id}
+          document={currentDoc}
+          onReturnToBook={() => setActiveView('read')}
+          onTakeQuiz={() => {
+            setActiveView('quizzes');
+            setIsPracticeModalOpen(true);
+          }}
+          onStudyFlashcards={() => {
+            setActiveView('flashcards');
+          }}
+        />
+      )}
 
       {/* 3. SLIDE-OVER PASSAGE VERIFICATION DRAWER */}
       {inspectingCitation && (
@@ -997,10 +1063,17 @@ function WorkspaceInner() {
       <GenerateQuizModal
         isOpen={isPracticeModalOpen}
         onClose={() => setIsPracticeModalOpen(false)}
+        workspaceId={workspace?.id}
         preselectedDocumentId={currentDoc?.id}
         preselectedChapter={
-          [...outlineItems].reverse().find((o) => o.pageNumber <= currentPage)?.title || ''
+          preselectedPracticeChapter ||
+          [...outlineItems].reverse().find((o) => o.pageNumber <= currentPage)?.title ||
+          ''
         }
+        preselectedPage={preselectedPracticePage || currentPage}
+        onQuizCreated={() => {
+          setActiveView('quizzes');
+        }}
       />
 
       {/* Convert to Group Confirmation Modal */}

@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, useCallback, memo } from 'react';
 import {
   Bookmark,
   FileText,
+  HelpCircle,
   Sparkles,
   ZoomIn,
   ZoomOut,
@@ -254,6 +255,7 @@ interface DocumentReaderProps {
   activeCitationChunkId: string | null;
   citationPage?: number | null;
   onExplainParagraph: (text: string, pageNumber: number) => void;
+  onPracticeSelection?: (pageNumber: number) => void;
   onAddBookmark: (pageNumber: number) => void;
   fileUrl: string;
   accessToken?: string;
@@ -271,6 +273,7 @@ export function DocumentReader({
   activeCitationChunkId,
   citationPage,
   onExplainParagraph,
+  onPracticeSelection,
   onAddBookmark,
   fileUrl,
   accessToken,
@@ -686,7 +689,7 @@ export function DocumentReader({
         </div>
       </div>
 
-      {/* 2. FLOATING TEXT-SELECTION ACTION ("Explain this paragraph") */}
+      {/* 2. FLOATING TEXT-SELECTION ACTION ("Explain this paragraph" & "Practice this part") */}
       {selectedText && selectionCoords && (
         <div
           style={{
@@ -695,7 +698,7 @@ export function DocumentReader({
             top: `${selectionCoords.y}px`,
             transform: 'translate(-50%, -100%)',
           }}
-          className="z-50 animate-in fade-in zoom-in-95 duration-150"
+          className="z-50 animate-in fade-in zoom-in-95 duration-150 flex items-center gap-1.5 p-1 rounded-full bg-[#14261D] border border-[#FAF8F4]/20 shadow-[0_4px_0_0_#0D1B14]"
         >
           <button
             type="button"
@@ -704,11 +707,26 @@ export function DocumentReader({
               setSelectedText('');
               setSelectionCoords(null);
             }}
-            className="py-1.5 px-3.5 rounded-full bg-[#1B3428] text-white font-display font-bold text-xs shadow-[0_4px_0_0_#14261D] hover:-translate-y-0.5 active:translate-y-0.5 transition-all flex items-center gap-1.5 border border-[#FAF8F4]/20"
+            className="py-1 px-3 rounded-full bg-[#1B3428] text-white font-display font-bold text-xs hover:-translate-y-0.5 active:translate-y-0.5 transition-all flex items-center gap-1.5"
           >
             <Sparkles className="w-3.5 h-3.5 text-[#E8722C]" />
-            <span>Explain this paragraph</span>
+            <span>Explain</span>
           </button>
+
+          {onPracticeSelection && (
+            <button
+              type="button"
+              onClick={() => {
+                onPracticeSelection(visiblePage);
+                setSelectedText('');
+                setSelectionCoords(null);
+              }}
+              className="py-1 px-3 rounded-full bg-[#E8722C] text-white font-display font-bold text-xs hover:-translate-y-0.5 active:translate-y-0.5 transition-all flex items-center gap-1.5"
+            >
+              <HelpCircle className="w-3.5 h-3.5" />
+              <span>Practice this part</span>
+            </button>
+          )}
         </div>
       )}
 

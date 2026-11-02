@@ -6,6 +6,7 @@ import {
   BookmarkPlus,
   ChevronRight,
   Hash,
+  HelpCircle,
   List,
   PanelLeftOpen,
   Trash2,
@@ -25,6 +26,7 @@ interface DocumentOutlinePaneProps {
   bookmarks: DocumentBookmarkDto[];
   onAddBookmark: (page: number) => void;
   onDeleteBookmark: (bookmarkId: string) => void;
+  onPracticeChapter?: (chapter: DocumentOutlineItemDto) => void;
   isMobileDrawer?: boolean;
   onCloseMobileDrawer?: () => void;
 }
@@ -41,6 +43,7 @@ export function DocumentOutlinePane({
   bookmarks,
   onAddBookmark,
   onDeleteBookmark,
+  onPracticeChapter,
   isMobileDrawer = false,
   onCloseMobileDrawer,
 }: DocumentOutlinePaneProps) {
@@ -237,15 +240,34 @@ export function DocumentOutlinePane({
                       {item.title}
                     </p>
                   </div>
-                  <span
-                    className={`font-mono text-[10px] px-1.5 py-0.5 rounded shrink-0 ${
-                      isActive
-                        ? 'bg-white/20 text-white'
-                        : 'bg-[#1B3428]/5 text-[#14261D]/60 group-hover:bg-[#1B3428]/10'
-                    }`}
-                  >
-                    p. {item.pageNumber}
-                  </span>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {onPracticeChapter && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onPracticeChapter(item);
+                        }}
+                        className={`p-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity ${
+                          isActive
+                            ? 'text-white hover:bg-white/20'
+                            : 'text-[#14261D]/60 hover:text-[#E8722C] hover:bg-[#FBE8DC]'
+                        }`}
+                        title={`Practice ${item.title}`}
+                      >
+                        <HelpCircle className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    <span
+                      className={`font-mono text-[10px] px-1.5 py-0.5 rounded shrink-0 ${
+                        isActive
+                          ? 'bg-white/20 text-white'
+                          : 'bg-[#1B3428]/5 text-[#14261D]/60 group-hover:bg-[#1B3428]/10'
+                      }`}
+                    >
+                      p. {item.pageNumber}
+                    </span>
+                  </div>
                 </button>
               );
             })}

@@ -27,6 +27,14 @@ import type {
   StartQuizAttemptResponseDto,
   SubmitQuizAttemptRequestDto,
   QuizAttemptResultDto,
+  FailedQuestionDto,
+  FlashcardDeckSummaryDto,
+  FlashcardDeckDetailDto,
+  CreateFlashcardDeckDto,
+  GenerateFlashcardsRequestDto,
+  FlashcardRating,
+  FlashcardReviewResultDto,
+  WorkspaceProgressOverviewDto,
   WorkspaceDto,
   WorkspaceListItemDto,
   WorkspacesListResponseDto,
@@ -385,6 +393,16 @@ export const api = {
         { method: 'DELETE' },
         token,
       ),
+
+    getProgress: (
+      workspaceId: string,
+      token: string,
+    ): Promise<WorkspaceProgressOverviewDto> =>
+      request<WorkspaceProgressOverviewDto>(
+        `/workspaces/${workspaceId}/progress`,
+        { method: 'GET' },
+        token,
+      ),
   },
 
   invitations: {
@@ -472,6 +490,20 @@ export const api = {
     list: (token: string): Promise<QuizSummaryDto[]> =>
       request<QuizSummaryDto[]>('/quizzes', { method: 'GET' }, token),
 
+    listByWorkspace: (workspaceId: string, token: string): Promise<QuizSummaryDto[]> =>
+      request<QuizSummaryDto[]>(
+        `/quizzes/workspace/${workspaceId}`,
+        { method: 'GET' },
+        token,
+      ),
+
+    getFailedQuestions: (workspaceId: string, token: string): Promise<FailedQuestionDto[]> =>
+      request<FailedQuestionDto[]>(
+        `/quizzes/workspace/${workspaceId}/failed-questions`,
+        { method: 'GET' },
+        token,
+      ),
+
     listByDocument: (documentId: string, token: string): Promise<QuizSummaryDto[]> =>
       request<QuizSummaryDto[]>(
         `/quizzes/document/${documentId}`,
@@ -509,5 +541,64 @@ export const api = {
 
     delete: (quizId: string, token: string): Promise<{ success: boolean }> =>
       request<{ success: boolean }>(`/quizzes/${quizId}`, { method: 'DELETE' }, token),
+  },
+
+  flashcards: {
+    generate: (
+      workspaceId: string,
+      data: GenerateFlashcardsRequestDto,
+      token: string,
+    ): Promise<FlashcardDeckSummaryDto> =>
+      request<FlashcardDeckSummaryDto>(
+        `/workspaces/${workspaceId}/flashcards/generate`,
+        { method: 'POST', body: JSON.stringify(data) },
+        token,
+      ),
+
+    createManual: (
+      workspaceId: string,
+      data: CreateFlashcardDeckDto,
+      token: string,
+    ): Promise<FlashcardDeckDetailDto> =>
+      request<FlashcardDeckDetailDto>(
+        `/workspaces/${workspaceId}/flashcards`,
+        { method: 'POST', body: JSON.stringify(data) },
+        token,
+      ),
+
+    listByWorkspace: (
+      workspaceId: string,
+      token: string,
+    ): Promise<FlashcardDeckSummaryDto[]> =>
+      request<FlashcardDeckSummaryDto[]>(
+        `/workspaces/${workspaceId}/flashcards`,
+        { method: 'GET' },
+        token,
+      ),
+
+    getDeck: (deckId: string, token: string): Promise<FlashcardDeckDetailDto> =>
+      request<FlashcardDeckDetailDto>(
+        `/flashcards/decks/${deckId}`,
+        { method: 'GET' },
+        token,
+      ),
+
+    reviewCard: (
+      cardId: string,
+      rating: FlashcardRating,
+      token: string,
+    ): Promise<FlashcardReviewResultDto> =>
+      request<FlashcardReviewResultDto>(
+        `/flashcards/items/${cardId}/review`,
+        { method: 'POST', body: JSON.stringify({ rating }) },
+        token,
+      ),
+
+    deleteDeck: (deckId: string, token: string): Promise<{ success: boolean }> =>
+      request<{ success: boolean }>(
+        `/flashcards/decks/${deckId}`,
+        { method: 'DELETE' },
+        token,
+      ),
   },
 };
