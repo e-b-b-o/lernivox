@@ -35,20 +35,35 @@ export class QuizGenerationProcessor extends WorkerHost {
       quizId,
       userId,
       documentId,
+      workspaceId,
       sourceChapter,
+      rangeScope,
       numQuestions,
       difficulty,
       questionTypes,
     } = job.data;
 
+    const scopeLabel = rangeScope?.summaryLabel || sourceChapter || 'ALL';
     this.logger.log(
-      `[Job ${job.id}] Generating quiz ${quizId} for document ${documentId} (chapter: ${sourceChapter || 'ALL'})`,
+      `[Job ${job.id}] Generating quiz ${quizId} for document ${documentId} (scope: ${scopeLabel})`,
     );
 
     try {
-      // 1. Fetch document and verify ownership
+      // 1. Fetch document and verify authorization (owner OR workspace member)
       const document = await this.prisma.document.findFirst({
-        where: { id: documentId, ownerId: userId },
+        where: {
+          id: documentId,
+          OR: [
+            { ownerId: userId },
+            {
+              workspace: {
+                members: {
+                  some: { userId },
+                },
+              },
+            },
+          ],
+        },
       });
 
       if (!document) {
@@ -70,15 +85,57 @@ export class QuizGenerationProcessor extends WorkerHost {
         };
       }
 
-      // 2. Fetch chunks and filter passages by chapter if specified
+      // 2. Fetch chunks and filter passages strictly by selected range
+      const chunkWhere: any = { documentId };
+
+      if (rangeScope && rangeScope.scopeType === 'CUSTOM_RANGE') {
+        if (
+          typeof rangeScope.startPage === 'number' &&
+          typeof rangeScope.endPage === 'number' &&
+          rangeScope.endPage >= rangeScope.startPage
+        ) {
+          chunkWhere.pageNumber = {
+            gte: rangeScope.startPage,
+            lte: rangeScope.endPage,
+          };
+        } else if (
+          typeof rangeScope.startChunkIndex === 'number' &&
+          typeof rangeScope.endChunkIndex === 'number' &&
+          rangeScope.endChunkIndex >= rangeScope.startChunkIndex
+        ) {
+          chunkWhere.chunkIndex = {
+            gte: rangeScope.startChunkIndex,
+            lte: rangeScope.endChunkIndex,
+          };
+        }
+      }
+
       const allChunks = await this.prisma.documentChunk.findMany({
-        where: { documentId },
+        where: chunkWhere,
         orderBy: { chunkIndex: 'asc' },
-        take: 50,
+        take: 100,
       });
 
       let relevantChunks = allChunks;
-      if (sourceChapter && sourceChapter.trim()) {
+
+      // Further chapter/section filtering if specified and not already page-filtered
+      if (
+        rangeScope?.scopeType === 'CUSTOM_RANGE' &&
+        rangeScope.resolvedSections &&
+        rangeScope.resolvedSections.length > 0 &&
+        !chunkWhere.pageNumber &&
+        !chunkWhere.chunkIndex
+      ) {
+        const sectionsLower = rangeScope.resolvedSections.map((s) => s.toLowerCase());
+        const filtered = allChunks.filter((c) => {
+          const ch = c.chapter ? c.chapter.toLowerCase() : '';
+          const sec = c.sectionTitle ? c.sectionTitle.toLowerCase() : '';
+          return sectionsLower.some((s) => ch.includes(s) || sec.includes(s));
+        });
+        if (filtered.length > 0) {
+          relevantChunks = filtered;
+        }
+      } else if (sourceChapter && sourceChapter.trim() && !rangeScope) {
         const chapterLower = sourceChapter.toLowerCase().trim();
         const filtered = allChunks.filter((c) => {
           const ch = c.chapter ? c.chapter.toLowerCase() : '';
@@ -90,7 +147,7 @@ export class QuizGenerationProcessor extends WorkerHost {
         }
       }
 
-      const selectedChunks = relevantChunks.slice(0, 25);
+      const selectedChunks = relevantChunks.slice(0, 30);
       const passages: SourcePassageForQuiz[] = selectedChunks.map((c) => ({
         chunkId: c.id,
         pageNumber: c.pageNumber,
@@ -104,7 +161,7 @@ export class QuizGenerationProcessor extends WorkerHost {
           where: { id: quizId },
           data: {
             status: 'FAILED',
-            errorMessage: 'No readable text content found in document for quiz generation.',
+            errorMessage: 'No readable text content found in the selected range for quiz generation.',
           },
         });
         return {
@@ -113,7 +170,7 @@ export class QuizGenerationProcessor extends WorkerHost {
           durationMs: Date.now() - startTime,
           error: {
             code: 'NO_PASSAGES',
-            message: 'No readable text content found.',
+            message: 'No readable text content found in selected range.',
           },
         };
       }
@@ -133,7 +190,7 @@ export class QuizGenerationProcessor extends WorkerHost {
       // 4. Generate questions via AI Core
       const genResult = await generateQuizQuestions(aiProvider, {
         documentTitle: document.title,
-        sourceChapter: sourceChapter || undefined,
+        sourceChapter: scopeLabel,
         passages,
         numQuestions: numQuestions || 5,
         difficulty: (difficulty as any) || 'INTERMEDIATE',

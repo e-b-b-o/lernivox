@@ -9,6 +9,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { ConfigService } from '@nestjs/config';
 import { Queue } from 'bullmq';
 import {
+  FailedQuestionDto,
   GenerateQuizJobPayload,
   JobType,
   QuestionResultDto,
@@ -61,17 +62,50 @@ export class QuizzesService {
     dto: CreateQuizDto,
   ): Promise<QuizSummaryDto> {
     const document = await this.prisma.document.findFirst({
-      where: { id: documentId, ownerId: userId },
+      where: {
+        id: documentId,
+        OR: [
+          { ownerId: userId },
+          { workspace: { members: { some: { userId } } } },
+        ],
+      },
+      include: { workspace: true },
     });
 
     if (!document) {
       throw new NotFoundException('Document not found or access denied.');
     }
 
+    const resolvedWorkspaceId =
+      dto.workspaceId || document.workspaceId || document.workspace?.id || null;
+
+    // Validate rangeScope if specified
+    if (dto.rangeScope && dto.rangeScope.scopeType === 'CUSTOM_RANGE') {
+      if (
+        typeof dto.rangeScope.startPage === 'number' &&
+        typeof dto.rangeScope.endPage === 'number' &&
+        dto.rangeScope.endPage < dto.rangeScope.startPage
+      ) {
+        throw new BadRequestException(
+          'Invalid range: ending page cannot be earlier than starting page.',
+        );
+      }
+      if (
+        typeof dto.rangeScope.startChunkIndex === 'number' &&
+        typeof dto.rangeScope.endChunkIndex === 'number' &&
+        dto.rangeScope.endChunkIndex < dto.rangeScope.startChunkIndex
+      ) {
+        throw new BadRequestException(
+          'Invalid range: ending section cannot be earlier than starting section.',
+        );
+      }
+    }
+
+    const scopeSummary = dto.rangeScope?.summaryLabel || dto.sourceChapter;
     const title =
       dto.title?.trim() ||
-      (dto.sourceChapter
-        ? `${document.title} — ${dto.sourceChapter}`
+      (scopeSummary
+        ? `${document.title} — ${scopeSummary}`
         : `${document.title} — Chapter Assessment`);
 
     const difficulty = (dto.difficulty || 'INTERMEDIATE') as QuizDifficulty;
@@ -83,11 +117,13 @@ export class QuizzesService {
       'SHORT_ANSWER',
     ];
 
-    // Create Quiz in database with GENERATING status
+    // Create Quiz in database with GENERATING status and permanent rangeScope
     const quiz = await this.prisma.quiz.create({
       data: {
         userId,
         documentId,
+        workspaceId: resolvedWorkspaceId,
+        rangeScope: dto.rangeScope || null,
         title,
         sourceChapter: dto.sourceChapter || null,
         difficulty: difficulty as any,
@@ -102,7 +138,9 @@ export class QuizzesService {
         quizId: quiz.id,
         userId,
         documentId,
+        workspaceId: resolvedWorkspaceId || undefined,
         sourceChapter: dto.sourceChapter,
+        rangeScope: dto.rangeScope,
         numQuestions,
         difficulty,
         questionTypes,
@@ -119,11 +157,13 @@ export class QuizzesService {
     return {
       id: quiz.id,
       userId: quiz.userId,
+      workspaceId: quiz.workspaceId,
       documentId: quiz.documentId,
       documentTitle: document.title,
       title: quiz.title,
       description: quiz.description,
       sourceChapter: quiz.sourceChapter,
+      rangeScope: quiz.rangeScope as any,
       difficulty: quiz.difficulty as QuizDifficulty,
       status: quiz.status as QuizStatus,
       errorMessage: quiz.errorMessage,
@@ -220,9 +260,76 @@ export class QuizzesService {
     });
   }
 
+  async getWorkspaceQuizzes(userId: string, workspaceId: string): Promise<QuizSummaryDto[]> {
+    const workspace = await this.prisma.workspace.findFirst({
+      where: {
+        id: workspaceId,
+        OR: [{ ownerId: userId }, { members: { some: { userId } } }],
+      },
+    });
+
+    if (!workspace) {
+      throw new NotFoundException('Workspace not found or access denied.');
+    }
+
+    const quizzes = await this.prisma.quiz.findMany({
+      where: {
+        OR: [
+          { workspaceId },
+          { document: { workspaceId } },
+        ],
+      },
+      include: {
+        document: { select: { title: true } },
+        questions: { select: { id: true } },
+        attempts: {
+          where: { userId }, // STRICT PRIVACY: only current user's attempts!
+          select: { score: true, isCompleted: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return quizzes.map((q) => {
+      const completedAttempts = q.attempts.filter((a) => a.isCompleted && a.score !== null);
+      const bestScore =
+        completedAttempts.length > 0
+          ? Math.max(...completedAttempts.map((a) => a.score ?? 0))
+          : null;
+
+      return {
+        id: q.id,
+        userId: q.userId,
+        workspaceId: q.workspaceId,
+        documentId: q.documentId,
+        documentTitle: q.document?.title,
+        title: q.title,
+        description: q.description,
+        sourceChapter: q.sourceChapter,
+        rangeScope: q.rangeScope as any,
+        difficulty: q.difficulty as QuizDifficulty,
+        status: q.status as QuizStatus,
+        errorMessage: q.errorMessage,
+        questionCount: q.questions.length,
+        bestScore,
+        attemptsCount: completedAttempts.length,
+        createdAt: q.createdAt.toISOString(),
+      };
+    });
+  }
+
   async getQuizById(userId: string, quizId: string): Promise<QuizDetailDto> {
     const quiz = await this.prisma.quiz.findFirst({
-      where: { id: quizId, userId },
+      where: {
+        id: quizId,
+        OR: [
+          { userId },
+          { workspace: { members: { some: { userId } } } },
+          { workspace: { ownerId: userId } },
+          { document: { ownerId: userId } },
+          { document: { workspace: { members: { some: { userId } } } } },
+        ],
+      },
       include: {
         document: { select: { title: true } },
         questions: {
@@ -257,9 +364,11 @@ export class QuizzesService {
 
     return {
       id: quiz.id,
+      workspaceId: quiz.workspaceId,
       title: quiz.title,
       description: quiz.description,
       sourceChapter: quiz.sourceChapter,
+      rangeScope: quiz.rangeScope as any,
       documentId: quiz.documentId,
       documentTitle: quiz.document?.title,
       difficulty: quiz.difficulty as QuizDifficulty,
@@ -272,7 +381,16 @@ export class QuizzesService {
 
   async startAttempt(userId: string, quizId: string): Promise<StartQuizAttemptResponseDto> {
     const quiz = await this.prisma.quiz.findFirst({
-      where: { id: quizId, userId },
+      where: {
+        id: quizId,
+        OR: [
+          { userId },
+          { workspace: { members: { some: { userId } } } },
+          { workspace: { ownerId: userId } },
+          { document: { ownerId: userId } },
+          { document: { workspace: { members: { some: { userId } } } } },
+        ],
+      },
       include: {
         questions: { select: { id: true } },
       },
@@ -549,9 +667,78 @@ export class QuizzesService {
     };
   }
 
+  async getFailedQuestions(userId: string, workspaceId: string): Promise<FailedQuestionDto[]> {
+    const workspace = await this.prisma.workspace.findFirst({
+      where: {
+        id: workspaceId,
+        OR: [{ ownerId: userId }, { members: { some: { userId } } }],
+      },
+    });
+
+    if (!workspace) {
+      throw new NotFoundException('Workspace not found or access denied.');
+    }
+
+    const failedAnswers = await this.prisma.quizAttemptAnswer.findMany({
+      where: {
+        attempt: {
+          userId,
+          isCompleted: true,
+          quiz: {
+            OR: [{ workspaceId }, { document: { workspaceId } }],
+          },
+        },
+        isCorrect: false,
+      },
+      include: {
+        question: {
+          include: {
+            quiz: { select: { id: true, title: true } },
+          },
+        },
+        attempt: { select: { completedAt: true } },
+      },
+      orderBy: { answeredAt: 'desc' },
+    });
+
+    const questionMap = new Map<string, FailedQuestionDto>();
+
+    for (const fa of failedAnswers) {
+      const q = fa.question;
+      if (!questionMap.has(q.id)) {
+        questionMap.set(q.id, {
+          questionId: q.id,
+          quizId: q.quiz.id,
+          quizTitle: q.quiz.title,
+          prompt: q.prompt,
+          questionType: q.questionType as any,
+          expectedAnswer: q.expectedAnswer,
+          submittedAnswer: fa.submittedAnswer,
+          feedback: fa.feedback,
+          explanation: q.explanation,
+          pageNumber: q.pageNumber,
+          sourceExcerpt: q.sourceExcerpt,
+          lastFailedAt: (fa.attempt.completedAt || fa.answeredAt).toISOString(),
+          failCount: 1,
+        });
+      } else {
+        const item = questionMap.get(q.id)!;
+        item.failCount += 1;
+      }
+    }
+
+    return Array.from(questionMap.values());
+  }
+
   async deleteQuiz(userId: string, quizId: string): Promise<{ success: boolean }> {
     const quiz = await this.prisma.quiz.findFirst({
-      where: { id: quizId, userId },
+      where: {
+        id: quizId,
+        OR: [
+          { userId },
+          { workspace: { ownerId: userId } },
+        ],
+      },
     });
 
     if (!quiz) {

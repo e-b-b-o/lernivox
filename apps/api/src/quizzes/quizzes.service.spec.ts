@@ -138,4 +138,80 @@ describe('QuizzesService', () => {
       BadRequestException,
     );
   });
+
+  it('generateQuiz rejects reversed page range with BadRequestException', async () => {
+    await expect(
+      service.generateQuiz('user-1', 'doc-1', {
+        rangeScope: {
+          scopeType: 'CUSTOM_RANGE',
+          rangeType: 'PAGE',
+          startPage: 40,
+          endPage: 20,
+          summaryLabel: 'Pages 40 to 20',
+        },
+      }),
+    ).rejects.toThrow(BadRequestException);
+  });
+
+  it('getWorkspaceQuizzes lists quizzes in workspace with user attempt isolation', async () => {
+    mockPrisma.workspace = {
+      findFirst: (jest.fn() as any).mockResolvedValue({ id: 'ws-1', ownerId: 'user-1' }),
+    };
+    mockPrisma.quiz.findMany.mockResolvedValue([
+      {
+        id: 'quiz-1',
+        userId: 'user-1',
+        workspaceId: 'ws-1',
+        documentId: 'doc-1',
+        title: 'Range Quiz',
+        description: null,
+        sourceChapter: null,
+        rangeScope: { scopeType: 'CUSTOM_RANGE', summaryLabel: 'Pages 10–20' },
+        difficulty: 'INTERMEDIATE',
+        status: 'READY',
+        errorMessage: null,
+        createdAt: new Date(),
+        document: { title: 'Molecular Biology' },
+        questions: [{ id: 'q-1' }, { id: 'q-2' }],
+        attempts: [{ score: 85, isCompleted: true }],
+      },
+    ]);
+
+    const result = await service.getWorkspaceQuizzes('user-1', 'ws-1');
+    expect(result.length).toBe(1);
+    expect(result[0]?.bestScore).toBe(85);
+    expect(result[0]?.attemptsCount).toBe(1);
+    expect(result[0]?.rangeScope?.summaryLabel).toBe('Pages 10–20');
+  });
+
+  it('getFailedQuestions aggregates distinct failed questions for student in workspace', async () => {
+    mockPrisma.workspace = {
+      findFirst: (jest.fn() as any).mockResolvedValue({ id: 'ws-1', ownerId: 'user-1' }),
+    };
+    mockPrisma.quizAttemptAnswer.findMany = (jest.fn() as any).mockResolvedValue([
+      {
+        id: 'ans-1',
+        submittedAnswer: 'Prophase',
+        feedback: 'Incorrect, interphase precedes mitosis',
+        answeredAt: new Date(),
+        attempt: { completedAt: new Date() },
+        question: {
+          id: 'q-1',
+          prompt: 'What phase precedes mitosis?',
+          expectedAnswer: 'Interphase',
+          explanation: 'Interphase is the preparatory phase.',
+          pageNumber: 15,
+          sourceExcerpt: 'Before entering mitosis...',
+          questionType: 'MULTIPLE_CHOICE',
+          quiz: { id: 'quiz-1', title: 'Range Quiz' },
+        },
+      },
+    ]);
+
+    const failed = await service.getFailedQuestions('user-1', 'ws-1');
+    expect(failed.length).toBe(1);
+    expect(failed[0]?.questionId).toBe('q-1');
+    expect(failed[0]?.failCount).toBe(1);
+    expect(failed[0]?.expectedAnswer).toBe('Interphase');
+  });
 });

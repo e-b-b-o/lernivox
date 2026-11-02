@@ -82,7 +82,13 @@ describe('QuizGenerationProcessor', () => {
 
     expect(result.success).toBe(true);
     expect(mockPrisma.document.findFirst).toHaveBeenCalledWith({
-      where: { id: 'doc-123', ownerId: 'user-1' },
+      where: {
+        id: 'doc-123',
+        OR: [
+          { ownerId: 'user-1' },
+          { workspace: { members: { some: { userId: 'user-1' } } } },
+        ],
+      },
     });
     expect(mockPrisma.quiz.update).toHaveBeenCalledWith({
       where: { id: 'quiz-abc' },

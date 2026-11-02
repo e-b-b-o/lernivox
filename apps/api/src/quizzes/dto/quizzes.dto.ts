@@ -49,14 +49,28 @@ export class CreateQuizDto implements CreateQuizRequestDto {
   sectionId?: string;
 
   @ApiPropertyOptional({
+    example: 'ws-uuid-123',
+    description: 'Workspace ID to attach the quiz to',
+  })
+  @IsOptional()
+  @IsString()
+  workspaceId?: string;
+
+  @ApiPropertyOptional({
+    description: 'Book range selection configuration (from, to, pages, or sections)',
+  })
+  @IsOptional()
+  rangeScope?: any;
+
+  @ApiPropertyOptional({
     example: 5,
-    description: 'Number of questions to generate (between 3 and 15)',
+    description: 'Number of questions to generate (between 3 and 20)',
     default: 5,
   })
   @IsOptional()
   @IsInt()
   @Min(3)
-  @Max(15)
+  @Max(20)
   numQuestions?: number;
 
   @ApiPropertyOptional({

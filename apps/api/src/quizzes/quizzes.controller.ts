@@ -55,6 +55,26 @@ export class QuizzesController {
     return this.quizzesService.getUserQuizzes(user.id);
   }
 
+  @Get('workspace/:workspaceId')
+  @ApiOperation({ summary: 'List all quizzes in a specific workspace' })
+  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
+  async getWorkspaceQuizzes(
+    @CurrentUser() user: UserDto,
+    @Param('workspaceId') workspaceId: string,
+  ): Promise<QuizSummaryDto[]> {
+    return this.quizzesService.getWorkspaceQuizzes(user.id, workspaceId);
+  }
+
+  @Get('workspace/:workspaceId/failed-questions')
+  @ApiOperation({ summary: 'List all failed questions in a workspace for the authenticated student' })
+  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
+  async getFailedQuestions(
+    @CurrentUser() user: UserDto,
+    @Param('workspaceId') workspaceId: string,
+  ) {
+    return this.quizzesService.getFailedQuestions(user.id, workspaceId);
+  }
+
   @Get('document/:documentId')
   @ApiOperation({ summary: 'List all quizzes associated with a specific document' })
   @ApiParam({ name: 'documentId', description: 'Document ID' })
