@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 import { QueueName } from '@lernivox/contracts';
 import { DocumentIngestionProcessor } from './processors/document-ingestion.processor';
+import { QuizGenerationProcessor } from './processors/quiz-generation.processor';
 import { WorkerHealthService } from './health/worker-health.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { StorageModule } from './storage/storage.module';
@@ -29,9 +30,12 @@ import { StorageModule } from './storage/storage.module';
     BullModule.registerQueue({
       name: QueueName.DOCUMENT_INGESTION,
     }),
+    BullModule.registerQueue({
+      name: QueueName.AI_ORCHESTRATION,
+    }),
     PrismaModule,
     StorageModule,
   ],
-  providers: [DocumentIngestionProcessor, WorkerHealthService],
+  providers: [DocumentIngestionProcessor, QuizGenerationProcessor, WorkerHealthService],
 })
 export class WorkerModule {}

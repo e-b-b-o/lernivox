@@ -74,9 +74,24 @@ export async function seedDatabase() {
 
   console.log(`📚 Course created: ${course.name} (${course.code})`);
 
-  // 3. Central Document Library
+  // 3. Central Document Library & Persistent Workspace
+  const workspace = await prisma.workspace.create({
+    data: {
+      name: 'Introduction to Algorithms (Excerpts)',
+      type: 'PERSONAL',
+      ownerId: user.id,
+      members: {
+        create: {
+          userId: user.id,
+          role: 'OWNER',
+        },
+      },
+    },
+  });
+
   const document = await prisma.document.create({
     data: {
+      workspaceId: workspace.id,
       ownerId: user.id,
       title: 'Introduction to Algorithms (Excerpts)',
       fileName: 'algorithms_excerpts.pdf',
