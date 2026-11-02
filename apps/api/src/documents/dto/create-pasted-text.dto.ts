@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
 import type { CreatePastedTextDto } from '@lernivox/contracts';
 
@@ -21,4 +21,7 @@ export class CreatePastedTextRequestDto implements CreatePastedTextDto {
   @MinLength(10, { message: 'Content must be at least 10 characters long' })
   @MaxLength(500000, { message: 'Content cannot exceed 500,000 characters' })
   content!: string;
+
+  @ApiPropertyOptional({ enum: ['PERSONAL', 'GROUP'], example: 'PERSONAL' })
+  workspaceType?: 'PERSONAL' | 'GROUP';
 }

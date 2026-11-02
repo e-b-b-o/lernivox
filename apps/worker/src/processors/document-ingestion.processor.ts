@@ -102,37 +102,53 @@ export class DocumentIngestionProcessor extends WorkerHost {
         data: { status: 'CHUNKING' },
       });
 
-      // Idempotency: delete any previously generated chunks for this document (e.g. on job retry)
-      await this.prisma.documentChunk.deleteMany({
-        where: { documentId },
-      });
+      // Check if existing chunks already exist in DB to allow resuming embedding
+      let chunks: Array<{ id: string; content: string; metadata?: any; tokenCount?: number | null }>;
+      const existingChunks =
+        typeof this.prisma.documentChunk.findMany === 'function'
+          ? await this.prisma.documentChunk.findMany({
+              where: { documentId },
+              orderBy: { chunkIndex: 'asc' },
+            })
+          : [];
 
-      const chunks = chunkText(documentId, rawText, {
-        chunkSize: 1000,
-        chunkOverlap: 200,
-      });
+      if (existingChunks.length > 0) {
+        this.logger.log(`[Job ${job.id}] Reusing ${existingChunks.length} existing chunks`);
+        chunks = existingChunks;
+      } else {
+        // Idempotency: delete any previously generated chunks for this document (e.g. on job retry)
+        await this.prisma.documentChunk.deleteMany({
+          where: { documentId },
+        });
 
-      if (chunks.length === 0) {
-        throw new Error('Failed to generate semantic chunks from document text');
+        const generatedChunks = chunkText(documentId, rawText, {
+          chunkSize: 1000,
+          chunkOverlap: 200,
+        });
+
+        if (generatedChunks.length === 0) {
+          throw new Error('Failed to generate semantic chunks from document text');
+        }
+
+        this.logger.log(`[Job ${job.id}] Generated ${generatedChunks.length} chunks`);
+
+        for (const chunk of generatedChunks) {
+          await this.prisma.documentChunk.create({
+            data: {
+              id: chunk.id,
+              documentId,
+              chunkIndex: chunk.metadata.chunkIndex,
+              content: chunk.content,
+              pageNumber: chunk.metadata.pageNumber ?? 1,
+              tokenCount: chunk.metadata.tokenCount,
+            },
+          });
+        }
+        chunks = generatedChunks;
       }
-
-      this.logger.log(`[Job ${job.id}] Generated ${chunks.length} chunks`);
 
       // Persist chunks
-      const totalTokens = chunks.reduce((sum, c) => sum + (c.metadata.tokenCount ?? 0), 0);
-
-      for (const chunk of chunks) {
-        await this.prisma.documentChunk.create({
-          data: {
-            id: chunk.id,
-            documentId,
-            chunkIndex: chunk.metadata.chunkIndex,
-            content: chunk.content,
-            pageNumber: chunk.metadata.pageNumber ?? 1,
-            tokenCount: chunk.metadata.tokenCount,
-          },
-        });
-      }
+      const totalTokens = chunks.reduce((sum, c) => sum + (c.tokenCount ?? c.metadata?.tokenCount ?? 0), 0);
 
       // 5. Mark status as EMBEDDING
       await this.prisma.document.update({
@@ -145,10 +161,27 @@ export class DocumentIngestionProcessor extends WorkerHost {
 
       this.logger.log(`[Job ${job.id}] Generating embeddings using provider: ${aiProvider.providerName}`);
 
+      // Check which chunks already have embeddings
+      const existingEmbeddings =
+        typeof this.prisma.chunkEmbedding?.findMany === 'function'
+          ? await this.prisma.chunkEmbedding.findMany({
+              where: {
+                chunkId: { in: chunks.map((c) => c.id) },
+              },
+              select: { chunkId: true },
+            })
+          : [];
+      const embeddedChunkIds = new Set(existingEmbeddings.map((e) => e.chunkId));
+      const chunksToEmbed = chunks.filter((c) => !embeddedChunkIds.has(c.id));
+
+      this.logger.log(
+        `[Job ${job.id}] Total chunks: ${chunks.length}, already embedded: ${embeddedChunkIds.size}, remaining to embed: ${chunksToEmbed.length}`,
+      );
+
       // Batch embeddings generation (up to 10 at a time)
       const batchSize = 10;
-      for (let i = 0; i < chunks.length; i += batchSize) {
-        const batch = chunks.slice(i, i + batchSize);
+      for (let i = 0; i < chunksToEmbed.length; i += batchSize) {
+        const batch = chunksToEmbed.slice(i, i + batchSize);
         const batchTexts = batch.map((c) => c.content);
         const embeddingResults = await aiProvider.generateEmbeddings(batchTexts);
 
@@ -241,6 +274,11 @@ export class DocumentIngestionProcessor extends WorkerHost {
       );
     }
 
-    return new GeminiProvider({ apiKey });
+    const embeddingModel = this.config.get<string>(
+      'GEMINI_EMBEDDING_MODEL',
+      'gemini-embedding-2',
+    );
+
+    return new GeminiProvider({ apiKey, embeddingModel });
   }
 }
