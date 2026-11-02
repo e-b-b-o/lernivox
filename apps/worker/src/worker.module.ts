@@ -4,6 +4,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { QueueName } from '@lernivox/contracts';
 import { DocumentIngestionProcessor } from './processors/document-ingestion.processor';
 import { QuizGenerationProcessor } from './processors/quiz-generation.processor';
+import { FlashcardGenerationProcessor } from './processors/flashcard-generation.processor';
 import { WorkerHealthService } from './health/worker-health.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { StorageModule } from './storage/storage.module';
@@ -36,6 +37,11 @@ import { StorageModule } from './storage/storage.module';
     PrismaModule,
     StorageModule,
   ],
-  providers: [DocumentIngestionProcessor, QuizGenerationProcessor, WorkerHealthService],
+  providers: [
+    DocumentIngestionProcessor,
+    QuizGenerationProcessor,
+    FlashcardGenerationProcessor,
+    WorkerHealthService,
+  ],
 })
 export class WorkerModule {}

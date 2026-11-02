@@ -12,4 +12,6 @@ export * from './primitives/quiz-prompts';
 export * from './primitives/quiz-validator';
 export * from './primitives/quiz-generator';
 export * from './primitives/quiz-grader';
+export * from './types/flashcard.types';
+export * from './primitives/flashcard-generator';
 

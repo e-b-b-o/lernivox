@@ -9,6 +9,7 @@ import { DocumentsModule } from './documents/documents.module';
 import { HealthModule } from './health/health.module';
 import { TutorModule } from './tutor/tutor.module';
 import { QuizzesModule } from './quizzes/quizzes.module';
+import { FlashcardsModule } from './flashcards/flashcards.module';
 import { WorkspacesModule } from './workspaces/workspaces.module';
 
 @Module({
@@ -35,6 +36,7 @@ import { WorkspacesModule } from './workspaces/workspaces.module';
     WorkspacesModule,
     TutorModule,
     QuizzesModule,
+    FlashcardsModule,
     HealthModule,
   ],
 })
