@@ -64,11 +64,12 @@ p, span, a, button, input, textarea, .font-sans {
   opacity: 1;
   line-height: 1;
   text-size-adjust: none;
+  -webkit-text-size-adjust: none;
   forced-color-adjust: none;
   transform-origin: 0 0;
-  user-select: text;
-  -webkit-user-select: text;
-  pointer-events: auto;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  pointer-events: auto !important;
   z-index: 2;
 }
 
@@ -79,31 +80,58 @@ p, span, a, button, input, textarea, .font-sans {
   white-space: pre;
   cursor: text;
   transform-origin: 0% 0%;
-  user-select: text;
-  -webkit-user-select: text;
-  pointer-events: auto;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  pointer-events: auto !important;
+}
+
+.textLayer span[role="img"] {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  cursor: default;
+}
+
+.textLayer .endOfContent {
+  display: block;
+  position: absolute;
+  inset: 100% 0 0;
+  z-index: -1;
+  cursor: default;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+.textLayer.selecting .endOfContent {
+  top: 0;
 }
 
 /* Lernivox Terracotta Selection Tint */
 .textLayer ::selection,
 .react-pdf__Page__textContent ::selection {
-  background: rgba(232, 114, 44, 0.25);
+  background: rgba(232, 114, 44, 0.25) !important;
   color: transparent;
 }
 
 .textLayer ::-moz-selection,
 .react-pdf__Page__textContent ::-moz-selection {
-  background: rgba(232, 114, 44, 0.25);
+  background: rgba(232, 114, 44, 0.25) !important;
   color: transparent;
+}
+
+/* General readable content selection support */
+.readable-content,
+.select-text {
+  user-select: text !important;
+  -webkit-user-select: text !important;
 }
 
 /* Prevent underlying canvas from intercepting click/drag text selection */
 .pdf-canvas,
 .react-pdf__Page__canvas,
 canvas.pdf-canvas {
-  user-select: none;
-  -webkit-user-select: none;
-  pointer-events: none;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  pointer-events: none !important;
 }
 
 
