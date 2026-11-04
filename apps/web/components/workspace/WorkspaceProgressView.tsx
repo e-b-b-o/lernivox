@@ -32,6 +32,7 @@ interface WorkspaceProgressViewProps {
   onReturnToBook: () => void;
   onTakeQuiz?: () => void;
   onStudyFlashcards?: () => void;
+  isCompactSidecar?: boolean;
 }
 
 export function WorkspaceProgressView({
@@ -40,6 +41,7 @@ export function WorkspaceProgressView({
   onReturnToBook,
   onTakeQuiz,
   onStudyFlashcards,
+  isCompactSidecar = false,
 }: WorkspaceProgressViewProps) {
   const { accessToken } = useAuth();
   const [progress, setProgress] = useState<WorkspaceProgressOverviewDto | null>(null);
@@ -159,41 +161,43 @@ export function WorkspaceProgressView({
   const readiness = getReadinessBadge(progress.overallStatus);
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#F4F0E5] p-4 sm:p-6 lg:p-8">
-      <div className="max-w-5xl mx-auto space-y-6">
+    <div className={`flex-1 overflow-y-auto bg-[#F4F0E5] ${isCompactSidecar ? 'p-3 sm:p-4' : 'p-4 sm:p-6 lg:p-8'}`}>
+      <div className={`mx-auto space-y-4 ${isCompactSidecar ? 'w-full' : 'max-w-5xl space-y-6'}`}>
         {/* Header Banner */}
-        <div className="bg-[#FAF8F4] border-[2px] border-[#1B3428] rounded-[28px] p-6 sm:p-7 shadow-[0_6px_0_0_#1B3428] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className={`bg-[#FAF8F4] border-[2px] border-[#1B3428] rounded-[24px] shadow-[0_4px_0_0_#1B3428] flex flex-col ${isCompactSidecar ? 'p-4 gap-3' : 'sm:flex-row items-start sm:items-center justify-between p-6 sm:p-7 gap-4'}`}>
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="px-2.5 py-0.5 rounded-full bg-[#E2EBD8] text-[#1B3428] text-xs font-bold border border-[#497E64]/30">
+              <span className="px-2 py-0.5 rounded-full bg-[#E2EBD8] text-[#1B3428] text-[10px] font-bold border border-[#497E64]/30">
                 Individual Learning Report
               </span>
-              <span className="text-xs text-[#14261D]/60 font-sans">
+              <span className="text-[11px] text-[#14261D]/60 font-sans truncate max-w-[160px]">
                 {document?.title || progress.documentTitle}
               </span>
             </div>
-            <h1 className="font-display font-black text-xl sm:text-2xl text-[#14261D] tracking-tight">
-              My Learning & Understanding Progress
+            <h1 className={`font-display font-black text-[#14261D] tracking-tight ${isCompactSidecar ? 'text-lg' : 'text-xl sm:text-2xl'}`}>
+              Learning & Mastery Progress
             </h1>
-            <p className="text-xs sm:text-sm text-[#14261D]/70 mt-1 max-w-xl">
+            <p className="text-xs text-[#14261D]/70 mt-0.5 leading-snug">
               Derived strictly from your verified reading positions, quiz attempts, and spaced-repetition flashcard ratings.
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5 shrink-0">
-            <button
-              type="button"
-              onClick={onReturnToBook}
-              className="px-4 py-2.5 rounded-full border-[1.5px] border-[#1B3428] bg-[#FAF8F4] font-display font-bold text-xs text-[#14261D] shadow-[0_2px_0_0_#1B3428] hover:-translate-y-0.5 transition-all flex items-center gap-1.5"
-            >
-              <BookOpen className="w-3.5 h-3.5 text-[#1B3428]" />
-              <span>Back to Reader</span>
-            </button>
+          <div className="flex items-center gap-2 shrink-0">
+            {!isCompactSidecar && (
+              <button
+                type="button"
+                onClick={onReturnToBook}
+                className="px-4 py-2 rounded-full border-[1.5px] border-[#1B3428] bg-[#FAF8F4] font-display font-bold text-xs text-[#14261D] shadow-[0_2px_0_0_#1B3428] hover:-translate-y-0.5 transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <BookOpen className="w-3.5 h-3.5 text-[#1B3428]" />
+                <span>Back to Reader</span>
+              </button>
+            )}
 
             <button
               type="button"
               onClick={fetchProgress}
-              className="p-2.5 rounded-full border-[1.5px] border-[#1B3428]/25 bg-[#FAF8F4] text-[#14261D] hover:bg-[#F4F0E5] shadow-2xs transition-all"
+              className="p-2 rounded-full border-[1.5px] border-[#1B3428]/25 bg-[#FAF8F4] text-[#14261D] hover:bg-[#F4F0E5] shadow-2xs transition-all cursor-pointer"
               title="Refresh Progress"
             >
               <RefreshCw className="w-3.5 h-3.5" />
@@ -203,24 +207,24 @@ export function WorkspaceProgressView({
 
         {/* Readiness Overview Card */}
         <div
-          className={`border-[2px] border-[#1B3428] rounded-3xl p-5 sm:p-6 shadow-[0_4px_0_0_#1B3428] ${readiness.color}`}
+          className={`border-[2px] border-[#1B3428] rounded-2xl p-4 sm:p-5 shadow-[0_3px_0_0_#1B3428] ${readiness.color}`}
         >
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3.5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
               <div
-                className={`w-12 h-12 rounded-2xl ${readiness.badgeColor} flex items-center justify-center shrink-0 shadow-xs`}
+                className={`w-10 h-10 rounded-xl ${readiness.badgeColor} flex items-center justify-center shrink-0 shadow-xs`}
               >
-                <TrendingUp className="w-6 h-6" />
+                <TrendingUp className="w-5 h-5" />
               </div>
               <div>
-                <span className="font-mono text-[10px] font-bold uppercase tracking-wider opacity-70 block mb-0.5">
+                <span className="font-mono text-[9px] font-bold uppercase tracking-wider opacity-70 block mb-0.5">
                   Current Mastery Status
                 </span>
-                <h2 className="font-display font-black text-lg sm:text-xl text-[#14261D]">
+                <h2 className="font-display font-black text-base sm:text-lg text-[#14261D]">
                   {readiness.title}
                 </h2>
-                <p className="text-xs text-[#14261D]/80 font-sans mt-0.5">
-                  Assessment and spaced-repetition status in &ldquo;{progress.documentTitle}&rdquo;
+                <p className="text-[11px] text-[#14261D]/80 font-sans">
+                  Status in &ldquo;{progress.documentTitle}&rdquo;
                 </p>
               </div>
             </div>
@@ -231,7 +235,7 @@ export function WorkspaceProgressView({
                 <button
                   type="button"
                   onClick={onTakeQuiz}
-                  className="px-4 py-2 rounded-full bg-[#1B3428] text-white font-display font-bold text-xs shadow-[0_2px_0_0_#0D1B14] hover:-translate-y-0.5 transition-all"
+                  className="px-3.5 py-1.5 rounded-full bg-[#1B3428] text-white font-display font-bold text-xs shadow-[0_2px_0_0_#0D1B14] hover:-translate-y-0.5 transition-all cursor-pointer"
                 >
                   Take Practice Quiz
                 </button>
@@ -240,7 +244,7 @@ export function WorkspaceProgressView({
                 <button
                   type="button"
                   onClick={onStudyFlashcards}
-                  className="px-4 py-2 rounded-full border-[1.5px] border-[#1B3428] bg-[#FAF8F4] text-[#14261D] font-display font-bold text-xs shadow-[0_2px_0_0_#1B3428] hover:-translate-y-0.5 transition-all"
+                  className="px-3.5 py-1.5 rounded-full border-[1.5px] border-[#1B3428] bg-[#FAF8F4] text-[#14261D] font-display font-bold text-xs shadow-[0_2px_0_0_#1B3428] hover:-translate-y-0.5 transition-all cursor-pointer"
                 >
                   Study Cards
                 </button>
@@ -250,7 +254,7 @@ export function WorkspaceProgressView({
         </div>
 
         {/* 3 Evidence Cards: Reading, Assessments, Flashcards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className={`grid gap-3 ${isCompactSidecar ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-3 gap-4'}`}>
           {/* Card 1: Reading Activity */}
           <div className="bg-[#FAF8F4] border-[2px] border-[#1B3428] rounded-3xl p-5 shadow-[0_4px_0_0_#1B3428] flex flex-col justify-between">
             <div>
