@@ -1,10 +1,10 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Job } from 'bullmq';
 import {
   GenerateQuizJobPayload,
   JobExecutionResult,
+  JobType,
   QueueName,
 } from '@lernivox/contracts';
 import {
@@ -16,21 +16,32 @@ import {
 } from '@lernivox/ai-core';
 import { PrismaService } from '../prisma/prisma.service';
 
-@Processor(QueueName.AI_ORCHESTRATION)
-export class QuizGenerationProcessor extends WorkerHost {
+@Injectable()
+export class QuizGenerationProcessor {
   private readonly logger = new Logger(QuizGenerationProcessor.name);
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
-  ) {
-    super();
-  }
+  ) {}
 
   async process(
     job: Job<GenerateQuizJobPayload, JobExecutionResult>,
   ): Promise<JobExecutionResult> {
     const startTime = Date.now();
+    if (!job.data?.quizId) {
+      this.logger.warn(`[Job ${job.id}] Missing quizId in job payload`);
+      return {
+        success: false,
+        jobId: job.id ?? 'unknown',
+        durationMs: 0,
+        error: {
+          code: 'INVALID_PAYLOAD',
+          message: 'Missing quizId in job payload.',
+        },
+      };
+    }
+
     const {
       quizId,
       userId,
@@ -280,11 +291,20 @@ export class QuizGenerationProcessor extends WorkerHost {
     } catch (error: any) {
       this.logger.error(`[Job ${job.id}] Quiz generation error: ${error.message}`, error.stack);
       try {
+        let userMessage = error.message || 'An unexpected error occurred during quiz generation.';
+        if (
+          userMessage.includes('429') ||
+          userMessage.includes('Resource has been exhausted') ||
+          userMessage.includes('rate limit') ||
+          userMessage.includes('RESOURCE_EXHAUSTED')
+        ) {
+          userMessage = 'AI provider quota or rate limit reached. Please wait a moment and retry.';
+        }
         await this.prisma.quiz.update({
           where: { id: quizId },
           data: {
             status: 'FAILED',
-            errorMessage: error.message || 'An unexpected error occurred during quiz generation.',
+            errorMessage: userMessage,
           },
         });
       } catch (dbErr) {

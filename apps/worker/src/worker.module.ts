@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 import { QueueName } from '@lernivox/contracts';
 import { DocumentIngestionProcessor } from './processors/document-ingestion.processor';
+import { AiOrchestrationProcessor } from './processors/ai-orchestration.processor';
 import { QuizGenerationProcessor } from './processors/quiz-generation.processor';
 import { FlashcardGenerationProcessor } from './processors/flashcard-generation.processor';
 import { WorkerHealthService } from './health/worker-health.service';
@@ -39,6 +40,7 @@ import { StorageModule } from './storage/storage.module';
   ],
   providers: [
     DocumentIngestionProcessor,
+    AiOrchestrationProcessor,
     QuizGenerationProcessor,
     FlashcardGenerationProcessor,
     WorkerHealthService,

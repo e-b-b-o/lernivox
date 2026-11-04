@@ -1,5 +1,4 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Job } from 'bullmq';
 import {
@@ -16,21 +15,32 @@ import {
 } from '@lernivox/ai-core';
 import { PrismaService } from '../prisma/prisma.service';
 
-@Processor(QueueName.AI_ORCHESTRATION)
-export class FlashcardGenerationProcessor extends WorkerHost {
+@Injectable()
+export class FlashcardGenerationProcessor {
   private readonly logger = new Logger(FlashcardGenerationProcessor.name);
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
-  ) {
-    super();
-  }
+  ) {}
 
   async process(
     job: Job<GenerateFlashcardsJobPayload, JobExecutionResult>,
   ): Promise<JobExecutionResult> {
     const startTime = Date.now();
+    if (!job.data?.deckId) {
+      this.logger.warn(`[Job ${job.id}] Missing deckId in flashcard job payload`);
+      return {
+        success: false,
+        jobId: job.id ?? 'unknown',
+        durationMs: 0,
+        error: {
+          code: 'INVALID_PAYLOAD',
+          message: 'Missing deckId in flashcard job payload.',
+        },
+      };
+    }
+
     const {
       deckId,
       userId,
