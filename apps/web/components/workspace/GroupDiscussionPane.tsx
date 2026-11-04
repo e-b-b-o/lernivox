@@ -271,7 +271,7 @@ export function GroupDiscussionPane({
                       </div>
 
                       <div
-                        className={`p-3 rounded-2xl text-xs leading-relaxed break-words shadow-2xs border ${
+                        className={`p-3 rounded-2xl text-xs leading-relaxed break-words shadow-2xs border select-text cursor-text ${
                           isMe
                             ? 'bg-[#1B3428] text-white border-[#1B3428] rounded-tr-xs'
                             : 'bg-[#F4F0E5] text-[#14261D] border-[#1B3428]/15 rounded-tl-xs'

@@ -111,8 +111,8 @@ export function RightWorkspacePanel(props: RightWorkspacePanelProps) {
 
   // GROUP WORKSPACE: Expanded Panel (Desktop or Mobile Drawer)
   const containerClasses = isMobileDrawer || hideHeader
-    ? 'w-full h-full bg-[#FAF8F4] flex flex-col select-none'
-    : 'hidden lg:flex w-[350px] xl:w-[410px] h-full bg-[#FAF8F4] border-l-[2px] border-[#1B3428]/15 flex-col shrink-0 select-none z-20 shadow-xs';
+    ? 'w-full h-full bg-[#FAF8F4] flex flex-col'
+    : 'hidden lg:flex w-[350px] xl:w-[410px] h-full bg-[#FAF8F4] border-l-[2px] border-[#1B3428]/15 flex-col shrink-0 z-20 shadow-xs';
 
   return (
     <aside className={containerClasses}>

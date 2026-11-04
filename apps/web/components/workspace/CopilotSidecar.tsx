@@ -105,6 +105,27 @@ export function CopilotSidecar({
     }
   }, [preparedQuestion, onClearPreparedQuestion]);
 
+  // Auto-expand input textarea up to a comfortable max height (160px) as text increases, resetting when empty
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    if (!inputText) {
+      textarea.style.height = '44px';
+      textarea.style.overflowY = 'hidden';
+      return;
+    }
+
+    textarea.style.height = 'auto';
+    const scrollHeight = textarea.scrollHeight;
+    const maxHeight = 160;
+    const minHeight = 44;
+    const targetHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight);
+
+    textarea.style.height = `${targetHeight}px`;
+    textarea.style.overflowY = scrollHeight > maxHeight ? 'auto' : 'hidden';
+  }, [inputText]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = inputText.trim();
@@ -128,8 +149,8 @@ export function CopilotSidecar({
 
   // 2. EXPANDED SIDECAR OR MOBILE SHEET OVERLAY
   const containerClasses = isMobileDrawer || hideHeader
-    ? 'w-full h-full bg-[#FAF8F4] flex flex-col select-none'
-    : 'hidden lg:flex w-[340px] xl:w-[380px] h-full bg-[#FAF8F4] border-l-[2px] border-[#1B3428]/15 flex-col shrink-0 select-none z-20';
+    ? 'w-full h-full bg-[#FAF8F4] flex flex-col'
+    : 'hidden lg:flex w-[340px] xl:w-[380px] h-full bg-[#FAF8F4] border-l-[2px] border-[#1B3428]/15 flex-col shrink-0 z-20';
 
   return (
     <aside className={containerClasses}>
@@ -279,7 +300,7 @@ export function CopilotSidecar({
       <div
         id="chat-scroll-container"
         ref={chatContainerRef}
-        className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#FAF8F4]"
+        className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#FAF8F4] select-text"
       >
         {loadingConv ? (
           <div className="p-12 text-center">
@@ -339,7 +360,7 @@ export function CopilotSidecar({
 
                 {/* Message Bubble */}
                 <div
-                  className={`rounded-2xl p-4 text-xs max-w-[95%] leading-relaxed ${
+                  className={`rounded-2xl p-4 text-xs max-w-[95%] leading-relaxed select-text cursor-text ${
                     isUser
                       ? 'bg-[#1B3428] text-white shadow-xs'
                       : 'bg-[#F4F0E5] text-[#14261D] border border-[#1B3428]/15 shadow-2xs'
@@ -471,7 +492,8 @@ export function CopilotSidecar({
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ask Lernivox AI about this chapter... (Enter to send)"
-              className="w-full bg-transparent resize-none px-2 py-1 text-sm font-sans text-[#14261D] placeholder:text-[#14261D]/60 focus:outline-none"
+              className="w-full bg-transparent resize-none px-2 py-1 text-sm font-sans text-[#14261D] placeholder:text-[#14261D]/60 focus:outline-none transition-[height] duration-100 ease-out select-text"
+              style={{ minHeight: '44px', maxHeight: '160px' }}
             />
             <div className="flex items-center justify-between pt-2 px-2 border-t border-[#1B3428]/10 text-xs font-mono">
               <span className="text-[#14261D]/75 font-medium">

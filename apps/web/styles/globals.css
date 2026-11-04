@@ -62,20 +62,20 @@ p, span, a, button, input, textarea, .font-sans {
   bottom: 0;
   overflow: clip;
   opacity: 1;
-  line-height: 1;
   text-size-adjust: none;
   -webkit-text-size-adjust: none;
   forced-color-adjust: none;
-  transform-origin: 0 0;
   user-select: text !important;
   -webkit-user-select: text !important;
   pointer-events: auto !important;
   z-index: 2;
 }
 
+.textLayer span,
 .textLayer :is(span, br),
 .react-pdf__Page__textContent :is(span, br) {
-  color: transparent;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
   position: absolute;
   white-space: pre;
   cursor: text;
@@ -108,14 +108,16 @@ p, span, a, button, input, textarea, .font-sans {
 /* Lernivox Terracotta Selection Tint */
 .textLayer ::selection,
 .react-pdf__Page__textContent ::selection {
-  background: rgba(232, 114, 44, 0.25) !important;
-  color: transparent;
+  background: rgba(232, 114, 44, 0.28) !important;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
 }
 
 .textLayer ::-moz-selection,
 .react-pdf__Page__textContent ::-moz-selection {
-  background: rgba(232, 114, 44, 0.25) !important;
-  color: transparent;
+  background: rgba(232, 114, 44, 0.28) !important;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
 }
 
 /* General readable content selection support */
