@@ -89,3 +89,44 @@ export interface GenerateFlashcardsJobPayload {
   rangeScope?: QuizRangeScopeDto;
   cardCount: number;
 }
+
+export type FlashcardFocusType =
+  | 'MIXED'
+  | 'DEFINITIONS'
+  | 'PROBLEM_SOLVING'
+  | 'DEEP_UNDERSTANDING';
+
+export interface ProposedFlashcardItemDto {
+  front: string;
+  back: string;
+  hint?: string | null;
+  pageNumber?: number | null;
+  chapter?: string | null;
+  sourceChunkId?: string | null;
+}
+
+export interface GenerateFlashcardsPreviewRequestDto {
+  workspaceId: string;
+  documentId?: string;
+  title?: string;
+  rangeScope?: QuizRangeScopeDto;
+  cardCount?: number;
+  focus?: FlashcardFocusType;
+}
+
+export interface GenerateFlashcardsPreviewResponseDto {
+  title: string;
+  sourceRange?: QuizRangeScopeDto | null;
+  cards: ProposedFlashcardItemDto[];
+}
+
+export interface UpdateFlashcardDeckDto {
+  title?: string;
+  description?: string;
+}
+
+export interface UpdateFlashcardItemDto {
+  front?: string;
+  back?: string;
+  hint?: string | null;
+}

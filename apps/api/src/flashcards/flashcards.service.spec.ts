@@ -30,6 +30,7 @@ describe('FlashcardsService', () => {
         }),
         findMany: (jest.fn() as any).mockResolvedValue([]),
         findFirst: (jest.fn() as any).mockResolvedValue(null),
+        update: (jest.fn() as any).mockResolvedValue({ id: 'deck-1', title: 'New Deck Title' }),
         delete: (jest.fn() as any).mockResolvedValue({ id: 'deck-1' }),
       },
       flashcardItem: {
@@ -39,7 +40,27 @@ describe('FlashcardsService', () => {
           deckId: 'deck-1',
           front: 'What is ATP?',
           back: 'Adenosine triphosphate, energy currency of the cell',
+          reviews: [],
         }),
+        update: (jest.fn() as any).mockResolvedValue({
+          id: 'card-1',
+          deckId: 'deck-1',
+          front: 'What is ATP? (Updated)',
+          back: 'Adenosine triphosphate',
+          hint: 'Energy currency',
+        }),
+        delete: (jest.fn() as any).mockResolvedValue({ id: 'card-1' }),
+      },
+      documentChunk: {
+        findMany: (jest.fn() as any).mockResolvedValue([
+          {
+            id: 'chunk-1',
+            pageNumber: 10,
+            chapter: 'Chapter 1',
+            sectionTitle: 'Cell Energy',
+            content: 'Adenosine triphosphate (ATP) is the principal molecule for storing and transferring energy in cells.',
+          },
+        ]),
       },
       userFlashcardReview: {
         findUnique: (jest.fn() as any).mockResolvedValue(null),
@@ -137,6 +158,89 @@ describe('FlashcardsService', () => {
       expect(result.cardId).toBe('card-1');
       expect(result.rating).toBe(3);
       expect(mockPrisma.userFlashcardReview.upsert).toHaveBeenCalled();
+    });
+
+    it('generatePreview returns proposed cards WITHOUT saving to database', async () => {
+      const preview = await service.generatePreview('user-1', 'ws-1', {
+        workspaceId: 'ws-1',
+        cardCount: 5,
+      });
+
+      expect(preview.cards.length).toBeGreaterThan(0);
+      expect(preview.title).toBeDefined();
+      // Must NOT save deck or items to database during preview
+      expect(mockPrisma.flashcardDeck.create).not.toHaveBeenCalled();
+    });
+
+    it('getWorkspaceDecks strictly isolates decks by createdById for group privacy', async () => {
+      await service.getWorkspaceDecks('user-student-2', 'ws-1');
+
+      expect(mockPrisma.flashcardDeck.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            workspaceId: 'ws-1',
+            createdById: 'user-student-2',
+          },
+        }),
+      );
+    });
+
+    it('updateDeck allows creator to rename title and description', async () => {
+      const now = new Date();
+      mockPrisma.flashcardDeck.findFirst
+        .mockResolvedValueOnce({
+          id: 'deck-1',
+          createdById: 'user-1',
+          title: 'Old Title',
+          createdAt: now,
+          updatedAt: now,
+          cards: [],
+        })
+        .mockResolvedValueOnce({
+          id: 'deck-1',
+          createdById: 'user-1',
+          title: 'New Deck Title',
+          createdAt: now,
+          updatedAt: now,
+          cards: [],
+        });
+
+      await service.updateDeck('user-1', 'deck-1', { title: 'New Deck Title' });
+
+      expect(mockPrisma.flashcardDeck.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'deck-1' },
+          data: expect.objectContaining({ title: 'New Deck Title' }),
+        }),
+      );
+    });
+
+    it('updateCard allows creator to edit front, back, and hint', async () => {
+      const updated = await service.updateCard('user-1', 'card-1', {
+        front: 'What is ATP? (Updated)',
+        back: 'Adenosine triphosphate',
+        hint: 'Energy currency',
+      });
+
+      expect(updated.front).toBe('What is ATP? (Updated)');
+      expect(mockPrisma.flashcardItem.update).toHaveBeenCalled();
+    });
+
+    it('deleteCard allows creator to remove card', async () => {
+      const res = await service.deleteCard('user-1', 'card-1');
+      expect(res.success).toBe(true);
+      expect(mockPrisma.flashcardItem.delete).toHaveBeenCalledWith({ where: { id: 'card-1' } });
+    });
+
+    it('deleteDeck enforces creator authorization', async () => {
+      mockPrisma.flashcardDeck.findFirst.mockResolvedValueOnce({
+        id: 'deck-1',
+        createdById: 'user-1',
+      });
+
+      const res = await service.deleteDeck('user-1', 'deck-1');
+      expect(res.success).toBe(true);
+      expect(mockPrisma.flashcardDeck.delete).toHaveBeenCalledWith({ where: { id: 'deck-1' } });
     });
   });
 });

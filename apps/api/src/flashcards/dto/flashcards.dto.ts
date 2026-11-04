@@ -110,9 +110,81 @@ export class GenerateFlashcardsDto implements GenerateFlashcardsRequestDto {
   @ApiPropertyOptional({ example: 10, default: 10 })
   @IsOptional()
   @IsInt()
-  @Min(3)
-  @Max(25)
+  @Min(5)
+  @Max(30)
   cardCount?: number;
+
+  @ApiPropertyOptional({ example: 'MIXED', enum: ['MIXED', 'DEFINITIONS', 'PROBLEM_SOLVING', 'DEEP_UNDERSTANDING'] })
+  @IsOptional()
+  @IsString()
+  focus?: 'MIXED' | 'DEFINITIONS' | 'PROBLEM_SOLVING' | 'DEEP_UNDERSTANDING';
+}
+
+export class GenerateFlashcardsPreviewDto {
+  @ApiProperty({ example: 'ws-uuid-123' })
+  @IsString()
+  @IsNotEmpty()
+  workspaceId!: string;
+
+  @ApiPropertyOptional({ example: 'doc-uuid-456' })
+  @IsOptional()
+  @IsString()
+  documentId?: string;
+
+  @ApiPropertyOptional({ example: 'Chapter 2 Flashcards' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(150)
+  title?: string;
+
+  @ApiPropertyOptional({ description: 'Book range selection configuration' })
+  @IsOptional()
+  rangeScope?: any;
+
+  @ApiPropertyOptional({ example: 10, default: 10 })
+  @IsOptional()
+  @IsInt()
+  @Min(5)
+  @Max(30)
+  cardCount?: number;
+
+  @ApiPropertyOptional({ example: 'MIXED', enum: ['MIXED', 'DEFINITIONS', 'PROBLEM_SOLVING', 'DEEP_UNDERSTANDING'] })
+  @IsOptional()
+  @IsString()
+  focus?: 'MIXED' | 'DEFINITIONS' | 'PROBLEM_SOLVING' | 'DEEP_UNDERSTANDING';
+}
+
+export class UpdateFlashcardDeckDto {
+  @ApiPropertyOptional({ example: 'Operating Systems — Final Review' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(150)
+  title?: string;
+
+  @ApiPropertyOptional({ example: 'Comprehensive deck covering memory and processes' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  description?: string;
+}
+
+export class UpdateFlashcardItemDto {
+  @ApiPropertyOptional({ example: 'What is a system call?' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  front?: string;
+
+  @ApiPropertyOptional({ example: 'A mechanism used by programs to request OS kernel services.' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  back?: string;
+
+  @ApiPropertyOptional({ example: 'Kernel request mechanism' })
+  @IsOptional()
+  @IsString()
+  hint?: string;
 }
 
 export class ReviewFlashcardDto implements IReview {

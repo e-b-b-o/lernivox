@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -19,7 +20,9 @@ import {
 import type {
   FlashcardDeckDetailDto,
   FlashcardDeckSummaryDto,
+  FlashcardItemDto,
   FlashcardReviewResultDto,
+  GenerateFlashcardsPreviewResponseDto,
   UserDto,
 } from '@lernivox/contracts';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -28,7 +31,10 @@ import { FlashcardsService } from './flashcards.service';
 import {
   CreateFlashcardDeckDto,
   GenerateFlashcardsDto,
+  GenerateFlashcardsPreviewDto,
   ReviewFlashcardDto,
+  UpdateFlashcardDeckDto,
+  UpdateFlashcardItemDto,
 } from './dto/flashcards.dto';
 
 @ApiTags('Flashcards')
@@ -37,6 +43,18 @@ import {
 @ApiBearerAuth()
 export class FlashcardsController {
   constructor(private readonly flashcardsService: FlashcardsService) {}
+
+  @Post('workspaces/:workspaceId/flashcards/generate-preview')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Generate flashcard preview before saving to deck' })
+  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
+  async generatePreview(
+    @CurrentUser() user: UserDto,
+    @Param('workspaceId') workspaceId: string,
+    @Body() dto: GenerateFlashcardsPreviewDto,
+  ): Promise<GenerateFlashcardsPreviewResponseDto> {
+    return this.flashcardsService.generatePreview(user.id, workspaceId, dto);
+  }
 
   @Post('workspaces/:workspaceId/flashcards/generate')
   @HttpCode(HttpStatus.ACCEPTED)
@@ -82,6 +100,50 @@ export class FlashcardsController {
     return this.flashcardsService.getDeckById(user.id, deckId);
   }
 
+  @Patch('flashcards/decks/:deckId')
+  @ApiOperation({ summary: 'Update or rename a flashcard deck (creator only)' })
+  @ApiParam({ name: 'deckId', description: 'Flashcard Deck ID' })
+  async updateDeck(
+    @CurrentUser() user: UserDto,
+    @Param('deckId') deckId: string,
+    @Body() dto: UpdateFlashcardDeckDto,
+  ): Promise<FlashcardDeckDetailDto> {
+    return this.flashcardsService.updateDeck(user.id, deckId, dto);
+  }
+
+  @Delete('flashcards/decks/:deckId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete a flashcard deck (creator only)' })
+  @ApiParam({ name: 'deckId', description: 'Flashcard Deck ID' })
+  async deleteDeck(
+    @CurrentUser() user: UserDto,
+    @Param('deckId') deckId: string,
+  ): Promise<{ success: boolean }> {
+    return this.flashcardsService.deleteDeck(user.id, deckId);
+  }
+
+  @Patch('flashcards/items/:cardId')
+  @ApiOperation({ summary: 'Update an individual flashcard item (creator only)' })
+  @ApiParam({ name: 'cardId', description: 'Flashcard Item ID' })
+  async updateCard(
+    @CurrentUser() user: UserDto,
+    @Param('cardId') cardId: string,
+    @Body() dto: UpdateFlashcardItemDto,
+  ): Promise<FlashcardItemDto> {
+    return this.flashcardsService.updateCard(user.id, cardId, dto);
+  }
+
+  @Delete('flashcards/items/:cardId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete an individual flashcard item (creator only)' })
+  @ApiParam({ name: 'cardId', description: 'Flashcard Item ID' })
+  async deleteCard(
+    @CurrentUser() user: UserDto,
+    @Param('cardId') cardId: string,
+  ): Promise<{ success: boolean }> {
+    return this.flashcardsService.deleteCard(user.id, cardId);
+  }
+
   @Post('flashcards/items/:cardId/review')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Submit an SM-2 recall rating for a flashcard' })
@@ -92,16 +154,5 @@ export class FlashcardsController {
     @Body() dto: ReviewFlashcardDto,
   ): Promise<FlashcardReviewResultDto> {
     return this.flashcardsService.reviewCard(user.id, cardId, dto.rating);
-  }
-
-  @Delete('flashcards/decks/:deckId')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Delete a flashcard deck (creator or owner only)' })
-  @ApiParam({ name: 'deckId', description: 'Flashcard Deck ID' })
-  async deleteDeck(
-    @CurrentUser() user: UserDto,
-    @Param('deckId') deckId: string,
-  ): Promise<{ success: boolean }> {
-    return this.flashcardsService.deleteDeck(user.id, deckId);
   }
 }

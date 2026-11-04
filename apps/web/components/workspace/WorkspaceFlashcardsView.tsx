@@ -14,6 +14,7 @@ import {
   Loader2,
   Trash2,
   RotateCcw,
+  Edit2,
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
@@ -98,6 +99,25 @@ export function WorkspaceFlashcardsView({
     }
   };
 
+  const handleRenameDeck = async (deckId: string, currentTitle: string) => {
+    if (!accessToken) return;
+    const newTitle = prompt('Enter a new title for this flashcard deck:', currentTitle);
+    if (!newTitle || !newTitle.trim() || newTitle.trim() === currentTitle) return;
+
+    try {
+      const updated = await api.flashcards.updateDeck(
+        deckId,
+        { title: newTitle.trim() },
+        accessToken,
+      );
+      setDecks((prev) =>
+        prev.map((d) => (d.id === deckId ? { ...d, title: updated.title } : d)),
+      );
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Failed to rename deck');
+    }
+  };
+
   // If a deck is actively being studied, show the runner
   if (activeDeck) {
     return (
@@ -124,11 +144,6 @@ export function WorkspaceFlashcardsView({
         {/* Header Banner */}
         <div className={`bg-[#FAF8F4] border-[2px] border-[#1B3428] rounded-[24px] shadow-[0_4px_0_0_#1B3428] flex flex-col ${isCompactSidecar ? 'p-4 gap-3' : 'sm:flex-row items-start sm:items-center justify-between p-6 sm:p-7 gap-4'}`}>
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-2 py-0.5 rounded-full bg-[#E2EBD8] text-[#1B3428] text-[10px] font-bold border border-[#497E64]/30">
-                Active Recall Decks
-              </span>
-            </div>
             <h1 className={`font-display font-black text-[#14261D] tracking-tight ${isCompactSidecar ? 'text-lg' : 'text-xl sm:text-2xl'}`}>
               Spaced Repetition Flashcards
             </h1>
@@ -270,6 +285,15 @@ export function WorkspaceFlashcardsView({
                     </div>
 
                     <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handleRenameDeck(deck.id, deck.title)}
+                        className="p-1.5 rounded-full border border-[#1B3428]/15 text-[#14261D]/50 hover:text-[#E8722C] hover:border-[#E8722C]/40 transition-colors cursor-pointer"
+                        title="Rename Deck"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+
                       <button
                         type="button"
                         onClick={() => handleDeleteDeck(deck.id, deck.title)}

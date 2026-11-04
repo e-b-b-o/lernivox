@@ -4,7 +4,9 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import {
@@ -14,13 +16,24 @@ import {
   FlashcardRating,
   FlashcardReviewResultDto,
   GenerateFlashcardsJobPayload,
+  GenerateFlashcardsPreviewResponseDto,
   JobType,
   QueueName,
 } from '@lernivox/contracts';
+import {
+  generateFlashcards,
+  GeminiProvider,
+  MockAiProvider,
+  type AiProvider,
+  type SourcePassageForFlashcard,
+} from '@lernivox/ai-core';
 import { PrismaService } from '../common/prisma/prisma.service';
 import {
   CreateFlashcardDeckDto,
   GenerateFlashcardsDto,
+  GenerateFlashcardsPreviewDto,
+  UpdateFlashcardDeckDto,
+  UpdateFlashcardItemDto,
 } from './dto/flashcards.dto';
 
 export function computeSm2Review(
@@ -75,12 +88,165 @@ export function computeSm2Review(
 @Injectable()
 export class FlashcardsService {
   private readonly logger = new Logger(FlashcardsService.name);
+  private readonly aiProvider: AiProvider;
 
   constructor(
     private readonly prisma: PrismaService,
     @InjectQueue(QueueName.AI_ORCHESTRATION)
     private readonly aiQueue: Queue<GenerateFlashcardsJobPayload>,
-  ) {}
+    @Optional() private readonly config?: ConfigService,
+  ) {
+    const aiProviderType = this.config?.get<string>('AI_PROVIDER', 'gemini');
+    const geminiApiKey = this.config?.get<string>('GEMINI_API_KEY');
+
+    if (aiProviderType === 'mock' || !geminiApiKey) {
+      this.aiProvider = new MockAiProvider();
+    } else {
+      const model = this.config?.get<string>('GEMINI_MODEL', 'gemini-2.5-flash');
+      this.aiProvider = new GeminiProvider({ apiKey: geminiApiKey, defaultModel: model });
+    }
+  }
+
+  async generatePreview(
+    userId: string,
+    workspaceId: string,
+    dto: GenerateFlashcardsPreviewDto,
+  ): Promise<GenerateFlashcardsPreviewResponseDto> {
+    const workspace = await this.prisma.workspace.findFirst({
+      where: {
+        id: workspaceId,
+        OR: [{ ownerId: userId }, { members: { some: { userId } } }],
+      },
+      include: { document: true },
+    });
+
+    if (!workspace) {
+      throw new NotFoundException('Workspace not found or access denied.');
+    }
+
+    const documentId = dto.documentId || workspace.document?.id;
+    if (!documentId) {
+      throw new BadRequestException('No document associated with this workspace.');
+    }
+
+    // Validate rangeScope if specified
+    if (dto.rangeScope && dto.rangeScope.scopeType === 'CUSTOM_RANGE') {
+      if (
+        typeof dto.rangeScope.startPage === 'number' &&
+        typeof dto.rangeScope.endPage === 'number' &&
+        dto.rangeScope.endPage < dto.rangeScope.startPage
+      ) {
+        throw new BadRequestException(
+          'Invalid range: ending page cannot be earlier than starting page.',
+        );
+      }
+      if (
+        typeof dto.rangeScope.startChunkIndex === 'number' &&
+        typeof dto.rangeScope.endChunkIndex === 'number' &&
+        dto.rangeScope.endChunkIndex < dto.rangeScope.startChunkIndex
+      ) {
+        throw new BadRequestException(
+          'Invalid range: ending section cannot be earlier than starting section.',
+        );
+      }
+    }
+
+    const scopeSummary = dto.rangeScope?.summaryLabel || 'Complete Material';
+    const title =
+      dto.title?.trim() ||
+      `${workspace.document?.title || workspace.name} — ${scopeSummary}`;
+
+    // Fetch chunks according to range
+    const chunkWhere: any = { documentId };
+
+    if (dto.rangeScope && dto.rangeScope.scopeType === 'CUSTOM_RANGE') {
+      if (
+        typeof dto.rangeScope.startPage === 'number' &&
+        typeof dto.rangeScope.endPage === 'number' &&
+        dto.rangeScope.endPage >= dto.rangeScope.startPage
+      ) {
+        chunkWhere.pageNumber = {
+          gte: dto.rangeScope.startPage,
+          lte: dto.rangeScope.endPage,
+        };
+      } else if (
+        typeof dto.rangeScope.startChunkIndex === 'number' &&
+        typeof dto.rangeScope.endChunkIndex === 'number' &&
+        dto.rangeScope.endChunkIndex >= dto.rangeScope.startChunkIndex
+      ) {
+        chunkWhere.chunkIndex = {
+          gte: dto.rangeScope.startChunkIndex,
+          lte: dto.rangeScope.endChunkIndex,
+        };
+      }
+    }
+
+    const allChunks = await this.prisma.documentChunk.findMany({
+      where: chunkWhere,
+      orderBy: { chunkIndex: 'asc' },
+      take: 100,
+    });
+
+    let relevantChunks = allChunks;
+
+    if (
+      dto.rangeScope?.scopeType === 'CUSTOM_RANGE' &&
+      dto.rangeScope.resolvedSections &&
+      dto.rangeScope.resolvedSections.length > 0 &&
+      !chunkWhere.pageNumber &&
+      !chunkWhere.chunkIndex
+    ) {
+      const sectionsLower = dto.rangeScope.resolvedSections.map((s: string) => s.toLowerCase());
+      const filtered = allChunks.filter((c: any) => {
+        const ch = c.chapter ? c.chapter.toLowerCase() : '';
+        const sec = c.sectionTitle ? c.sectionTitle.toLowerCase() : '';
+        return sectionsLower.some((s: string) => ch.includes(s) || sec.includes(s));
+      });
+      if (filtered.length > 0) {
+        relevantChunks = filtered;
+      }
+    }
+
+    const selectedChunks = relevantChunks.slice(0, 30);
+    const passages: SourcePassageForFlashcard[] = selectedChunks.map((c) => ({
+      chunkId: c.id,
+      pageNumber: c.pageNumber,
+      chapter: c.chapter,
+      sectionTitle: c.sectionTitle,
+      content: c.content,
+    }));
+
+    if (passages.length === 0) {
+      throw new BadRequestException('No readable text passages found in selected range.');
+    }
+
+    const cardCount = Math.min(Math.max(dto.cardCount || 10, 5), 30);
+
+    const genResult = await generateFlashcards(this.aiProvider, {
+      documentTitle: workspace.document?.title || workspace.name,
+      sourceRangeSummary: scopeSummary,
+      passages,
+      cardCount,
+      focus: dto.focus,
+    });
+
+    if (!genResult.success || genResult.cards.length === 0) {
+      throw new BadRequestException(genResult.error || 'Failed to generate flashcards from material.');
+    }
+
+    return {
+      title,
+      sourceRange: dto.rangeScope || null,
+      cards: genResult.cards.map((c) => ({
+        front: c.front,
+        back: c.back,
+        hint: c.hint || null,
+        pageNumber: c.pageNumber || null,
+        chapter: c.chapter || null,
+        sourceChunkId: c.sourceChunkId || null,
+      })),
+    };
+  }
 
   async generateDeck(
     userId: string,
@@ -272,8 +438,9 @@ export class FlashcardsService {
       throw new NotFoundException('Workspace not found or access denied.');
     }
 
+    // STRICT MULTI-USER PRIVACY: Flashcards are strictly private per user in both Personal and Group workspaces
     const decks = await this.prisma.flashcardDeck.findMany({
-      where: { workspaceId },
+      where: { workspaceId, createdById: userId },
       include: {
         document: { select: { title: true } },
         cards: {
@@ -320,6 +487,7 @@ export class FlashcardsService {
     const deck = await this.prisma.flashcardDeck.findFirst({
       where: {
         id: deckId,
+        createdById: userId, // STRICT MULTI-USER PRIVACY
         workspace: {
           OR: [{ ownerId: userId }, { members: { some: { userId } } }],
         },
@@ -344,7 +512,7 @@ export class FlashcardsService {
     const now = new Date();
     let dueCardCount = 0;
 
-    const cards: FlashcardItemDto[] = deck.cards.map((c) => {
+    const cards: FlashcardItemDto[] = deck.cards.map((c: any) => {
       const review = c.reviews[0];
       const isDue = !review || !review.nextReviewAt || review.nextReviewAt <= now;
       if (isDue) dueCardCount++;
@@ -384,6 +552,99 @@ export class FlashcardsService {
     };
   }
 
+  async updateDeck(
+    userId: string,
+    deckId: string,
+    dto: UpdateFlashcardDeckDto,
+  ): Promise<FlashcardDeckDetailDto> {
+    const deck = await this.prisma.flashcardDeck.findFirst({
+      where: { id: deckId, createdById: userId },
+    });
+
+    if (!deck) {
+      throw new NotFoundException('Flashcard deck not found or access denied.');
+    }
+
+    await this.prisma.flashcardDeck.update({
+      where: { id: deckId },
+      data: {
+        ...(dto.title !== undefined ? { title: dto.title.trim() } : {}),
+        ...(dto.description !== undefined ? { description: dto.description.trim() || null } : {}),
+        updatedAt: new Date(),
+      },
+    });
+
+    return this.getDeckById(userId, deckId);
+  }
+
+  async updateCard(
+    userId: string,
+    cardId: string,
+    dto: UpdateFlashcardItemDto,
+  ): Promise<FlashcardItemDto> {
+    const card = await this.prisma.flashcardItem.findFirst({
+      where: {
+        id: cardId,
+        deck: { createdById: userId },
+      },
+      include: {
+        reviews: { where: { userId } },
+      },
+    });
+
+    if (!card) {
+      throw new NotFoundException('Flashcard not found or access denied.');
+    }
+
+    const updated = await this.prisma.flashcardItem.update({
+      where: { id: cardId },
+      data: {
+        ...(dto.front !== undefined ? { front: dto.front.trim() } : {}),
+        ...(dto.back !== undefined ? { back: dto.back.trim() } : {}),
+        ...(dto.hint !== undefined ? { hint: dto.hint.trim() || null } : {}),
+        updatedAt: new Date(),
+      },
+    });
+
+    const review = card.reviews[0];
+
+    return {
+      id: updated.id,
+      deckId: updated.deckId,
+      front: updated.front,
+      back: updated.back,
+      hint: updated.hint,
+      pageNumber: updated.pageNumber,
+      chapter: updated.chapter,
+      sourceChunkId: updated.sourceChunkId,
+      repetition: review?.repetition ?? 0,
+      intervalDays: review?.intervalDays ?? 1,
+      easeFactor: review?.easeFactor ?? 2.5,
+      nextReviewAt: review?.nextReviewAt?.toISOString() || null,
+      lastReviewedAt: review?.lastReviewedAt?.toISOString() || null,
+      lastRating: review?.lastRating || null,
+    };
+  }
+
+  async deleteCard(userId: string, cardId: string): Promise<{ success: boolean }> {
+    const card = await this.prisma.flashcardItem.findFirst({
+      where: {
+        id: cardId,
+        deck: { createdById: userId },
+      },
+    });
+
+    if (!card) {
+      throw new NotFoundException('Flashcard not found or access denied.');
+    }
+
+    await this.prisma.flashcardItem.delete({
+      where: { id: cardId },
+    });
+
+    return { success: true };
+  }
+
   async reviewCard(
     userId: string,
     cardId: string,
@@ -393,6 +654,7 @@ export class FlashcardsService {
       where: {
         id: cardId,
         deck: {
+          createdById: userId, // PRIVACY: only creator can review their cards
           workspace: {
             OR: [{ ownerId: userId }, { members: { some: { userId } } }],
           },
@@ -460,20 +722,12 @@ export class FlashcardsService {
     const deck = await this.prisma.flashcardDeck.findFirst({
       where: {
         id: deckId,
-        workspace: {
-          OR: [{ ownerId: userId }, { members: { some: { userId } } }],
-        },
+        createdById: userId, // STRICT PRIVACY: only creator can delete
       },
-      include: { workspace: true },
     });
 
     if (!deck) {
       throw new NotFoundException('Flashcard deck not found or access denied.');
-    }
-
-    // Only deck creator or workspace owner can delete the deck
-    if (deck.createdById !== userId && deck.workspace.ownerId !== userId) {
-      throw new ForbiddenException('Only the deck creator or workspace owner can delete this deck.');
     }
 
     await this.prisma.flashcardDeck.delete({

@@ -11,6 +11,7 @@ export interface FlashcardGenerationInput {
   sourceRangeSummary?: string;
   passages: SourcePassageForFlashcard[];
   cardCount: number;
+  focus?: string;
 }
 
 export interface GeneratedFlashcardItem {

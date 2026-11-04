@@ -38,7 +38,14 @@ export function FlashcardStudyRunner({
 }: FlashcardStudyRunnerProps) {
   const { accessToken } = useAuth();
 
-  const [cards, setCards] = useState<FlashcardItemDto[]>(deck.cards || []);
+  const [filterMode, setFilterMode] = useState<'all' | 'due'>('all');
+  const now = new Date();
+  const dueCards = (deck.cards || []).filter((c) => {
+    if (!c.nextReviewAt) return true;
+    return new Date(c.nextReviewAt) <= now;
+  });
+
+  const cards = filterMode === 'due' && dueCards.length > 0 ? dueCards : (deck.cards || []);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
   const [showHint, setShowHint] = useState<boolean>(false);
@@ -260,17 +267,54 @@ export function FlashcardStudyRunner({
           </div>
         </div>
 
-        {/* Progress Pill */}
-        <div className="flex items-center gap-2 shrink-0 ml-2">
-          <div className="w-16 sm:w-28 h-1.5 sm:h-2 rounded-full bg-[#1B3428]/10 overflow-hidden">
-            <div
-              className="h-full bg-[#E8722C] transition-all duration-300 rounded-full"
-              style={{ width: `${progressPercent}%` }}
-            />
+        {/* Progress Pill & Optional Due Filter */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-2">
+          {dueCards.length > 0 && dueCards.length < (deck.cards || []).length && (
+            <div className="hidden sm:flex items-center gap-1 p-0.5 rounded-lg bg-[#FAF8F4] border border-[#1B3428]/20 text-[10px] font-mono">
+              <button
+                type="button"
+                onClick={() => {
+                  setFilterMode('due');
+                  setCurrentIndex(0);
+                  setIsFlipped(false);
+                }}
+                className={`px-2 py-0.5 rounded-md cursor-pointer transition-colors ${
+                  filterMode === 'due'
+                    ? 'bg-[#1B3428] text-white font-bold'
+                    : 'text-[#14261D]/70 hover:text-[#14261D]'
+                }`}
+              >
+                Due ({dueCards.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setFilterMode('all');
+                  setCurrentIndex(0);
+                  setIsFlipped(false);
+                }}
+                className={`px-2 py-0.5 rounded-md cursor-pointer transition-colors ${
+                  filterMode === 'all'
+                    ? 'bg-[#1B3428] text-white font-bold'
+                    : 'text-[#14261D]/70 hover:text-[#14261D]'
+                }`}
+              >
+                All ({deck.cards.length})
+              </button>
+            </div>
+          )}
+
+          <div className="flex items-center gap-2">
+            <div className="w-16 sm:w-28 h-1.5 sm:h-2 rounded-full bg-[#1B3428]/10 overflow-hidden">
+              <div
+                className="h-full bg-[#E8722C] transition-all duration-300 rounded-full"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+            <span className="font-mono text-[11px] font-bold text-[#E8722C]">
+              {progressPercent}%
+            </span>
           </div>
-          <span className="font-mono text-[11px] font-bold text-[#E8722C]">
-            {progressPercent}%
-          </span>
         </div>
       </div>
 

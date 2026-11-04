@@ -30,8 +30,13 @@ import type {
   FailedQuestionDto,
   FlashcardDeckSummaryDto,
   FlashcardDeckDetailDto,
+  FlashcardItemDto,
   CreateFlashcardDeckDto,
   GenerateFlashcardsRequestDto,
+  GenerateFlashcardsPreviewRequestDto,
+  GenerateFlashcardsPreviewResponseDto,
+  UpdateFlashcardDeckDto,
+  UpdateFlashcardItemDto,
   FlashcardRating,
   FlashcardReviewResultDto,
   WorkspaceProgressOverviewDto,
@@ -564,6 +569,17 @@ export const api = {
   },
 
   flashcards: {
+    generatePreview: (
+      workspaceId: string,
+      data: GenerateFlashcardsPreviewRequestDto,
+      token: string,
+    ): Promise<GenerateFlashcardsPreviewResponseDto> =>
+      request<GenerateFlashcardsPreviewResponseDto>(
+        `/workspaces/${workspaceId}/flashcards/generate-preview`,
+        { method: 'POST', body: JSON.stringify(data) },
+        token,
+      ),
+
     generate: (
       workspaceId: string,
       data: GenerateFlashcardsRequestDto,
@@ -600,6 +616,35 @@ export const api = {
       request<FlashcardDeckDetailDto>(
         `/flashcards/decks/${deckId}`,
         { method: 'GET' },
+        token,
+      ),
+
+    updateDeck: (
+      deckId: string,
+      data: UpdateFlashcardDeckDto,
+      token: string,
+    ): Promise<FlashcardDeckDetailDto> =>
+      request<FlashcardDeckDetailDto>(
+        `/flashcards/decks/${deckId}`,
+        { method: 'PATCH', body: JSON.stringify(data) },
+        token,
+      ),
+
+    updateCard: (
+      cardId: string,
+      data: UpdateFlashcardItemDto,
+      token: string,
+    ): Promise<FlashcardItemDto> =>
+      request<FlashcardItemDto>(
+        `/flashcards/items/${cardId}`,
+        { method: 'PATCH', body: JSON.stringify(data) },
+        token,
+      ),
+
+    deleteCard: (cardId: string, token: string): Promise<{ success: boolean }> =>
+      request<{ success: boolean }>(
+        `/flashcards/items/${cardId}`,
+        { method: 'DELETE' },
         token,
       ),
 

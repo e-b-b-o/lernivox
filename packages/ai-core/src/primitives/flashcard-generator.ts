@@ -92,6 +92,7 @@ CRITICAL RULES:
 
 DOCUMENT TITLE: "${input.documentTitle}"
 ${input.sourceRangeSummary ? `CONTENT RANGE: "${input.sourceRangeSummary}"` : ''}
+${input.focus ? `CARD FOCUS / EMPHASIS: "${input.focus}"` : ''}
 
 SOURCE PASSAGES:
 ${formattedPassages}
