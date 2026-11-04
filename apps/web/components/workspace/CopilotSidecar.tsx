@@ -50,6 +50,7 @@ interface CopilotSidecarProps {
   onClearPreparedQuestion?: () => void;
   isMobileDrawer?: boolean;
   onCloseMobileDrawer?: () => void;
+  hideHeader?: boolean;
 }
 
 export function CopilotSidecar({
@@ -74,6 +75,7 @@ export function CopilotSidecar({
   onClearPreparedQuestion,
   isMobileDrawer = false,
   onCloseMobileDrawer,
+  hideHeader = false,
 }: CopilotSidecarProps) {
   const [inputText, setInputText] = useState('');
   const [showSessionsMenu, setShowSessionsMenu] = useState(false);
@@ -119,32 +121,20 @@ export function CopilotSidecar({
     }
   };
 
-  // 1. FLOATING LERNIVOX AI BUTTON (when collapsed on desktop)
+  // 1. When collapsed on desktop/tablet, return null (floating triggers eliminated)
   if (!isOpen && !isMobileDrawer) {
-    return (
-      <div className="hidden lg:block fixed bottom-6 right-6 z-40 animate-in fade-in zoom-in-90 duration-200">
-        <button
-          type="button"
-          onClick={onToggle}
-          className="h-12 px-5 rounded-full bg-[#E8722C] text-white font-display font-extrabold text-sm shadow-[0_6px_0_0_#B26E45] hover:-translate-y-1 hover:shadow-[0_8px_0_0_#B26E45] active:translate-y-1 active:shadow-[0_2px_0_0_#B26E45] transition-all flex items-center gap-2.5 border-[2px] border-[#1B3428]"
-          title="Open Lernivox AI"
-        >
-          <Sparkles className="w-4 h-4 stroke-[2.5]" />
-          <span>Ask Lernivox AI</span>
-        </button>
-      </div>
-    );
+    return null;
   }
 
   // 2. EXPANDED SIDECAR OR MOBILE SHEET OVERLAY
-  const containerClasses = isMobileDrawer
+  const containerClasses = isMobileDrawer || hideHeader
     ? 'w-full h-full bg-[#FAF8F4] flex flex-col select-none'
     : 'hidden lg:flex w-[340px] xl:w-[380px] h-full bg-[#FAF8F4] border-l-[2px] border-[#1B3428]/15 flex-col shrink-0 select-none z-20';
 
   return (
     <aside className={containerClasses}>
-      {/* 1. COPILOT HEADER */}
-      <div className="h-12 px-4 border-b border-[#1B3428]/10 flex items-center justify-between shrink-0 bg-[#FAF8F4]">
+      {/* 1. COPILOT SUB-TOOLBAR / HEADER */}
+      <div className={`px-3 border-b border-[#1B3428]/10 flex items-center justify-between shrink-0 bg-[#FAF8F4] ${hideHeader ? 'h-10 bg-[#F4F0E5]/60' : 'h-12'}`}>
         {/* Left: Saved Sessions Dropdown Trigger */}
         <div className="relative">
           <button
@@ -257,27 +247,32 @@ export function CopilotSidecar({
           )}
         </div>
 
-        {/* Right Header: Collapse Control */}
-        <div className="flex items-center gap-2">
-          {isMobileDrawer ? (
-            <button
-              type="button"
-              onClick={onCloseMobileDrawer}
-              className="w-7 h-7 rounded-full bg-[#FAF8F4] border border-[#1B3428]/20 flex items-center justify-center text-[#14261D]/70 hover:bg-[#FBE8DC]"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={onToggle}
-              className="w-7 h-7 rounded-full hover:bg-[#1B3428]/10 flex items-center justify-center text-[#14261D]/70 transition-colors"
-              title="Minimize Lernivox AI to button"
-            >
-              <PanelRightClose className="w-4 h-4" />
-            </button>
-          )}
-        </div>
+        {/* Right Header: Collapse Control (only when standalone header) */}
+        {!hideHeader && (
+          <div className="flex items-center gap-2">
+            {isMobileDrawer ? (
+              <button
+                type="button"
+                onClick={onCloseMobileDrawer}
+                className="w-7 h-7 rounded-full bg-[#FAF8F4] border border-[#1B3428]/20 flex items-center justify-center text-[#14261D]/70 hover:bg-[#FBE8DC]"
+                title="Collapse sidecar"
+                aria-label="Collapse sidecar"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onToggle}
+                className="w-7 h-7 rounded-full hover:bg-[#1B3428]/10 flex items-center justify-center text-[#14261D]/70 transition-colors"
+                title="Collapse sidecar"
+                aria-label="Collapse sidecar"
+              >
+                <PanelRightClose className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* 2. CONVERSATION STREAM */}
