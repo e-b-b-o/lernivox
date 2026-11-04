@@ -42,7 +42,7 @@ export function Footer() {
 
             {/* Pill-shaped email subscription field with signature Terracotta button */}
             <form onSubmit={handleSubmit} className="w-full max-w-md">
-              <div className="relative flex items-center w-full bg-white/[0.07] border border-white/15 rounded-full p-1.5 focus-within:border-[#E77130]/60 transition-all">
+              <div className="relative flex items-center w-full bg-white/[0.07] border border-white/15 rounded-full p-1 sm:p-1.5 focus-within:border-[#E77130]/60 transition-all">
                 <input
                   type="email"
                   value={email}
@@ -52,11 +52,11 @@ export function Footer() {
                   }}
                   placeholder="Enter your email"
                   aria-label="Email address for updates"
-                  className="flex-1 bg-transparent px-4 py-2 text-sm text-[#FAF8F4] placeholder-[#FAF8F4]/40 focus:outline-none min-w-0 font-sans"
+                  className="flex-1 bg-transparent px-3 sm:px-4 py-2 text-xs sm:text-sm text-[#FAF8F4] placeholder-[#FAF8F4]/40 focus:outline-none min-w-0 font-sans"
                 />
                 <button
                   type="submit"
-                  className="h-10 px-6 rounded-full bg-[#E77130] text-white font-display font-bold text-sm tracking-wide shadow-sm hover:bg-[#d56223] hover:shadow-[0_2px_8px_rgba(231,113,48,0.35)] active:translate-y-0.5 transition-all shrink-0 cursor-pointer"
+                  className="h-9 sm:h-10 px-4 sm:px-6 rounded-full bg-[#E77130] text-white font-display font-bold text-xs sm:text-sm tracking-wide shadow-sm hover:bg-[#d56223] hover:shadow-[0_2px_8px_rgba(231,113,48,0.35)] active:translate-y-0.5 transition-all shrink-0 cursor-pointer"
                 >
                   Subscribe
                 </button>

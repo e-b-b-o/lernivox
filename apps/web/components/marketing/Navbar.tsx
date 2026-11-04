@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
-import { UserCircle, LogOut } from 'lucide-react';
+import { UserCircle, LogOut, ChevronDown } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { ProfileMenu } from '../workspace/ProfileMenu';
 
@@ -18,6 +18,19 @@ export function Navbar() {
   const { isAuthenticated, isLoading, logout } = useAuth();
   const [activeSection, setActiveSection] = useState<string>('how-it-works');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [exploreOpen, setExploreOpen] = useState(false);
+  const exploreRef = useRef<HTMLDivElement>(null);
+
+  // Close explore dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (exploreRef.current && !exploreRef.current.contains(e.target as Node)) {
+        setExploreOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Single Topmost Winner Scroll-Spy Engine
   useEffect(() => {
@@ -83,11 +96,11 @@ export function Navbar() {
   return (
     <>
       <header className="w-full bg-[#F4F0E5] py-3 md:py-[20px] h-[72px] md:h-[86px] sticky top-0 z-50 border-none transition-colors">
-        <div className="max-w-[1440px] h-[46px] px-4 sm:px-6 md:px-[30px] mx-auto flex items-center justify-center">
-          <div className="w-full max-w-[1380px] h-[46px] flex items-center justify-between gap-2 sm:gap-4 lg:gap-[60px] xl:gap-[100px]">
+        <div className="max-w-[1440px] h-[46px] px-4 sm:px-6 md:px-8 mx-auto flex items-center justify-center">
+          <div className="w-full max-w-[1380px] h-[46px] flex items-center justify-between gap-2 sm:gap-3 lg:gap-6 xl:gap-10">
             
             {/* Zone 1 — Left: Logo Lockup */}
-            <div className="w-auto min-w-0 md:w-[220px] md:min-w-[220px] h-[32px] flex items-center shrink-0">
+            <div className="w-auto h-[32px] flex items-center shrink-0">
               <Link href="/" className="h-[32px] inline-flex items-center gap-[10px] group">
                 <div className="w-[32px] h-[32px] rounded-[8px] bg-[#E8722C] text-white flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105">
                   <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -99,39 +112,80 @@ export function Navbar() {
                     />
                   </svg>
                 </div>
-                <span className="font-display font-bold text-[22px] leading-[32px] tracking-[-0.02em] text-[#14261D]">
+                <span className="font-display font-bold text-[20px] sm:text-[22px] leading-[32px] tracking-[-0.02em] text-[#14261D]">
                   Lernivox
                 </span>
               </Link>
             </div>
 
-            {/* Zone 2 — Center: Desktop Nav Links */}
-            <nav className="hidden md:flex items-center justify-center gap-6 lg:gap-9">
-              {NAV_ITEMS.map((item) => {
-                const targetId = item.href.replace('#', '');
-                const isActive = activeSection === targetId;
-                return (
-                  <a
-                    key={item.href}
-                    href={item.href}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleNavClick(item.href);
-                    }}
-                    className={`font-sans text-[15px] lg:text-[16px] font-medium leading-[22.4px] transition-colors duration-200 relative whitespace-nowrap ${
-                      isActive
-                        ? 'text-[#E8722C] font-semibold after:content-[\'\'] after:absolute after:-bottom-[3px] after:left-0 after:w-full after:h-[2px] after:bg-[#E8722C] after:rounded-full'
-                        : 'text-[#14261D] hover:text-[#E8722C]'
+            {/* Zone 2 — Center: Navigation Links (Inline above 1100px, Explore dropdown between 768px and 1100px) */}
+            <div className="hidden md:flex items-center justify-center">
+              {/* Tablet (768px - 1100px): Progressive Explore Dropdown */}
+              <div className="relative min-[1101px]:hidden" ref={exploreRef}>
+                <button
+                  type="button"
+                  onClick={() => setExploreOpen((prev) => !prev)}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border-[1.5px] border-[#1B3428] bg-[#FAF8F4] text-xs font-display font-bold text-[#14261D] shadow-[0_2px_0_0_#1B3428] hover:bg-[#FBE8DC] hover:text-[#E8722C] transition-all cursor-pointer"
+                  aria-expanded={exploreOpen}
+                  aria-haspopup="true"
+                >
+                  <span>Explore</span>
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 text-[#14261D]/70 transition-transform duration-200 ${
+                      exploreOpen ? 'rotate-180' : ''
                     }`}
-                  >
-                    {item.label}
-                  </a>
-                );
-              })}
-            </nav>
+                  />
+                </button>
+
+                {exploreOpen && (
+                  <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-48 rounded-[20px] bg-[#FAF8F4] border-[2px] border-[#1B3428] shadow-[0_6px_0_0_#1B3428] p-2 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-0.5">
+                    {NAV_ITEMS.map((item) => (
+                      <a
+                        key={item.href}
+                        href={item.href}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setExploreOpen(false);
+                          handleNavClick(item.href);
+                        }}
+                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-display font-bold text-[#14261D] hover:bg-[#FBE8DC] hover:text-[#E8722C] transition-colors"
+                      >
+                        <span>{item.label}</span>
+                        <span className="font-mono text-[10px] text-[#14261D]/40">{item.num}</span>
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Desktop (above 1100px): Full Inline Navigation Links */}
+              <nav className="hidden min-[1101px]:flex items-center justify-center gap-6 xl:gap-8">
+                {NAV_ITEMS.map((item) => {
+                  const targetId = item.href.replace('#', '');
+                  const isActive = activeSection === targetId;
+                  return (
+                    <a
+                      key={item.href}
+                      href={item.href}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleNavClick(item.href);
+                      }}
+                      className={`font-sans text-[14px] xl:text-[15px] font-medium leading-[22.4px] transition-colors duration-200 relative whitespace-nowrap ${
+                        isActive
+                          ? 'text-[#E8722C] font-semibold after:content-[\'\'] after:absolute after:-bottom-[3px] after:left-0 after:w-full after:h-[2px] after:bg-[#E8722C] after:rounded-full'
+                          : 'text-[#14261D] hover:text-[#E8722C]'
+                      }`}
+                    >
+                      {item.label}
+                    </a>
+                  );
+                })}
+              </nav>
+            </div>
 
             {/* Zone 3 — Right: Auth Actions & Profile Menu */}
-            <div className="flex items-center justify-end shrink-0 gap-2 sm:gap-[16px] md:min-w-[240px] h-[46px]">
+            <div className="flex items-center justify-end shrink-0 gap-2 sm:gap-3 lg:gap-4 h-[46px]">
               {isLoading ? (
                 /* Subtle placeholder during session restoration to prevent button flashing */
                 <div className="hidden md:flex items-center gap-3">

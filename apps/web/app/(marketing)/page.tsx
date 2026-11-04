@@ -145,10 +145,10 @@ export default function MarketingPage() {
           {/* Edge-to-edge animated waving ribbon band passing behind photos */}
           <WavingRibbon />
 
-          {/* Three Overlapping Photography Cards */}
-          <div className="relative z-10 flex items-center justify-center gap-4 sm:gap-8 md:gap-12 max-w-5xl mx-auto px-4 pt-4 pb-8">
+          {/* Three Overlapping Photography Cards (Fluid percentage widths guarantee zero horizontal overflow across 320px to ultrawide) */}
+          <div className="relative z-10 flex items-center justify-center gap-2 xs:gap-3 sm:gap-6 md:gap-8 lg:gap-10 max-w-5xl mx-auto px-2 sm:px-4 pt-4 pb-8 w-full">
             {/* Left Card: Tilted (-rotate-6) */}
-            <div className="group relative w-44 md:w-56 aspect-[3/4] rounded-3xl overflow-hidden shadow-lg border-4 border-white -rotate-6 hover:rotate-0 transition-transform duration-300 mt-10 md:mt-16 flex-shrink-0">
+            <div className="group relative w-[27%] max-w-[220px] min-w-[84px] sm:w-44 md:w-52 lg:w-56 aspect-[3/4] rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg border-2 sm:border-4 border-white -rotate-6 hover:rotate-0 transition-transform duration-300 mt-6 sm:mt-10 md:mt-16 flex-shrink-0">
               <img
                 src="https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=600&q=80"
                 alt="Student reading focused"
@@ -156,14 +156,14 @@ export default function MarketingPage() {
                 loading="lazy"
               />
               {/* Soft peach badge with smiling face sticker */}
-              <div className="absolute top-3 left-3 bg-[#F9D8C0] text-[#14261D] rounded-full px-3 py-1 text-xs font-bold shadow-md flex items-center gap-1 select-none">
+              <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-[#F9D8C0] text-[#14261D] rounded-full px-2 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-bold shadow-md flex items-center gap-1 select-none">
                 <span>Focused</span>
                 <span>:)</span>
               </div>
             </div>
 
             {/* Center Card: Elevated & Upright */}
-            <div className="group relative w-60 md:w-72 lg:w-80 aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl border-4 border-white z-10 -mt-6 md:-mt-10 flex-shrink-0 transition-transform duration-300 hover:scale-[1.02]">
+            <div className="group relative w-[38%] max-w-[320px] min-w-[120px] sm:w-60 md:w-68 lg:w-80 aspect-[3/4] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border-2 sm:border-4 border-white z-10 -mt-3 sm:-mt-6 md:-mt-10 flex-shrink-0 transition-transform duration-300 hover:scale-[1.02]">
               <img
                 src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80"
                 alt="Modern library student with books"
@@ -171,15 +171,15 @@ export default function MarketingPage() {
                 loading="lazy"
               />
               {/* Subtle caption tag */}
-              <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-[#14261D]/80 via-[#14261D]/20 to-transparent flex items-end justify-center">
-                <span className="rounded-full bg-white/90 backdrop-blur-sm px-4 py-1.5 text-xs font-bold text-[#14261D] shadow-sm select-none">
+              <div className="absolute inset-x-0 bottom-0 p-2 sm:p-4 bg-gradient-to-t from-[#14261D]/80 via-[#14261D]/20 to-transparent flex items-end justify-center">
+                <span className="rounded-full bg-white/90 backdrop-blur-sm px-2.5 py-1 sm:px-4 sm:py-1.5 text-[10px] sm:text-xs font-bold text-[#14261D] shadow-sm select-none truncate max-w-full">
                   Stewart Calculus • Grounded
                 </span>
               </div>
             </div>
 
             {/* Right Card: Tilted (rotate-6) */}
-            <div className="group relative w-48 md:w-60 aspect-[3/4] rounded-3xl overflow-hidden shadow-lg border-4 border-white rotate-6 hover:rotate-0 transition-transform duration-300 -mt-4 md:-mt-6 flex-shrink-0">
+            <div className="group relative w-[28%] max-w-[240px] min-w-[88px] sm:w-48 md:w-56 lg:w-60 aspect-[3/4] rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg border-2 sm:border-4 border-white rotate-6 hover:rotate-0 transition-transform duration-300 -mt-2 sm:-mt-4 md:-mt-6 flex-shrink-0">
               <img
                 src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=600&q=80"
                 alt="Collaborative tutoring study session"
@@ -187,7 +187,7 @@ export default function MarketingPage() {
                 loading="lazy"
               />
               {/* Soft green flower/cloud sticker */}
-              <div className="absolute top-3 right-3 bg-[#497E64] text-[#F6F4EE] rounded-full px-3 py-1 text-xs font-bold shadow-md flex items-center gap-1 select-none">
+              <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-[#497E64] text-[#F6F4EE] rounded-full px-2 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-bold shadow-md flex items-center gap-1 select-none">
                 <span>Peer Study</span>
                 <span>✿</span>
               </div>

@@ -1,154 +1,109 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import {
-  UploadCloud,
+  FileText,
   CheckCircle2,
-  AlertCircle,
-  Loader2,
+  Sparkles,
   ArrowRight,
+  BookOpen,
+  Layers,
+  Cpu,
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import { api } from '../../lib/api';
 import { ScrollReveal, StaggerContainer } from '../ui/scroll-reveal';
 
-const MAX_SIZE_BYTES = 25 * 1024 * 1024; // 25 MB
-const ALLOWED_EXTS = ['.pdf', '.docx', '.txt'];
+interface SampleMaterial {
+  id: string;
+  label: string;
+  format: 'PDF' | 'DOCX' | 'TXT';
+  fileName: string;
+  fileSize: string;
+  title: string;
+  summary: string;
+  chunksCount: number;
+  topics: string[];
+}
+
+const SAMPLE_MATERIALS: SampleMaterial[] = [
+  {
+    id: 'neuroscience',
+    label: 'Neuroscience PDF',
+    format: 'PDF',
+    fileName: 'Introduction_to_Neuroscience_Ch3.pdf',
+    fileSize: '2.4 MB',
+    title: 'Synaptic Transmission & Neural Signaling',
+    summary:
+      'Action potential propagation, voltage-gated ion channels, neurotransmitter release kinetics, and dendritic summation.',
+    chunksCount: 12,
+    topics: ['Resting Potential', 'Action Potential', 'Chemical Synapses', 'Neuroplasticity'],
+  },
+  {
+    id: 'macroeconomics',
+    label: 'Macroeconomics DOCX',
+    format: 'DOCX',
+    fileName: 'Principles_of_Macroeconomics_Unit2.docx',
+    fileSize: '1.8 MB',
+    title: 'Fiscal Policy & Aggregate Demand Dynamics',
+    summary:
+      'Keynesian expenditure multipliers, IS-LM framework equilibria, automatic stabilizers, and central bank open-market operations.',
+    chunksCount: 15,
+    topics: ['Expenditure Multiplier', 'IS-LM Equilibrium', 'Fiscal Deficits', 'Liquidity Preference'],
+  },
+  {
+    id: 'calculus',
+    label: 'Calculus Notes TXT',
+    format: 'TXT',
+    fileName: 'Calculus_Integration_Techniques.txt',
+    fileSize: '420 KB',
+    title: 'Integration Techniques & Improper Integrals',
+    summary:
+      'Tabular integration by parts, partial fraction decomposition for rational functions, and improper integral convergence tests.',
+    chunksCount: 8,
+    topics: ['Integration by Parts', 'Partial Fractions', 'Trig Substitution', 'Comparison Test'],
+  },
+];
 
 export function HeroUpload() {
-  const router = useRouter();
-  const { user, isAuthenticated, accessToken } = useAuth();
+  const [activeSampleId, setActiveSampleId] = useState<string>('neuroscience');
+  const [simulationStep, setSimulationStep] = useState<'analyzing' | 'chunking' | 'ready'>('ready');
+  const [progressPercent, setProgressPercent] = useState<number>(100);
 
-  const [activeTab, setActiveTab] = useState<'file' | 'text'>('file');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [fileTitle, setFileTitle] = useState('');
-  const [pastedTitle, setPastedTitle] = useState('');
-  const [pastedContent, setPastedContent] = useState('');
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const activeSample =
+    SAMPLE_MATERIALS.find((s) => s.id === activeSampleId) || SAMPLE_MATERIALS[0]!;
 
-  const [isDragging, setIsDragging] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
+  const handleSelectSample = (sampleId: string) => {
+    if (sampleId === activeSampleId && simulationStep === 'ready') return;
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const validateFile = (file: File): boolean => {
-    setErrorMessage(null);
-
-    const ext = '.' + file.name.split('.').pop()?.toLowerCase();
-    if (!ALLOWED_EXTS.includes(ext)) {
-      setErrorMessage(`Unsupported format (${ext}). Lernivox accepts PDF, DOCX, and TXT files.`);
-      return false;
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
     }
 
-    if (file.size === 0) {
-      setErrorMessage('The selected file is empty.');
-      return false;
-    }
+    setActiveSampleId(sampleId);
+    setSimulationStep('analyzing');
+    setProgressPercent(28);
 
-    if (file.size > MAX_SIZE_BYTES) {
-      setErrorMessage(`File exceeds 25 MB limit (${(file.size / (1024 * 1024)).toFixed(1)} MB).`);
-      return false;
-    }
+    timerRef.current = setTimeout(() => {
+      setSimulationStep('chunking');
+      setProgressPercent(74);
 
-    return true;
+      timerRef.current = setTimeout(() => {
+        setSimulationStep('ready');
+        setProgressPercent(100);
+      }, 500);
+    }, 450);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && validateFile(file)) {
-      setSelectedFile(file);
-      if (!fileTitle) {
-        setFileTitle(file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' '));
-      }
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = () => {
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file && validateFile(file)) {
-      setSelectedFile(file);
-      if (!fileTitle) {
-        setFileTitle(file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' '));
-      }
-    }
-  };
-
-  const handleAuthenticatedSubmit = async () => {
-    if (!isAuthenticated || !accessToken) {
-      return;
-    }
-
-    setErrorMessage(null);
-    setIsSubmitting(true);
-
-    try {
-      if (activeTab === 'file') {
-        if (!selectedFile) {
-          setErrorMessage('Please choose a document to upload.');
-          setIsSubmitting(false);
-          return;
-        }
-
-        const res = await api.documents.uploadFile(selectedFile, accessToken, fileTitle);
-        setUploadSuccess(
-          `Document "${res.document.title}" uploaded! Enqueued for extraction, chunking, and embedding.`,
-        );
-
-        setTimeout(() => {
-          router.push('/dashboard');
-        }, 1200);
-      } else {
-        if (!pastedTitle.trim()) {
-          setErrorMessage('Please provide a title for your study notes.');
-          setIsSubmitting(false);
-          return;
-        }
-        if (!pastedContent.trim() || pastedContent.trim().length < 20) {
-          setErrorMessage('Please enter at least 20 characters of study notes to process.');
-          setIsSubmitting(false);
-          return;
-        }
-
-        const res = await api.documents.createFromText(
-          {
-            title: pastedTitle.trim(),
-            content: pastedContent.trim(),
-          },
-          accessToken,
-        );
-
-        setUploadSuccess(
-          `Notes "${res.document.title}" saved and enqueued for background processing!`,
-        );
-
-        setTimeout(() => {
-          router.push('/dashboard');
-        }, 1200);
-      }
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Failed to submit document for processing.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   return (
     <section id="how-it-works" className="relative w-full max-w-full bg-[#EAE4D3] scroll-mt-0 overflow-hidden">
-      {/* Pixel-Perfect Cloud Canopy Divider (Exact BrightPath Reference) */}
+      {/* Cloud Canopy Divider (BrightPath Design System Reference) */}
       <div className="w-full max-w-full overflow-hidden leading-none select-none pointer-events-none relative bg-[#F4F0E5]">
         <div
           className="w-full h-[64px] sm:h-[72px] md:h-[78px]"
@@ -164,16 +119,13 @@ export function HeroUpload() {
 
       <div className="w-full max-w-[1380px] mx-auto px-4 sm:px-6 md:px-10 pt-16 sm:pt-20 md:pt-24 pb-20 sm:pb-28 md:pb-36">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-          
-          {/* Left Side (5 Columns / lg:col-span-5) — Editorial Context & Value Steps */}
+          {/* Left Side (5 Columns) — Editorial Narrative & 3-Step Flow */}
           <div className="lg:col-span-5 text-left">
             <ScrollReveal id="workspace-heading" delay={0.1}>
-              {/* Pill Tag */}
               <span className="bg-[#F9D8C0] text-[#14261D] font-sans text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full inline-block mb-4 shadow-sm">
-                Interactive Workspace
+                Interactive Showcase
               </span>
 
-              {/* Left Column Heading */}
               <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-[54px] text-[#14261D] tracking-tight leading-[1.08] mb-8">
                 From dense PDFs to clear, guided{' '}
                 <span
@@ -181,11 +133,10 @@ export function HeroUpload() {
                   style={{
                     transform: 'translateY(-3px) rotate(2.2deg)',
                     transformOrigin: 'bottom right',
-                    display: 'inline-block'
+                    display: 'inline-block',
                   }}
                 >
                   mastery.
-
                   {/* Multi-Stroke Hand-Drawn Marker Underline in #E8722C */}
                   <svg
                     className="absolute -bottom-3 left-0 w-full h-[12px] sm:h-[16px] text-[#E8722C] pointer-events-none overflow-visible"
@@ -194,50 +145,22 @@ export function HeroUpload() {
                     xmlns="http://www.w3.org/2000/svg"
                     preserveAspectRatio="none"
                   >
-                    <path
-                      d="M 4 8 C 70 3, 200 4, 315 7"
-                      stroke="currentColor"
-                      strokeWidth="3.2"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M 16 12 C 100 6, 230 11, 300 5"
-                      stroke="currentColor"
-                      strokeWidth="2.2"
-                      strokeLinecap="round"
-                      opacity="0.85"
-                    />
-                    <path
-                      d="M 45 10 C 120 6, 190 8, 250 11"
-                      stroke="currentColor"
-                      strokeWidth="1.6"
-                      strokeLinecap="round"
-                      opacity="0.6"
-                    />
-                  </svg>
-
-                  {/* Spark Ticks (//) top-right in #E8722C */}
-                  <svg
-                    className="absolute -top-3.5 -right-6 w-5 h-5 text-[#E8722C] pointer-events-none rotate-[10deg]"
-                    viewBox="0 0 20 20"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path d="M4 14L8 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                    <path d="M12 16L16 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                    <path d="M 4 8 C 70 3, 200 4, 315 7" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
+                    <path d="M 16 12 C 100 6, 230 11, 300 5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" opacity="0.85" />
+                    <path d="M 45 10 C 120 6, 190 8, 250 11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" opacity="0.6" />
                   </svg>
                 </span>
               </h2>
             </ScrollReveal>
 
-            {/* 3 Numbered Workflow Steps */}
+            {/* 3 Numbered Steps */}
             <StaggerContainer id="workspace-steps" initialDelay={0.1} staggerDelay={0.1} className="space-y-4 font-sans text-[#14261D]/80">
               <div className="flex items-start gap-3.5">
                 <div className="w-7 h-7 rounded-full bg-[#1B3428] text-white font-display font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
                   1
                 </div>
                 <p className="text-sm md:text-base leading-relaxed">
-                  <strong className="text-[#14261D] font-semibold">Drop your source file</strong> — Upload any syllabus, textbook chapter, or raw lecture notes (PDF, DOCX, TXT).
+                  <strong className="text-[#14261D] font-semibold">Select a textbook chapter</strong> — See how Lernivox ingests structured chapters, mathematical notes, or lecture documents.
                 </p>
               </div>
 
@@ -246,7 +169,7 @@ export function HeroUpload() {
                   2
                 </div>
                 <p className="text-sm md:text-base leading-relaxed">
-                  <strong className="text-[#14261D] font-semibold">Read guided breakdowns</strong> — Concepts are synthesized step-by-step, linked directly to your source text.
+                  <strong className="text-[#14261D] font-semibold">Semantic chunking & vector indexing</strong> — Dense pages are partitioned into grounded conceptual units with verbatim citation tracking.
                 </p>
               </div>
 
@@ -255,249 +178,178 @@ export function HeroUpload() {
                   3
                 </div>
                 <p className="text-sm md:text-base leading-relaxed">
-                  <strong className="text-[#14261D] font-semibold">Verify with practice</strong> — Test your understanding with active recall flashcards and worked methods.
+                  <strong className="text-[#14261D] font-semibold">Grounding & active study</strong> — Generate range-bound quizzes, SM-2 flashcard decks, and private AI tutoring tied to the exact source.
                 </p>
               </div>
             </StaggerContainer>
           </div>
 
-          {/* Right Side (7 Columns / lg:col-span-7) — Tactile Framer Upload Card */}
+          {/* Right Side (7 Columns) — Interactive Sample Showcase Card */}
           <ScrollReveal id="workspace-card" delay={0.25} distance={36} className="lg:col-span-7 w-full max-w-full">
             <div
               id="upload-card"
-              className="w-full max-w-full bg-[#FAF8F4] border-[2px] border-[#1B3428] rounded-[24px] sm:rounded-[32px] shadow-[0_4px_0_0_#1B3428] sm:shadow-[0_6px_0_0_#1B3428] p-4 sm:p-6 md:p-8 transition-all duration-200"
+              className="w-full max-w-full bg-[#FAF8F4] border-[2px] border-[#1B3428] rounded-[24px] sm:rounded-[32px] shadow-[0_4px_0_0_#1B3428] sm:shadow-[0_6px_0_0_#1B3428] p-5 sm:p-7 md:p-8 transition-all duration-200"
             >
-              {/* Tab Switcher ("Upload Document" vs "Paste Study Notes") */}
-              <div className="w-full flex items-center p-1 bg-[#EAE4D3] rounded-full mb-6 border border-[#1B3428]/15">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveTab('file');
-                    setErrorMessage(null);
-                  }}
-                  className={`w-1/2 py-2 px-2 text-xs sm:text-sm font-semibold rounded-full transition-all text-center select-none truncate ${
-                    activeTab === 'file'
-                      ? 'bg-[#1B3428] text-white shadow-[0_2px_0_0_#497E64]'
-                      : 'text-[#14261D]/70 hover:text-[#14261D]'
-                  }`}
-                >
-                  Upload Document
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveTab('text');
-                    setErrorMessage(null);
-                  }}
-                  className={`w-1/2 py-2 px-2 text-xs sm:text-sm font-semibold rounded-full transition-all text-center select-none truncate ${
-                    activeTab === 'text'
-                      ? 'bg-[#1B3428] text-white shadow-[0_2px_0_0_#497E64]'
-                      : 'text-[#14261D]/70 hover:text-[#14261D]'
-                  }`}
-                >
-                  Paste Study Notes
-                </button>
+              {/* Section Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-[#1B3428]/10">
+                <div>
+                  <h3 className="font-display font-bold text-base sm:text-lg text-[#14261D]">
+                    Simulated Ingestion Showcase
+                  </h3>
+                  <p className="text-xs text-[#14261D]/70 font-sans mt-0.5">
+                    Choose a sample learning material below to preview chunking and indexing:
+                  </p>
+                </div>
+                <span className="self-start sm:self-auto px-2.5 py-1 rounded-full bg-[#E2EBD8] text-[#497E64] font-mono font-bold text-[11px] uppercase tracking-wider border border-[#497E64]/20 shrink-0">
+                  Interactive Demo
+                </span>
               </div>
 
-              {/* Success Notification */}
-              {uploadSuccess && (
-                <div className="mb-6 flex items-center gap-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 p-4 text-emerald-900 animate-fadeIn">
-                  <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
-                  <div className="text-sm font-medium text-left">
-                    <p>{uploadSuccess}</p>
-                    <p className="text-xs text-emerald-700 mt-0.5">Redirecting to your workspace...</p>
-                  </div>
-                </div>
-              )}
+              {/* 3 Interactive Sample Selector Pills */}
+              <div
+                role="tablist"
+                aria-label="Sample learning materials"
+                className="grid grid-cols-3 gap-1.5 sm:gap-2 p-1.5 bg-[#EAE4D3] rounded-2xl mb-6 border border-[#1B3428]/15"
+              >
+                {SAMPLE_MATERIALS.map((sample) => {
+                  const isActive = sample.id === activeSampleId;
+                  return (
+                    <button
+                      key={sample.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={isActive}
+                      onClick={() => handleSelectSample(sample.id)}
+                      className={`py-2 px-1 sm:px-2 md:px-3 text-[11px] sm:text-xs md:text-sm font-display font-bold rounded-xl transition-all text-center select-none truncate cursor-pointer ${
+                        isActive
+                          ? 'bg-[#1B3428] text-white shadow-[0_2px_0_0_#0D1B14] -translate-y-0.5'
+                          : 'text-[#14261D]/70 hover:text-[#14261D] hover:bg-[#FAF8F4]/60'
+                      }`}
+                    >
+                      {sample.label}
+                    </button>
+                  );
+                })}
+              </div>
 
-              {/* Error Notification */}
-              {errorMessage && (
-                <div className="mb-6 flex items-start gap-3.5 rounded-2xl bg-red-50 border border-red-200 p-4 text-red-900 animate-fadeIn text-left">
-                  <AlertCircle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
-                  <p className="text-sm font-medium">{errorMessage}</p>
-                </div>
-              )}
-
-              {/* Tab 1: File Upload */}
-              {activeTab === 'file' && (
-                <div className="space-y-5">
+              {/* Active Document Preview Card */}
+              <div className="rounded-2xl border-[2px] border-[#1B3428]/20 bg-white p-4 sm:p-6 shadow-sm relative overflow-hidden transition-all">
+                {/* Simulated Processing Progress Line (Orange #E8722C) */}
+                <div className="absolute top-0 inset-x-0 h-1.5 bg-[#FAF8F4] overflow-hidden">
                   <div
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    onClick={() => fileInputRef.current?.click()}
-                    className={`cursor-pointer rounded-2xl border-[2px] border-dashed p-5 sm:p-8 flex flex-col items-center justify-center text-center transition-colors duration-200 ${
-                      isDragging
-                        ? 'border-[#E8722C] bg-[#F9D8C0]/30'
-                        : selectedFile
-                          ? 'border-[#497E64] bg-[#497E64]/10'
-                          : 'border-[#497E64]/40 bg-[#EAE4D3]/50 hover:border-[#E8722C]'
-                    }`}
-                  >
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept=".pdf,.docx,.txt"
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
+                    className="h-full bg-[#E8722C] transition-all duration-300 ease-out"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
 
-                    <div className="mx-auto flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-[#F9D8C0] text-[#E8722C] mb-3 sm:mb-4 shadow-sm">
-                      <UploadCloud className="h-6 w-6 sm:h-7 sm:w-7" />
+                {/* Card Top: Metadata Bar */}
+                <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 sm:gap-3 mb-3 pt-1">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-9 h-9 rounded-xl bg-[#FBE8DC] border border-[#E8722C]/30 text-[#E8722C] flex items-center justify-center shrink-0">
+                      {activeSample.format === 'PDF' ? (
+                        <BookOpen className="w-4 h-4" />
+                      ) : activeSample.format === 'DOCX' ? (
+                        <FileText className="w-4 h-4" />
+                      ) : (
+                        <Layers className="w-4 h-4" />
+                      )}
                     </div>
+                    <div className="min-w-0 text-left">
+                      <p className="font-mono text-xs font-bold text-[#14261D] truncate">
+                        {activeSample.fileName}
+                      </p>
+                      <p className="font-mono text-[11px] text-[#14261D]/60">
+                        {activeSample.fileSize} • {activeSample.format} Format
+                      </p>
+                    </div>
+                  </div>
 
-                    {selectedFile ? (
-                      <div className="space-y-1.5">
-                        <p className="text-base font-bold text-[#14261D] truncate max-w-sm mx-auto font-sans">
-                          {selectedFile.name}
-                        </p>
-                        <p className="text-xs text-[#14261D]/70 font-sans">
-                          {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • Ready for ingestion
-                        </p>
-                        <p className="text-xs text-[#497E64] font-medium pt-1 font-sans">
-                          Click or drag another file to replace
-                        </p>
-                      </div>
+                  {/* Processing Status Badge */}
+                  <div className="shrink-0">
+                    {simulationStep === 'ready' ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-display font-bold shadow-2xs animate-fadeIn">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Ready for Study</span>
+                      </span>
                     ) : (
-                      <div>
-                        <p className="text-base md:text-lg font-bold text-[#14261D] font-display">
-                          Drop your textbook, syllabus, or lecture slides here
-                        </p>
-                        <p className="text-xs md:text-sm text-[#14261D]/70 mt-1.5 font-sans">
-                          Drag and drop your file, or click to browse (up to 25 MB)
-                        </p>
-                        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                          <span className="rounded-full border border-[#1B3428]/15 bg-white px-3 py-1 text-xs font-semibold text-[#14261D] shadow-sm font-sans">
-                            PDF
-                          </span>
-                          <span className="rounded-full border border-[#1B3428]/15 bg-white px-3 py-1 text-xs font-semibold text-[#14261D] shadow-sm font-sans">
-                            DOCX
-                          </span>
-                          <span className="rounded-full border border-[#1B3428]/15 bg-white px-3 py-1 text-xs font-semibold text-[#14261D] shadow-sm font-sans">
-                            TXT
-                          </span>
-                        </div>
-                      </div>
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FBE8DC] text-[#E8722C] border border-[#E8722C]/30 text-xs font-display font-bold animate-pulse">
+                        <Cpu className="w-3.5 h-3.5 animate-spin" />
+                        <span>
+                          {simulationStep === 'analyzing'
+                            ? 'Analyzing Document...'
+                            : 'Chunking Passages...'}
+                        </span>
+                      </span>
                     )}
                   </div>
-
-                  {selectedFile && (
-                    <div className="text-left">
-                      <label htmlFor="file-title-input" className="block text-xs font-semibold uppercase tracking-wider text-[#14261D] mb-1.5 font-sans">
-                        Document Title (Optional)
-                      </label>
-                      <input
-                        id="file-title-input"
-                        type="text"
-                        value={fileTitle}
-                        onChange={(e) => setFileTitle(e.target.value)}
-                        placeholder="e.g. Stewart Calculus Chapter 3"
-                        className="w-full rounded-xl border border-[#1B3428]/20 bg-white px-4 py-2.5 text-sm text-[#14261D] placeholder-[#14261D]/40 focus:border-[#1B3428] focus:outline-none focus:ring-1 focus:ring-[#1B3428] font-sans"
-                      />
-                    </div>
-                  )}
                 </div>
-              )}
 
-              {/* Tab 2: Pasted Text */}
-              {activeTab === 'text' && (
-                <div className="space-y-4 text-left">
-                  <div>
-                    <label htmlFor="pasted-title-input" className="block text-xs font-semibold uppercase tracking-wider text-[#14261D] mb-1.5 font-sans">
-                      Study Notes / Chapter Title *
-                    </label>
-                    <input
-                      id="pasted-title-input"
-                      type="text"
-                      value={pastedTitle}
-                      onChange={(e) => setPastedTitle(e.target.value)}
-                      placeholder="e.g. Cellular Respiration Summary"
-                      className="w-full rounded-xl border border-[#1B3428]/20 bg-white px-4 py-2.5 text-sm text-[#14261D] placeholder-[#14261D]/40 focus:border-[#1B3428] focus:outline-none focus:ring-1 focus:ring-[#1B3428] font-sans"
-                    />
-                  </div>
+                {/* Card Content: Title & Summary */}
+                <div className="text-left mt-3 pt-3 border-t border-[#1B3428]/10">
+                  <h4 className="font-display font-bold text-sm sm:text-base text-[#14261D] mb-1">
+                    {activeSample.title}
+                  </h4>
+                  <p className="font-serif text-xs sm:text-sm text-[#14261D]/75 leading-relaxed line-clamp-2">
+                    {activeSample.summary}
+                  </p>
 
-                  <div>
-                    <div className="flex justify-between items-center mb-1.5">
-                      <label htmlFor="pasted-content-textarea" className="block text-xs font-semibold uppercase tracking-wider text-[#14261D] font-sans">
-                        Lecture Content or Excerpt *
-                      </label>
-                      <span className="text-xs text-[#14261D]/50 font-medium font-sans">
-                        {pastedContent.length} chars
+                  {/* Key Grounded Concept Tags */}
+                  <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-[#1B3428]/5">
+                    {activeSample.topics.map((topic, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2.5 py-0.5 rounded-md bg-[#FAF8F4] border border-[#1B3428]/15 text-[11px] font-sans font-medium text-[#14261D]/80"
+                      >
+                        § {topic}
                       </span>
-                    </div>
-                    <textarea
-                      id="pasted-content-textarea"
-                      rows={5}
-                      value={pastedContent}
-                      onChange={(e) => setPastedContent(e.target.value)}
-                      placeholder="Paste raw lecture transcripts, textbook passages, or problem-set notes here..."
-                      className="w-full rounded-xl border border-[#1B3428]/20 bg-white p-3.5 text-sm text-[#14261D] placeholder-[#14261D]/40 focus:border-[#1B3428] focus:outline-none focus:ring-1 focus:ring-[#1B3428] resize-none font-sans leading-relaxed"
-                    />
+                    ))}
+                  </div>
+
+                  {/* Ready Indicator Footer */}
+                  <div className="mt-4 pt-3 border-t border-[#1B3428]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2 text-[11px] sm:text-xs font-mono text-[#14261D]/70">
+                    <span className="font-bold text-[#497E64]">
+                      ✓ {activeSample.chunksCount} Chunks Indexed & Embedded
+                    </span>
+                    <span className="text-[#14261D]/50">768-dim Vectors • Verified Grounding</span>
                   </div>
                 </div>
-              )}
-
-              {/* Footer Auth / Action Bar */}
-              <div className="border-t border-[#1B3428]/10 pt-5 mt-6">
-                {isAuthenticated ? (
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="text-left text-xs text-[#14261D]/70 font-sans">
-                      <span className="font-semibold text-[#14261D]">Logged in as {user?.email}</span>
-                      <p className="mt-0.5">Uploaded material will be indexed in your private workspace.</p>
-                    </div>
-
-                    <button
-                      type="button"
-                      disabled={
-                        isSubmitting ||
-                        (activeTab === 'file' && !selectedFile) ||
-                        (activeTab === 'text' && !pastedContent.trim())
-                      }
-                      onClick={handleAuthenticatedSubmit}
-                      className="w-full sm:w-auto h-[42px] px-6 rounded-full bg-[#E8722C] text-white font-sans text-sm font-semibold shadow-[0_3px_0_0_#B26E45] hover:-translate-y-[1px] hover:shadow-[0_4px_0_0_#B26E45] active:translate-y-[2px] active:shadow-[0_1px_0_0_#B26E45] transition-all inline-flex items-center justify-center gap-2 select-none disabled:opacity-50 disabled:pointer-events-none"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          <span>Uploading & Processing...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>Process & Index Document</span>
-                          <ArrowRight className="h-4 w-4" />
-                        </>
-                      )}
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <p className="font-sans text-xs text-[#14261D]/60 text-center sm:text-left">
-                      Free student account required to index files.
-                    </p>
-
-                    <div className="w-full sm:w-auto flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3">
-                      {/* Sign In Button */}
-                      <Link
-                        href="/login"
-                        className="w-full sm:w-auto py-2.5 px-6 rounded-full bg-transparent text-[#14261D] font-display font-bold text-sm border-[1.5px] border-[#1B3428] shadow-[0_2px_0_0_#1B3428] active:translate-y-0.5 active:shadow-none hover:bg-black/5 transition-all text-center select-none"
-                      >
-                        Sign In
-                      </Link>
-                      {/* Create Free Account Button */}
-                      <Link
-                        href="/register"
-                        className="w-full sm:w-auto py-2.5 px-6 rounded-full bg-[#E8722C] text-white font-display font-bold text-sm shadow-[0_3px_0_0_#1B3428] active:translate-y-0.5 active:shadow-none hover:bg-[#D66522] transition-all text-center select-none whitespace-nowrap"
-                      >
-                        Create Free Account
-                      </Link>
-                    </div>
-                  </div>
-                )}
               </div>
 
+              {/* Conversion Footer with Micro-Copy & CTAs */}
+              <div className="border-t border-[#1B3428]/10 pt-5 mt-6 text-left">
+                {/* Micro-copy banner */}
+                <div className="flex items-center gap-2 mb-4 p-2.5 rounded-xl bg-[#FAF8F4] border border-[#1B3428]/15">
+                  <Sparkles className="w-4 h-4 text-[#E8722C] shrink-0" />
+                  <p className="font-sans text-xs text-[#14261D]/80 leading-snug">
+                    <strong className="text-[#14261D] font-semibold">Ready to study your own textbooks?</strong> Create an account to upload and index your own learning materials.
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <span className="font-sans text-xs text-[#14261D]/60 hidden sm:inline">
+                    Free student tier includes 3 active material workspaces.
+                  </span>
+
+                  <div className="w-full sm:w-auto flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3">
+                    <Link
+                      href="/login"
+                      className="w-full sm:w-auto py-2.5 px-6 rounded-full bg-transparent text-[#14261D] font-display font-bold text-sm border-[1.5px] border-[#1B3428] shadow-[0_2px_0_0_#1B3428] active:translate-y-0.5 active:shadow-none hover:bg-black/5 transition-all text-center select-none"
+                    >
+                      Sign In
+                    </Link>
+
+                    <Link
+                      href="/register"
+                      className="w-full sm:w-auto py-2.5 px-6 rounded-full bg-[#E8722C] text-white font-display font-bold text-sm shadow-[0_3px_0_0_#1B3428] active:translate-y-0.5 active:shadow-none hover:bg-[#D66522] transition-all text-center select-none whitespace-nowrap inline-flex items-center justify-center gap-1.5"
+                    >
+                      <span>Create Free Account</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
             </div>
           </ScrollReveal>
-
         </div>
       </div>
     </section>
