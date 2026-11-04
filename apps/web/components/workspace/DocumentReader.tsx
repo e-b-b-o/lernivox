@@ -12,13 +12,17 @@ import {
   BookOpen,
   AlertCircle,
   Eye,
-  RotateCcw,
+  Check,
+  Copy,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
 import type {
   DocumentDto,
   DocumentOutlineItemDto,
   DocumentReaderContentDto,
+  DocumentBookmarkDto,
 } from '@lernivox/contracts';
 import { scrollToInternalElement } from '../../lib/scroll-utils';
 
@@ -199,9 +203,10 @@ const ContinuousPdfPage = memo(function ContinuousPdfPage({
       ref={containerRef}
       style={{
         width: `${pageWidth}px`,
+        maxWidth: '100%',
         minHeight: `${actualHeight}px`,
       }}
-      className={`relative bg-white rounded-lg transition-all duration-200 overflow-hidden flex flex-col items-center justify-center shrink-0 shadow-md ${
+      className={`relative bg-white rounded-lg transition-all duration-200 overflow-hidden flex flex-col items-center shrink-0 shadow-md mx-auto ${
         isActiveCitation
           ? 'border-[2.5px] border-[#E8722C] ring-4 ring-[#E8722C]/25 shadow-xl'
           : 'border border-[#1B3428]/15 hover:shadow-lg'
@@ -221,7 +226,10 @@ const ContinuousPdfPage = memo(function ContinuousPdfPage({
       </div>
 
       {isNearViewport ? (
-        <>
+        <div
+          className="relative w-full overflow-hidden flex justify-center"
+          style={{ width: `${pageWidth}px`, height: `${actualHeight}px` }}
+        >
           {isRendering && (
             <div className="absolute inset-0 bg-white/50 backdrop-blur-2xs flex items-center justify-center z-10 transition-opacity pointer-events-none">
               <Loader2 className="w-6 h-6 animate-spin text-[#E8722C]" />
@@ -229,10 +237,10 @@ const ContinuousPdfPage = memo(function ContinuousPdfPage({
           )}
           <canvas ref={canvasRef} className="block pdf-canvas pointer-events-none select-none" />
           <div ref={textLayerRef} className="textLayer select-text" />
-        </>
+        </div>
       ) : (
         /* Lightweight Skeleton Card while out of viewport to preserve scroll height */
-        <div className="flex flex-col items-center justify-center p-8 text-[#14261D]/30 select-none">
+        <div className="flex flex-col items-center justify-center p-8 text-[#14261D]/30 select-none min-h-[300px]">
           <div className="w-8 h-8 rounded-full border-2 border-[#1B3428]/10 border-t-[#E8722C] animate-spin mb-2" />
           <span className="font-mono text-xs font-bold text-[#14261D]/40">
             Page {pageNumber}
@@ -243,7 +251,7 @@ const ContinuousPdfPage = memo(function ContinuousPdfPage({
   );
 });
 
-interface DocumentReaderProps {
+export interface DocumentReaderProps {
   document: DocumentDto | null;
   readerContent: DocumentReaderContentDto | null;
   loadingContent: boolean;
@@ -257,11 +265,13 @@ interface DocumentReaderProps {
   onExplainParagraph: (text: string, pageNumber: number) => void;
   onPracticeSelection?: (pageNumber: number) => void;
   onAddBookmark: (pageNumber: number) => void;
+  bookmarks?: DocumentBookmarkDto[];
+  onToggleBookmark?: (pageNumber: number) => void;
   fileUrl: string;
   accessToken?: string;
 }
 
-export function DocumentReader({
+function DocumentReaderComponent({
   document: doc,
   readerContent,
   loadingContent,
@@ -275,6 +285,8 @@ export function DocumentReader({
   onExplainParagraph,
   onPracticeSelection,
   onAddBookmark,
+  bookmarks,
+  onToggleBookmark,
   fileUrl,
   accessToken,
 }: DocumentReaderProps) {
@@ -308,9 +320,10 @@ export function DocumentReader({
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [retryTrigger, setRetryTrigger] = useState(0);
 
-  // Text Selection State for "Explain this paragraph"
+  // Text Selection State for Contextual Floating Action Toolbar
   const [selectedText, setSelectedText] = useState<string>('');
   const [selectionCoords, setSelectionCoords] = useState<{ x: number; y: number } | null>(null);
+  const [copiedRecently, setCopiedRecently] = useState(false);
 
   const activeLoadingTaskRef = useRef<pdfjsLib.PDFDocumentLoadingTask | null>(null);
   const loadedDocIdRef = useRef<string | null>(null);
@@ -325,7 +338,7 @@ export function DocumentReader({
   const onPageChangeRef = useRef(onPageChange);
   onPageChangeRef.current = onPageChange;
 
-  // Measure container width responsively to expand PDF to 100% of available space
+  // Measure container width responsively to expand PDF to available space
   useEffect(() => {
     const el = scrollContainerRef.current;
     if (!el) return;
@@ -525,8 +538,8 @@ export function DocumentReader({
     setRetryTrigger((prev) => prev + 1);
   };
 
-  // Text Selection for "Explain this paragraph"
-  const handleMouseUp = () => {
+  // Robust Native Text Selection Tracking for PDF and Workspace Text
+  const handleSelectionUpdate = useCallback(() => {
     const selection = window.getSelection();
     if (!selection || selection.isCollapsed) {
       setSelectedText('');
@@ -535,17 +548,78 @@ export function DocumentReader({
     }
 
     const text = selection.toString().trim();
-    if (text.length > 5) {
-      setSelectedText(text);
+    if (text.length > 3) {
+      const container = scrollContainerRef.current;
+      if (!container) return;
+
       const range = selection.getRangeAt(0);
+      const commonAncestor = range.commonAncestorContainer;
+      const isInsideReader =
+        container.contains(commonAncestor) ||
+        (commonAncestor.nodeType === Node.TEXT_NODE &&
+          commonAncestor.parentElement &&
+          container.contains(commonAncestor.parentElement));
+
+      if (!isInsideReader) {
+        setSelectedText('');
+        setSelectionCoords(null);
+        return;
+      }
+
+      setSelectedText(text);
       const rect = range.getBoundingClientRect();
-      setSelectionCoords({
-        x: rect.left + rect.width / 2,
-        y: rect.top - 10,
-      });
+      const viewportWidth = window.innerWidth;
+
+      // Clamp X position so the toolbar is never clipped horizontally
+      const rawX = rect.left + rect.width / 2;
+      const clampedX = Math.max(120, Math.min(viewportWidth - 120, rawX));
+
+      // Position above selection, or below if near top of viewport
+      const y = rect.top < 60 ? rect.bottom + 12 : rect.top - 10;
+
+      setSelectionCoords({ x: clampedX, y });
     } else {
       setSelectedText('');
       setSelectionCoords(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    const onMouseUp = () => {
+      setTimeout(handleSelectionUpdate, 20);
+    };
+
+    const onTouchEnd = () => {
+      setTimeout(handleSelectionUpdate, 100);
+    };
+
+    const onSelectionChange = () => {
+      const selection = window.getSelection();
+      if (!selection || selection.isCollapsed) {
+        setSelectedText('');
+        setSelectionCoords(null);
+      }
+    };
+
+    document.addEventListener('mouseup', onMouseUp);
+    document.addEventListener('touchend', onTouchEnd);
+    document.addEventListener('selectionchange', onSelectionChange);
+
+    return () => {
+      document.removeEventListener('mouseup', onMouseUp);
+      document.removeEventListener('touchend', onTouchEnd);
+      document.removeEventListener('selectionchange', onSelectionChange);
+    };
+  }, [handleSelectionUpdate]);
+
+  const handleCopyText = async () => {
+    if (!selectedText) return;
+    try {
+      await navigator.clipboard.writeText(selectedText);
+      setCopiedRecently(true);
+      setTimeout(() => setCopiedRecently(false), 2000);
+    } catch (err) {
+      console.warn('Clipboard write failed:', err);
     }
   };
 
@@ -560,10 +634,13 @@ export function DocumentReader({
     }
   };
 
-  // Responsive page width calculation: expands to container width with balanced editorial padding
-  const editorialPadding = containerWidth < 640 ? 16 : containerWidth < 1024 ? 32 : 48;
-  const availableContentWidth = Math.max(280, containerWidth - editorialPadding);
-  const basePageWidth = Math.min(availableContentWidth, 920);
+  // Fluid responsive page width calculation: eliminates excessive beige gutters
+  const basePageWidth =
+    containerWidth < 640
+      ? Math.round(containerWidth * 0.96)
+      : containerWidth < 1024
+      ? Math.min(Math.round(containerWidth * 0.94), 768)
+      : Math.min(containerWidth - 64, 896);
   const calculatedPageWidth = Math.round(basePageWidth * zoomLevel);
 
   const totalDocPages = pdfDoc ? pdfDoc.numPages : totalPages || 1;
@@ -572,56 +649,82 @@ export function DocumentReader({
     : `${fileUrl}#page=${visiblePage}`;
 
   return (
-    <div
-      onMouseUp={handleMouseUp}
-      className="flex-1 min-h-0 flex flex-col h-full overflow-hidden bg-[#F4F0E5] relative w-full"
-    >
-      {/* 1. READER TOP CONTROL TOOLBAR */}
-      <div className="h-12 bg-[#FAF8F4] border-b border-[#1B3428]/15 px-3 sm:px-6 flex items-center justify-between shrink-0 select-none z-20 shadow-2xs">
-        {/* Left: View Mode Toggle */}
-        <div className="flex items-center gap-1.5">
+    <div className="flex-1 min-h-0 flex flex-col h-full overflow-hidden bg-[#F4F0E5] relative w-full">
+      {/* 1. READER SECONDARY TOOLBAR */}
+      <div className="h-12 bg-[#FAF8F4] border-b border-[#1B3428]/15 px-3 sm:px-4 md:px-6 flex items-center justify-between shrink-0 select-none z-20 shadow-2xs relative">
+        {/* Left: View Mode Toggle & Running Document Title */}
+        <div className="flex items-center gap-2 min-w-0 z-10">
           {isPdf ? (
-            <div className="flex items-center p-1 rounded-xl bg-[#EFECE6] border border-[#1B3428]/10 text-xs font-display font-bold">
+            <div className="flex items-center p-0.5 sm:p-1 rounded-xl bg-[#EFECE6] border border-[#1B3428]/10 text-xs font-display font-bold shrink-0">
               <button
                 type="button"
                 onClick={() => setViewMode('canvas')}
-                className={`px-2.5 sm:px-3 py-1 rounded-lg transition-colors flex items-center gap-1.5 ${
+                className={`p-1.5 sm:px-2.5 sm:py-1 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer ${
                   viewMode === 'canvas'
                     ? 'bg-[#FAF8F4] text-[#14261D] shadow-2xs'
                     : 'text-[#14261D]/60 hover:text-[#14261D]'
                 }`}
-                title="Continuous Vertical Reader"
+                title="Continuous PDF Reader"
+                aria-label="Continuous PDF Reader"
               >
-                <BookOpen className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Continuous PDF</span>
+                <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden md:inline whitespace-nowrap">Continuous</span>
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode('embed')}
-                className={`px-2.5 sm:px-3 py-1 rounded-lg transition-colors flex items-center gap-1.5 ${
+                className={`p-1.5 sm:px-2.5 sm:py-1 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer ${
                   viewMode === 'embed'
                     ? 'bg-[#FAF8F4] text-[#14261D] shadow-2xs'
                     : 'text-[#14261D]/60 hover:text-[#14261D]'
                 }`}
                 title="Browser Native PDF Embed"
+                aria-label="Browser Native PDF Embed"
               >
-                <Eye className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Embed View</span>
+                <Eye className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden md:inline whitespace-nowrap">Embed</span>
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E2EBD8] text-[#497E64] font-mono text-xs font-bold border border-[#497E64]/20">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E2EBD8] text-[#497E64] font-mono text-xs font-bold border border-[#497E64]/20 shrink-0">
               <FileText className="w-3.5 h-3.5" />
-              <span>Extracted Notes View</span>
+              <span className="hidden sm:inline">Notes</span>
             </div>
+          )}
+
+          {/* Running Document Identity */}
+          {doc?.title && (
+            <span
+              className="text-xs font-display font-bold text-[#14261D] truncate max-w-[100px] sm:max-w-[160px] md:max-w-[220px]"
+              title={doc.title}
+            >
+              {doc.title}
+            </span>
           )}
         </div>
 
-        {/* Center: Authoritative Continuous Page Status & Jump Input */}
-        <div className="flex items-center gap-2">
+        {/* Center: Authoritative Continuous Page Status & Jump Input (Strictly Centered) */}
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 pointer-events-auto z-10">
+          <button
+            type="button"
+            onClick={() => {
+              if (visiblePage > 1) {
+                const target = visiblePage - 1;
+                scrollToPage(target, true);
+                onPageChange(target);
+              }
+            }}
+            disabled={visiblePage <= 1}
+            className="w-6 h-6 rounded-md flex items-center justify-center text-[#14261D]/70 hover:text-[#14261D] hover:bg-[#1B3428]/5 disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+            title="Previous page"
+            aria-label="Previous page"
+          >
+            <ChevronLeft className="w-3.5 h-3.5" />
+          </button>
+
           <form
             onSubmit={handlePageJumpSubmit}
-            className="flex items-center gap-1.5 font-mono text-xs bg-[#FAF8F4] border border-[#1B3428]/20 px-2.5 py-1 rounded-xl shadow-2xs"
+            className="flex items-center gap-1.5 font-mono text-xs bg-[#FAF8F4] border border-[#1B3428]/20 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-xl shadow-2xs"
           >
             <span className="text-[#14261D]/70 font-sans text-[11px] font-medium hidden sm:inline">
               Page
@@ -633,22 +736,39 @@ export function DocumentReader({
               value={pageJumpInput}
               onChange={(e) => setPageJumpInput(e.target.value)}
               onBlur={handlePageJumpSubmit}
-              className="w-11 h-6 text-center rounded-md bg-white border border-[#1B3428]/25 font-bold text-[#E8722C] focus:outline-none focus:border-[#E8722C]"
+              className="w-10 sm:w-11 h-6 text-center rounded-md bg-white border border-[#1B3428]/25 font-bold text-[#E8722C] focus:outline-none focus:border-[#E8722C] text-xs"
               title="Enter page number to jump"
             />
             <span className="text-[#14261D]/40">/</span>
             <span className="font-bold text-[#14261D]/80">{totalDocPages}</span>
           </form>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (visiblePage < totalDocPages) {
+                const target = visiblePage + 1;
+                scrollToPage(target, true);
+                onPageChange(target);
+              }
+            }}
+            disabled={visiblePage >= totalDocPages}
+            className="w-6 h-6 rounded-md flex items-center justify-center text-[#14261D]/70 hover:text-[#14261D] hover:bg-[#1B3428]/5 disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+            title="Next page"
+            aria-label="Next page"
+          >
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
         </div>
 
         {/* Right: Zoom Controls & Bookmark Button */}
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0 z-10">
           {viewMode === 'canvas' && (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5 sm:gap-1">
               <button
                 type="button"
                 onClick={() => setZoomLevel((z) => Math.max(0.6, Number((z - 0.1).toFixed(1))))}
-                className="p-1.5 rounded-lg border border-[#1B3428]/20 bg-[#FAF8F4] hover:bg-[#1B3428]/10 transition-colors"
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border border-[#1B3428]/20 bg-[#FAF8F4] hover:bg-[#1B3428]/10 transition-colors flex items-center justify-center cursor-pointer"
                 title="Zoom out"
               >
                 <ZoomOut className="w-3.5 h-3.5 text-[#14261D]" />
@@ -657,7 +777,7 @@ export function DocumentReader({
               <button
                 type="button"
                 onClick={() => setZoomLevel(1.0)}
-                className="font-mono text-[11px] font-bold text-[#14261D]/80 px-1.5 py-0.5 rounded hover:bg-[#1B3428]/10 transition-colors hidden sm:inline-block"
+                className="font-mono text-[11px] font-bold text-[#14261D]/80 px-1 sm:px-1.5 py-0.5 rounded hover:bg-[#1B3428]/10 transition-colors hidden sm:inline-block cursor-pointer"
                 title="Reset to Fit Width"
               >
                 {Math.round(zoomLevel * 100)}%
@@ -666,7 +786,7 @@ export function DocumentReader({
               <button
                 type="button"
                 onClick={() => setZoomLevel((z) => Math.min(2.0, Number((z + 0.1).toFixed(1))))}
-                className="p-1.5 rounded-lg border border-[#1B3428]/20 bg-[#FAF8F4] hover:bg-[#1B3428]/10 transition-colors"
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border border-[#1B3428]/20 bg-[#FAF8F4] hover:bg-[#1B3428]/10 transition-colors flex items-center justify-center cursor-pointer"
                 title="Zoom in"
               >
                 <ZoomIn className="w-3.5 h-3.5 text-[#14261D]" />
@@ -676,20 +796,39 @@ export function DocumentReader({
 
           <div className="w-[1px] h-4 bg-[#1B3428]/15 mx-0.5" />
 
-          {/* Bookmark Current Page */}
-          <button
-            type="button"
-            onClick={() => onAddBookmark(visiblePage)}
-            className="h-8 px-2.5 sm:px-3 rounded-lg bg-[#FAF8F4] border border-[#1B3428]/20 text-[#14261D] font-display font-bold text-xs hover:bg-[#FBE8DC] transition-colors flex items-center gap-1.5 shadow-2xs"
-            title={`Bookmark Page ${visiblePage}`}
-          >
-            <Bookmark className="w-3.5 h-3.5 text-[#E8722C]" />
-            <span className="hidden sm:inline">Bookmark p. {visiblePage}</span>
-          </button>
+          {/* Compact Icon-Only Bookmark Ribbon Toggle */}
+          {(() => {
+            const isBookmarked = Boolean(bookmarks?.some((b) => b.pageNumber === visiblePage));
+            return (
+              <button
+                type="button"
+                onClick={() => {
+                  if (onToggleBookmark) {
+                    onToggleBookmark(visiblePage);
+                  } else {
+                    onAddBookmark(visiblePage);
+                  }
+                }}
+                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg border transition-all flex items-center justify-center cursor-pointer shrink-0 ${
+                  isBookmarked
+                    ? 'bg-[#FBE8DC] border-[#E8722C]/40 text-[#E8722C] shadow-2xs'
+                    : 'bg-[#FAF8F4] border-[#1B3428]/20 text-[#14261D]/60 hover:text-[#14261D] hover:bg-[#1B3428]/5'
+                }`}
+                title={isBookmarked ? `Remove Bookmark (Page ${visiblePage})` : `Bookmark Page ${visiblePage}`}
+                aria-label={isBookmarked ? `Remove Bookmark (Page ${visiblePage})` : `Bookmark Page ${visiblePage}`}
+              >
+                <Bookmark
+                  className={`w-3.5 h-3.5 transition-colors ${
+                    isBookmarked ? 'fill-[#E8722C] text-[#E8722C]' : ''
+                  }`}
+                />
+              </button>
+            );
+          })()}
         </div>
       </div>
 
-      {/* 2. FLOATING TEXT-SELECTION ACTION ("Explain this paragraph" & "Practice this part") */}
+      {/* 2. FLOATING CONTEXTUAL SELECTION TOOLBAR ("Copy", "Ask AI", "Practice") */}
       {selectedText && selectionCoords && (
         <div
           style={{
@@ -698,33 +837,63 @@ export function DocumentReader({
             top: `${selectionCoords.y}px`,
             transform: 'translate(-50%, -100%)',
           }}
-          className="z-50 animate-in fade-in zoom-in-95 duration-150 flex items-center gap-1.5 p-1 rounded-full bg-[#14261D] border border-[#FAF8F4]/20 shadow-[0_4px_0_0_#0D1B14]"
+          className="z-50 animate-in fade-in zoom-in-95 duration-150 flex items-center gap-1.5 p-1 rounded-full bg-[#14261D] border border-[#FAF8F4]/20 shadow-[0_4px_0_0_#0D1B14] select-none"
         >
+          {/* Copy Button */}
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={handleCopyText}
+            className="py-1 px-3 rounded-full bg-[#1B3428] text-white font-display font-bold text-xs hover:-translate-y-0.5 active:translate-y-0.5 transition-all flex items-center gap-1.5 cursor-pointer"
+            title="Copy selected text"
+            aria-label="Copy selected text"
+          >
+            {copiedRecently ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="text-emerald-300">Copied!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5 text-[#FAF8F4]/80" />
+                <span>Copy</span>
+              </>
+            )}
+          </button>
+
+          {/* Ask AI Button */}
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => {
               onExplainParagraph(selectedText, visiblePage);
               setSelectedText('');
               setSelectionCoords(null);
             }}
-            className="py-1 px-3 rounded-full bg-[#1B3428] text-white font-display font-bold text-xs hover:-translate-y-0.5 active:translate-y-0.5 transition-all flex items-center gap-1.5"
+            className="py-1 px-3 rounded-full bg-[#E8722C] text-white font-display font-bold text-xs hover:-translate-y-0.5 active:translate-y-0.5 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Ask AI about this selection"
+            aria-label="Ask AI about this selection"
           >
-            <Sparkles className="w-3.5 h-3.5 text-[#E8722C]" />
-            <span>Explain</span>
+            <Sparkles className="w-3.5 h-3.5 text-white" />
+            <span>Ask AI</span>
           </button>
 
+          {/* Practice Section Button */}
           {onPracticeSelection && (
             <button
               type="button"
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => {
                 onPracticeSelection(visiblePage);
                 setSelectedText('');
                 setSelectionCoords(null);
               }}
-              className="py-1 px-3 rounded-full bg-[#E8722C] text-white font-display font-bold text-xs hover:-translate-y-0.5 active:translate-y-0.5 transition-all flex items-center gap-1.5"
+              className="py-1 px-3 rounded-full bg-[#1B3428] text-white font-display font-bold text-xs hover:-translate-y-0.5 active:translate-y-0.5 transition-all flex items-center gap-1.5 cursor-pointer"
+              title="Practice this chapter or section"
+              aria-label="Practice this section"
             >
-              <HelpCircle className="w-3.5 h-3.5" />
-              <span>Practice this part</span>
+              <HelpCircle className="w-3.5 h-3.5 text-[#E8722C]" />
+              <span className="hidden sm:inline">Practice</span>
             </button>
           )}
         </div>
@@ -740,7 +909,7 @@ export function DocumentReader({
         {isPdf ? (
           viewMode === 'canvas' ? (
             /* CONTINUOUS VERTICAL SCROLL STREAM */
-            <div className="w-full min-h-full flex flex-col items-center py-6 px-2 sm:px-4 md:px-6 space-y-6">
+            <div className="w-full min-h-full flex flex-col items-center py-6 px-1 sm:px-4 md:px-6 space-y-6">
               {lifecycle === 'FETCHING' || (lifecycle === 'INITIALIZING' && !pdfDoc) ? (
                 <div className="p-16 text-center bg-[#FAF8F4] rounded-[24px] border-[2px] border-[#1B3428]/20 shadow-[0_4px_0_0_#1B3428]/10 max-w-md mx-auto my-auto">
                   <Loader2 className="w-8 h-8 animate-spin text-[#E8722C] mx-auto mb-3" />
@@ -809,32 +978,32 @@ export function DocumentReader({
             </div>
           )
         ) : (
-          /* NON-PDF EXTRACTED TEXT READING VIEW */
-          <div className="w-full min-h-full flex flex-col items-center py-8 px-4">
+          /* NON-PDF EXTRACTED TEXT READING VIEW (Fully Selectable) */
+          <div className="w-full min-h-full flex flex-col items-center py-8 px-4 select-text">
             <div
               style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'top center' }}
-              className="w-full max-w-3xl transition-transform duration-150 ease-out"
+              className="w-full max-w-3xl transition-transform duration-150 ease-out select-text"
             >
               {loadingContent ? (
-                <div className="p-16 text-center bg-[#FAF8F4] rounded-[24px] border-[2px] border-[#1B3428]/20 shadow-[0_4px_0_0_#1B3428]/10">
+                <div className="p-16 text-center bg-[#FAF8F4] rounded-[24px] border-[2px] border-[#1B3428]/20 shadow-[0_4px_0_0_#1B3428]/10 select-none">
                   <Loader2 className="w-8 h-8 animate-spin text-[#E8722C] mx-auto mb-3" />
                   <p className="font-display font-bold text-sm text-[#14261D]">
                     Loading extracted text notes...
                   </p>
                 </div>
               ) : (
-                <article className="w-full bg-[#FAF8F4] rounded-[16px] border-[2px] border-[#1B3428] shadow-[0_8px_0_0_#1B3428] p-8 sm:p-12 md:p-16 relative">
-                  <div className="flex items-center justify-between pb-4 border-b border-[#1B3428]/15 mb-8 text-[11px] font-mono text-[#14261D]/60">
+                <article className="w-full bg-[#FAF8F4] rounded-[16px] border-[2px] border-[#1B3428] shadow-[0_8px_0_0_#1B3428] p-8 sm:p-12 md:p-16 relative select-text">
+                  <div className="flex items-center justify-between pb-4 border-b border-[#1B3428]/15 mb-8 text-[11px] font-mono text-[#14261D]/60 select-none">
                     <span className="uppercase tracking-widest">{doc?.title || 'Lernivox Notes'}</span>
                     <span>Extracted Section</span>
                   </div>
-                  <div className="font-serif text-[15px] sm:text-[17px] text-[#14261D] leading-[1.75] space-y-4">
+                  <div className="font-serif text-[15px] sm:text-[17px] text-[#14261D] leading-[1.75] space-y-4 select-text">
                     {readerContent?.pages
                       .find((p) => p.pageNumber === visiblePage)
                       ?.text.split('\n\n')
                       .map((paragraph, idx) => (
-                        <p key={idx}>{paragraph}</p>
-                      )) || <p>No text content for this section.</p>}
+                        <p key={idx} className="select-text">{paragraph}</p>
+                      )) || <p className="select-text">No text content for this section.</p>}
                   </div>
                 </article>
               )}
@@ -845,3 +1014,5 @@ export function DocumentReader({
     </div>
   );
 }
+
+export const DocumentReader = memo(DocumentReaderComponent);
