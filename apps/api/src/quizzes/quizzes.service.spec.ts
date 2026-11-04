@@ -1,5 +1,5 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { QuizzesService } from './quizzes.service';
 
 describe('QuizzesService', () => {
@@ -32,7 +32,14 @@ describe('QuizzesService', () => {
         }),
         findMany: (jest.fn() as any).mockResolvedValue([]),
         findFirst: (jest.fn() as any).mockResolvedValue(null),
+        findUnique: (jest.fn() as any).mockResolvedValue(null),
+        update: (jest.fn() as any).mockResolvedValue({}),
+        updateMany: (jest.fn() as any).mockResolvedValue({ count: 0 }),
         delete: (jest.fn() as any).mockResolvedValue({ id: 'quiz-1' }),
+        deleteMany: (jest.fn() as any).mockResolvedValue({ count: 0 }),
+      },
+      quizQuestion: {
+        deleteMany: (jest.fn() as any).mockResolvedValue({ count: 0 }),
       },
       quizAttempt: {
         create: (jest.fn() as any).mockResolvedValue({
@@ -126,6 +133,60 @@ describe('QuizzesService', () => {
     expect((question.options[1] as any).isCorrect).toBeUndefined();
   });
 
+  it('getQuizById provides deterministic fallback questionOrder if property is missing or null', async () => {
+    mockPrisma.quiz.findFirst.mockResolvedValue({
+      id: 'quiz-legacy',
+      userId: 'user-1',
+      documentId: 'doc-1',
+      title: 'Legacy Quiz',
+      difficulty: 'INTERMEDIATE',
+      status: 'READY',
+      createdAt: new Date(),
+      document: { title: 'Molecular Biology' },
+      questions: [
+        {
+          id: 'q-legacy-1',
+          questionOrder: null, // Legacy null ordering
+          questionType: 'MULTIPLE_CHOICE',
+          prompt: 'Legacy prompt 1?',
+          expectedAnswer: 'Answer 1',
+          options: [{ id: 'opt-1', optionOrder: null, text: 'Opt 1', isCorrect: true }],
+        },
+        {
+          id: 'q-legacy-2',
+          questionOrder: undefined, // Missing ordering
+          questionType: 'SHORT_ANSWER',
+          prompt: 'Legacy prompt 2?',
+          expectedAnswer: 'Answer 2',
+          options: [],
+        },
+      ],
+    });
+
+    const quiz = await service.getQuizById('user-1', 'quiz-legacy');
+    expect(quiz.questions.length).toBe(2);
+    expect(quiz.questions[0]!.questionOrder).toBe(1);
+    expect(quiz.questions[1]!.questionOrder).toBe(2);
+    expect(quiz.questions[0]!.options[0]!.optionOrder).toBe(1);
+  });
+
+  it('getQuizById handles quiz with empty question list gracefully', async () => {
+    mockPrisma.quiz.findFirst.mockResolvedValue({
+      id: 'quiz-empty',
+      userId: 'user-1',
+      documentId: 'doc-1',
+      title: 'Empty Quiz',
+      difficulty: 'INTERMEDIATE',
+      status: 'READY',
+      createdAt: new Date(),
+      document: { title: 'Molecular Biology' },
+      questions: [],
+    });
+
+    const quiz = await service.getQuizById('user-1', 'quiz-empty');
+    expect(quiz.questions).toEqual([]);
+  });
+
   it('startAttempt throws BadRequestException if quiz is still GENERATING', async () => {
     mockPrisma.quiz.findFirst.mockResolvedValue({
       id: 'quiz-1',
@@ -213,5 +274,170 @@ describe('QuizzesService', () => {
     expect(failed[0]?.questionId).toBe('q-1');
     expect(failed[0]?.failCount).toBe(1);
     expect(failed[0]?.expectedAnswer).toBe('Interphase');
+  });
+
+  describe('quiz deletion & authorization', () => {
+    it('deleteQuiz soft-deletes with archivedAt when owner in PERSONAL workspace', async () => {
+      mockPrisma.quiz.findUnique.mockResolvedValue({
+        id: 'quiz-1',
+        userId: 'user-1',
+        archivedAt: null,
+        workspace: {
+          id: 'ws-1',
+          type: 'PERSONAL',
+          ownerId: 'user-1',
+          members: [],
+        },
+      });
+
+      const res = await service.deleteQuiz('user-1', 'quiz-1', 'ws-1');
+      expect(res).toEqual({ success: true });
+      expect(mockPrisma.quiz.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'quiz-1' },
+          data: expect.objectContaining({ archivedAt: expect.any(Date) }),
+        }),
+      );
+    });
+
+    it('deleteQuiz soft-deletes when creator deletes in GROUP workspace', async () => {
+      mockPrisma.quiz.findUnique.mockResolvedValue({
+        id: 'quiz-1',
+        userId: 'user-2',
+        archivedAt: null,
+        workspace: {
+          id: 'ws-group',
+          type: 'GROUP',
+          ownerId: 'user-1',
+          members: [{ userId: 'user-1' }, { userId: 'user-2' }],
+        },
+      });
+
+      const res = await service.deleteQuiz('user-2', 'quiz-1', 'ws-group');
+      expect(res).toEqual({ success: true });
+      expect(mockPrisma.quiz.update).toHaveBeenCalled();
+    });
+
+    it('deleteQuiz soft-deletes when workspace owner deletes another member quiz in GROUP workspace', async () => {
+      mockPrisma.quiz.findUnique.mockResolvedValue({
+        id: 'quiz-1',
+        userId: 'user-2',
+        archivedAt: null,
+        workspace: {
+          id: 'ws-group',
+          type: 'GROUP',
+          ownerId: 'user-1',
+          members: [{ userId: 'user-1' }, { userId: 'user-2' }],
+        },
+      });
+
+      const res = await service.deleteQuiz('user-1', 'quiz-1', 'ws-group');
+      expect(res).toEqual({ success: true });
+      expect(mockPrisma.quiz.update).toHaveBeenCalled();
+    });
+
+    it('deleteQuiz throws ForbiddenException when non-creator member in GROUP workspace attempts deletion', async () => {
+      mockPrisma.quiz.findUnique.mockResolvedValue({
+        id: 'quiz-1',
+        userId: 'user-2',
+        archivedAt: null,
+        workspace: {
+          id: 'ws-group',
+          type: 'GROUP',
+          ownerId: 'user-1',
+          members: [{ userId: 'user-1' }, { userId: 'user-2' }, { userId: 'user-3' }],
+        },
+      });
+
+      await expect(service.deleteQuiz('user-3', 'quiz-1', 'ws-group')).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('deleteQuiz throws NotFoundException when quiz is already archived or not found', async () => {
+      mockPrisma.quiz.findUnique.mockResolvedValue({
+        id: 'quiz-1',
+        userId: 'user-1',
+        archivedAt: new Date(),
+      });
+
+      await expect(service.deleteQuiz('user-1', 'quiz-1')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('stale reconciliation, retry and archived status checks', () => {
+    it('startAttempt throws BadRequestException if quiz is archived', async () => {
+      mockPrisma.quiz.findFirst.mockResolvedValue({
+        id: 'quiz-1',
+        userId: 'user-1',
+        status: 'READY',
+        archivedAt: new Date(),
+        questions: [{ id: 'q-1' }],
+      });
+
+      await expect(service.startAttempt('user-1', 'quiz-1')).rejects.toThrow(BadRequestException);
+    });
+
+    it('retryGeneration resets status to GENERATING and adds job to BullMQ queue', async () => {
+      mockPrisma.quiz.findUnique.mockResolvedValue({
+        id: 'quiz-1',
+        userId: 'user-1',
+        documentId: 'doc-1',
+        title: 'Biology Quiz',
+        status: 'FAILED',
+        archivedAt: null,
+        difficulty: 'INTERMEDIATE',
+        document: { id: 'doc-1', title: 'Molecular Biology' },
+        workspace: { ownerId: 'user-1', members: [] },
+      });
+      mockPrisma.quiz.update.mockResolvedValue({
+        id: 'quiz-1',
+        userId: 'user-1',
+        documentId: 'doc-1',
+        title: 'Biology Quiz',
+        status: 'GENERATING',
+        errorMessage: null,
+        difficulty: 'INTERMEDIATE',
+        createdAt: new Date(),
+      });
+
+      const res = await service.retryGeneration('user-1', 'quiz-1');
+      expect(res.status).toBe('GENERATING');
+      expect(mockPrisma.quizQuestion.deleteMany).toHaveBeenCalledWith({ where: { quizId: 'quiz-1' } });
+      expect(mockQueue.add).toHaveBeenCalled();
+    });
+
+    it('retryGeneration throws BadRequestException if quiz is already READY', async () => {
+      mockPrisma.quiz.findUnique.mockResolvedValue({
+        id: 'quiz-1',
+        userId: 'user-1',
+        documentId: 'doc-1',
+        status: 'READY',
+        archivedAt: null,
+        workspace: { ownerId: 'user-1', members: [] },
+      });
+
+      await expect(service.retryGeneration('user-1', 'quiz-1')).rejects.toThrow(BadRequestException);
+    });
+
+    it('getWorkspaceQuizzes triggers stale reconciliation query on GENERATING quizzes', async () => {
+      mockPrisma.workspace = {
+        findFirst: (jest.fn() as any).mockResolvedValue({ id: 'ws-1', ownerId: 'user-1' }),
+      };
+      mockPrisma.quiz.findMany.mockResolvedValue([]);
+
+      await service.getWorkspaceQuizzes('user-1', 'ws-1');
+      expect(mockPrisma.quiz.updateMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            status: 'GENERATING',
+            archivedAt: null,
+          }),
+          data: expect.objectContaining({
+            status: 'FAILED',
+          }),
+        }),
+      );
+    });
   });
 });

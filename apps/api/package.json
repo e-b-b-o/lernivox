@@ -6,7 +6,8 @@
     "build": "nest build",
     "dev": "nest start --watch",
     "start": "node dist/main.js",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --testPathIgnorePatterns=e2e",
+    "test:e2e": "NODE_OPTIONS=--experimental-vm-modules jest --testPathPattern=e2e",
     "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
     "type-check": "tsc --noEmit",
     "lint": "eslint src/ --ext .ts"

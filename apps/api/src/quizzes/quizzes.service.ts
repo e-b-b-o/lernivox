@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
@@ -131,7 +132,7 @@ export class QuizzesService {
       },
     });
 
-    // Enqueue background BullMQ generation job
+    // Enqueue background BullMQ generation job with stable, unique jobId
     await this.aiQueue.add(
       JobType.GENERATE_QUIZ,
       {
@@ -146,6 +147,7 @@ export class QuizzesService {
         questionTypes,
       },
       {
+        jobId: `quiz-gen-${quiz.id}`,
         attempts: 2,
         backoff: { type: 'exponential', delay: 3000 },
         removeOnComplete: true,
@@ -175,8 +177,24 @@ export class QuizzesService {
   }
 
   async getUserQuizzes(userId: string): Promise<QuizSummaryDto[]> {
+    // Reconcile any quizzes stuck in GENERATING state for more than 2 minutes
+    const STALE_TIMEOUT_MS = 2 * 60 * 1000;
+    const staleCutoff = new Date(Date.now() - STALE_TIMEOUT_MS);
+    await this.prisma.quiz.updateMany({
+      where: {
+        userId,
+        status: 'GENERATING',
+        createdAt: { lt: staleCutoff },
+        archivedAt: null,
+      },
+      data: {
+        status: 'FAILED',
+        errorMessage: 'Generation timed out. Please retry quiz generation.',
+      },
+    });
+
     const quizzes = await this.prisma.quiz.findMany({
-      where: { userId },
+      where: { userId, archivedAt: null },
       include: {
         document: { select: { title: true } },
         questions: { select: { id: true } },
@@ -223,7 +241,7 @@ export class QuizzesService {
     }
 
     const quizzes = await this.prisma.quiz.findMany({
-      where: { userId, documentId },
+      where: { userId, documentId, archivedAt: null },
       include: {
         document: { select: { title: true } },
         questions: { select: { id: true } },
@@ -272,8 +290,28 @@ export class QuizzesService {
       throw new NotFoundException('Workspace not found or access denied.');
     }
 
+    // Reconcile stale generating quizzes in this workspace
+    const STALE_TIMEOUT_MS = 2 * 60 * 1000;
+    const staleCutoff = new Date(Date.now() - STALE_TIMEOUT_MS);
+    await this.prisma.quiz.updateMany({
+      where: {
+        status: 'GENERATING',
+        createdAt: { lt: staleCutoff },
+        archivedAt: null,
+        OR: [
+          { workspaceId },
+          { document: { workspaceId } },
+        ],
+      },
+      data: {
+        status: 'FAILED',
+        errorMessage: 'Generation timed out. Please retry quiz generation.',
+      },
+    });
+
     const quizzes = await this.prisma.quiz.findMany({
       where: {
+        archivedAt: null,
         OR: [
           { workspaceId },
           { document: { workspaceId } },
@@ -322,6 +360,7 @@ export class QuizzesService {
     const quiz = await this.prisma.quiz.findFirst({
       where: {
         id: quizId,
+        archivedAt: null,
         OR: [
           { userId },
           { workspace: { members: { some: { userId } } } },
@@ -347,20 +386,44 @@ export class QuizzesService {
       throw new NotFoundException('Quiz not found or access denied.');
     }
 
+    // Reconcile stale generating quiz
+    const STALE_TIMEOUT_MS = 2 * 60 * 1000;
+    const staleCutoff = new Date(Date.now() - STALE_TIMEOUT_MS);
+    if (quiz.status === 'GENERATING' && quiz.createdAt < staleCutoff) {
+      await this.prisma.quiz.update({
+        where: { id: quiz.id },
+        data: {
+          status: 'FAILED',
+          errorMessage: 'Generation timed out. Please retry quiz generation.',
+        },
+      });
+      quiz.status = 'FAILED';
+      quiz.errorMessage = 'Generation timed out. Please retry quiz generation.';
+    }
+
     // SANITIZATION: Never leak correct options or expected answers when delivering quiz questions
-    const sanitizedQuestions: QuizQuestionDto[] = quiz.questions.map((q) => ({
-      id: q.id,
-      questionOrder: q.questionOrder,
-      questionType: q.questionType as any,
-      prompt: q.prompt,
-      pageNumber: q.pageNumber,
-      sourceChunkId: q.sourceChunkId,
-      options: q.options.map((opt) => ({
-        id: opt.id,
-        optionOrder: opt.optionOrder,
-        text: opt.text,
-      })),
-    }));
+    // Ensure deterministic questionOrder fallback for legacy or malformed quiz records
+    const sanitizedQuestions: QuizQuestionDto[] = (quiz.questions || []).map(
+      (q, index) => ({
+        id: q.id,
+        questionOrder:
+          typeof q.questionOrder === 'number' && !Number.isNaN(q.questionOrder)
+            ? q.questionOrder
+            : index + 1,
+        questionType: q.questionType as any,
+        prompt: q.prompt,
+        pageNumber: q.pageNumber,
+        sourceChunkId: q.sourceChunkId,
+        options: (q.options || []).map((opt, optIndex) => ({
+          id: opt.id,
+          optionOrder:
+            typeof opt.optionOrder === 'number' && !Number.isNaN(opt.optionOrder)
+              ? opt.optionOrder
+              : optIndex + 1,
+          text: opt.text,
+        })),
+      }),
+    );
 
     return {
       id: quiz.id,
@@ -398,6 +461,10 @@ export class QuizzesService {
 
     if (!quiz) {
       throw new NotFoundException('Quiz not found or access denied.');
+    }
+
+    if (quiz.archivedAt !== null) {
+      throw new BadRequestException('This quiz has been archived and can no longer be attempted.');
     }
 
     if (quiz.status !== 'READY') {
@@ -625,11 +692,14 @@ export class QuizzesService {
       answerMap.set(ans.questionId, ans);
     }
 
-    const results: QuestionResultDto[] = attempt.quiz.questions.map((q) => {
+    const results: QuestionResultDto[] = (attempt.quiz.questions || []).map((q, index) => {
       const studentAns = answerMap.get(q.id);
       return {
         questionId: q.id,
-        questionOrder: q.questionOrder,
+        questionOrder:
+          typeof q.questionOrder === 'number' && !Number.isNaN(q.questionOrder)
+            ? q.questionOrder
+            : index + 1,
         questionType: q.questionType as any,
         prompt: q.prompt,
         submittedAnswer: studentAns?.submittedAnswer || null,
@@ -642,9 +712,12 @@ export class QuizzesService {
         sourceExcerpt: q.sourceExcerpt,
         pageNumber: q.pageNumber,
         sourceChunkId: q.sourceChunkId,
-        options: q.options.map((opt) => ({
+        options: (q.options || []).map((opt, optIndex) => ({
           id: opt.id,
-          optionOrder: opt.optionOrder,
+          optionOrder:
+            typeof opt.optionOrder === 'number' && !Number.isNaN(opt.optionOrder)
+              ? opt.optionOrder
+              : optIndex + 1,
           text: opt.text,
           isCorrect: opt.isCorrect,
         })),
@@ -685,6 +758,7 @@ export class QuizzesService {
           userId,
           isCompleted: true,
           quiz: {
+            archivedAt: null,
             OR: [{ workspaceId }, { document: { workspaceId } }],
           },
         },
@@ -730,23 +804,173 @@ export class QuizzesService {
     return Array.from(questionMap.values());
   }
 
-  async deleteQuiz(userId: string, quizId: string): Promise<{ success: boolean }> {
-    const quiz = await this.prisma.quiz.findFirst({
-      where: {
-        id: quizId,
-        OR: [
-          { userId },
-          { workspace: { ownerId: userId } },
-        ],
+  async retryGeneration(userId: string, quizId: string): Promise<QuizSummaryDto> {
+    const quiz = await this.prisma.quiz.findUnique({
+      where: { id: quizId },
+      include: {
+        document: { select: { id: true, title: true, workspaceId: true } },
+        workspace: {
+          include: { members: true },
+        },
       },
     });
 
-    if (!quiz) {
+    if (!quiz || quiz.archivedAt !== null) {
       throw new NotFoundException('Quiz not found or access denied.');
     }
 
-    await this.prisma.quiz.delete({
+    const workspace =
+      quiz.workspace ||
+      (quiz.document?.workspaceId
+        ? await this.prisma.workspace.findUnique({
+            where: { id: quiz.document.workspaceId },
+            include: { members: true },
+          })
+        : null);
+
+    const isWorkspaceOwner = workspace?.ownerId === userId;
+    const isQuizCreator = quiz.userId === userId;
+    const isMember = workspace?.members.some((m) => m.userId === userId);
+
+    if (!isWorkspaceOwner && !isQuizCreator && !isMember) {
+      throw new ForbiddenException('Access denied to retry quiz generation.');
+    }
+
+    if (quiz.status === 'READY') {
+      throw new BadRequestException('Quiz is already generated and ready.');
+    }
+
+    // Remove any stale or partially generated questions
+    await this.prisma.quizQuestion.deleteMany({
+      where: { quizId: quiz.id },
+    });
+
+    // Update quiz status to GENERATING and clear errorMessage
+    const updated = await this.prisma.quiz.update({
+      where: { id: quiz.id },
+      data: {
+        status: 'GENERATING',
+        errorMessage: null,
+      },
+    });
+
+    const resolvedDocId = quiz.documentId || quiz.document?.id;
+    if (!resolvedDocId) {
+      throw new BadRequestException('Cannot retry quiz without an associated document.');
+    }
+
+    // Enqueue new BullMQ background generation job
+    await this.aiQueue.add(
+      JobType.GENERATE_QUIZ,
+      {
+        quizId: quiz.id,
+        userId: quiz.userId,
+        documentId: resolvedDocId,
+        workspaceId: quiz.workspaceId || undefined,
+        sourceChapter: quiz.sourceChapter || undefined,
+        rangeScope: quiz.rangeScope as any,
+        numQuestions: 5,
+        difficulty: quiz.difficulty as QuizDifficulty,
+        questionTypes: ['MULTIPLE_CHOICE', 'TRUE_FALSE', 'FILL_IN_THE_BLANK', 'SHORT_ANSWER'],
+      },
+      {
+        jobId: `quiz-gen-${quiz.id}-${Date.now()}`,
+        attempts: 2,
+        backoff: { type: 'exponential', delay: 3000 },
+        removeOnComplete: true,
+      },
+    );
+
+    this.logger.log(`Retrying quiz generation job for quiz ${quiz.id} (user ${userId})`);
+
+    return {
+      id: updated.id,
+      userId: updated.userId,
+      workspaceId: updated.workspaceId,
+      documentId: updated.documentId,
+      documentTitle: quiz.document?.title,
+      title: updated.title,
+      description: updated.description,
+      sourceChapter: updated.sourceChapter,
+      rangeScope: updated.rangeScope as any,
+      difficulty: updated.difficulty as QuizDifficulty,
+      status: updated.status as QuizStatus,
+      errorMessage: updated.errorMessage,
+      questionCount: 0,
+      bestScore: null,
+      attemptsCount: 0,
+      createdAt: updated.createdAt.toISOString(),
+    };
+  }
+
+  async deleteQuiz(
+    userId: string,
+    quizId: string,
+    workspaceId?: string,
+  ): Promise<{ success: boolean }> {
+    const quiz = await this.prisma.quiz.findUnique({
       where: { id: quizId },
+      include: {
+        workspace: {
+          include: {
+            members: true,
+          },
+        },
+        document: {
+          include: {
+            workspace: {
+              include: {
+                members: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!quiz || quiz.archivedAt !== null) {
+      throw new NotFoundException('Quiz not found or already deleted.');
+    }
+
+    const workspace = quiz.workspace || quiz.document?.workspace || null;
+
+    if (workspaceId && workspace && workspace.id !== workspaceId) {
+      throw new NotFoundException('Quiz not found in this workspace.');
+    }
+
+    if (workspace) {
+      const isWorkspaceOwner = workspace.ownerId === userId;
+      const isQuizCreator = quiz.userId === userId;
+      const isMember = workspace.members.some((m) => m.userId === userId);
+
+      if (workspace.type === 'PERSONAL') {
+        if (!isWorkspaceOwner && !isQuizCreator) {
+          throw new ForbiddenException('Only the workspace owner can delete this quiz.');
+        }
+      } else {
+        // GROUP workspace: quiz creator or workspace owner only
+        if (!isWorkspaceOwner && !isQuizCreator) {
+          if (isMember) {
+            throw new ForbiddenException(
+              'Only the quiz creator or workspace owner can delete this quiz.',
+            );
+          } else {
+            throw new NotFoundException('Quiz not found or access denied.');
+          }
+        }
+      }
+    } else {
+      // Standalone quiz without workspace
+      const isQuizCreator = quiz.userId === userId;
+      const isDocOwner = quiz.document?.ownerId === userId;
+      if (!isQuizCreator && !isDocOwner) {
+        throw new ForbiddenException('You do not have permission to delete this quiz.');
+      }
+    }
+
+    await this.prisma.quiz.update({
+      where: { id: quizId },
+      data: { archivedAt: new Date() },
     });
 
     return { success: true };

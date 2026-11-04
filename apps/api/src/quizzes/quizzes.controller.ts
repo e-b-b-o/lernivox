@@ -128,6 +128,31 @@ export class QuizzesController {
     return this.quizzesService.getAttemptResult(user.id, attemptId);
   }
 
+  @Post(':id/retry')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Retry a failed or timed out quiz generation' })
+  @ApiParam({ name: 'id', description: 'Quiz ID' })
+  @ApiResponse({ status: 200, description: 'Quiz generation re-enqueued successfully' })
+  async retryGeneration(
+    @CurrentUser() user: UserDto,
+    @Param('id') quizId: string,
+  ): Promise<QuizSummaryDto> {
+    return this.quizzesService.retryGeneration(user.id, quizId);
+  }
+
+  @Delete('workspace/:workspaceId/:id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete a quiz in a workspace' })
+  @ApiParam({ name: 'workspaceId', description: 'Workspace ID' })
+  @ApiParam({ name: 'id', description: 'Quiz ID' })
+  async deleteWorkspaceQuiz(
+    @CurrentUser() user: UserDto,
+    @Param('workspaceId') workspaceId: string,
+    @Param('id') quizId: string,
+  ): Promise<{ success: boolean }> {
+    return this.quizzesService.deleteQuiz(user.id, quizId, workspaceId);
+  }
+
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a quiz and its questions' })
