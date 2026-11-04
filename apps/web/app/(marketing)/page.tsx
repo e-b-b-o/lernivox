@@ -750,10 +750,11 @@ export default function MarketingPage() {
                 </ul>
               </div>
 
-              <Link href="/register" className="w-full mt-8 block">
-                <button className="w-full py-3.5 px-6 rounded-full bg-[#FAF8F4] text-[#14261D] font-display font-bold text-base border-[2px] border-[#14261D] shadow-[0_4px_0_0_#14261D] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#14261D] active:translate-y-1 active:shadow-[0_1px_0_0_#14261D] transition-all">
-                  Start Learning Free
-                </button>
+              <Link
+                href="/register"
+                className="w-full mt-8 flex items-center justify-center py-3.5 px-6 rounded-full bg-[#FAF8F4] text-[#14261D] font-display font-bold text-base border-[2px] border-[#14261D] shadow-[0_4px_0_0_#14261D] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#14261D] active:translate-y-1 active:shadow-[0_1px_0_0_#14261D] transition-all text-center"
+              >
+                Start Learning Free
               </Link>
             </div>
           </ScrollReveal>
@@ -810,10 +811,11 @@ export default function MarketingPage() {
                 </ul>
               </div>
 
-              <Link href="/register" className="w-full mt-8 block">
-                <button className="w-full py-3.5 px-6 rounded-full bg-[#497E64] text-white font-display font-bold text-base shadow-[0_4px_0_0_#14261D] hover:bg-[#3D6B55] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#14261D] active:translate-y-1 active:shadow-[0_1px_0_0_#14261D] transition-all">
-                  Register for Free Access
-                </button>
+              <Link
+                href="/register"
+                className="w-full mt-8 flex items-center justify-center py-3.5 px-6 rounded-full bg-[#497E64] text-white font-display font-bold text-base shadow-[0_4px_0_0_#14261D] hover:bg-[#3D6B55] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#14261D] active:translate-y-1 active:shadow-[0_1px_0_0_#14261D] transition-all text-center"
+              >
+                Register for Free Access
               </Link>
             </div>
           </ScrollReveal>
@@ -1084,17 +1086,19 @@ export default function MarketingPage() {
           <ScrollReveal id="cta-buttons" delay={0.28}>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 mb-6 w-full max-w-md mx-auto sm:max-w-none">
               {/* Primary Terracotta 3D Button */}
-              <Link href="/register" className="w-full sm:w-auto">
-                <button className="w-full sm:w-auto h-[50px] sm:h-[52px] px-6 sm:px-8 rounded-full bg-[#E8722C] text-white font-display font-bold text-sm sm:text-base shadow-[0_4px_0_0_#B26E45] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#B26E45] active:translate-y-1 active:shadow-[0_1px_0_0_#B26E45] transition-all">
-                  Create Free Student Account →
-                </button>
+              <Link
+                href="/register"
+                className="w-full sm:w-auto h-[50px] sm:h-[52px] px-6 sm:px-8 rounded-full bg-[#E8722C] text-white font-display font-bold text-sm sm:text-base shadow-[0_4px_0_0_#B26E45] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#B26E45] active:translate-y-1 active:shadow-[0_1px_0_0_#B26E45] transition-all flex items-center justify-center text-center"
+              >
+                Create Free Student Account →
               </Link>
 
               {/* Secondary Light 3D Button */}
-              <a href="#how-it-works" className="w-full sm:w-auto">
-                <button className="w-full sm:w-auto h-[50px] sm:h-[52px] px-6 sm:px-8 rounded-full bg-[#FAF8F4] text-[#14261D] font-display font-bold text-sm sm:text-base border-[2px] border-[#1B3428] shadow-[0_4px_0_0_#1B3428] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#1B3428] active:translate-y-1 active:shadow-[0_1px_0_0_#1B3428] transition-all">
-                  Upload Document Now
-                </button>
+              <a
+                href="#how-it-works"
+                className="w-full sm:w-auto h-[50px] sm:h-[52px] px-6 sm:px-8 rounded-full bg-[#FAF8F4] text-[#14261D] font-display font-bold text-sm sm:text-base border-[2px] border-[#1B3428] shadow-[0_4px_0_0_#1B3428] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#1B3428] active:translate-y-1 active:shadow-[0_1px_0_0_#1B3428] transition-all flex items-center justify-center text-center"
+              >
+                Upload Document Now
               </a>
             </div>
 
