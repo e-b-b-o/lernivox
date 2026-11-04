@@ -713,6 +713,7 @@ model Quiz {
   status              QuizStatus           @default(READY)
   sourceChapter       String?
   errorMessage        String?
+  archivedAt          DateTime?
   questions           QuizQuestion[]
   attempts            QuizAttempt[]
   studyGroupResources StudyGroupResource[]
@@ -724,6 +725,7 @@ model Quiz {
   @@index([documentId])
   @@index([workspaceId])
   @@index([status])
+  @@index([archivedAt])
   @@map("quizzes")
 }
 
