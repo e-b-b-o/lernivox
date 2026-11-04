@@ -3,7 +3,22 @@
 import React, { useEffect, useState, useRef, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { Loader2, X, ExternalLink, AlertCircle, ArrowLeft, PanelRightClose, Sparkles, HelpCircle, Layers, TrendingUp, List } from 'lucide-react';
+import {
+  Loader2,
+  X,
+  ExternalLink,
+  AlertCircle,
+  ArrowLeft,
+  PanelRightClose,
+  Sparkles,
+  HelpCircle,
+  Layers,
+  TrendingUp,
+  List,
+  ChevronLeft,
+  ChevronRight,
+  Bookmark,
+} from 'lucide-react';
 import type {
   ConversationDetailDto,
   ConversationMessageDto,
@@ -53,57 +68,128 @@ function WorkspaceInner() {
   const [outlineOpen, setOutlineOpen] = useState(true);
   const [copilotOpen, setCopilotOpen] = useState(true);
 
-  type MobileDrawer = 'none' | 'toc' | 'practice' | 'chat';
+  type MobileDrawer = 'none' | 'toc' | 'review' | 'chat';
   const [mobileDrawer, setMobileDrawer] = useState<MobileDrawer>('none');
   const [isPracticeModalOpen, setIsPracticeModalOpen] = useState(false);
   const [preselectedPracticeChapter, setPreselectedPracticeChapter] = useState<string>('');
   const [preselectedPracticePage, setPreselectedPracticePage] = useState<number | undefined>(undefined);
 
+  // Desktop Zen Focus Mode State
+  const [isFocusMode, setIsFocusMode] = useState(false);
+
   // Mobile Immersive Auto-Hide State
   const [mobileNavHidden, setMobileNavHidden] = useState(false);
+  const [isTextSelectionActive, setIsTextSelectionActive] = useState(false);
   const lastScrollYRef = useRef(0);
+
+  // Viewport tracking for single-docked-sidebar rule below 1280px and tablet slide-over
+  const [isBelow1280, setIsBelow1280] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (typeof window !== 'undefined') {
+        const w = window.innerWidth;
+        const below1280 = w < 1280;
+        setIsBelow1280(below1280);
+        setIsTablet(w >= 768 && w < 1024);
+
+        // If viewport shrinks below 1280px while both sidebars are docked,
+        // enforce single-docked-sidebar rule by auto-collapsing Copilot
+        if (below1280) {
+          setOutlineOpen((currentOutline) => {
+            if (currentOutline) {
+              setCopilotOpen((currentCopilot) => {
+                return currentCopilot ? false : currentCopilot;
+              });
+            }
+            return currentOutline;
+          });
+        }
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleViewChange = useCallback((view: WorkspaceViewMode) => {
     setActiveView(view);
     setCopilotOpen(true);
-    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-      setMobileDrawer('practice');
+    if (typeof window !== 'undefined') {
+      if (window.innerWidth < 768) {
+        if (view === 'read') {
+          setMobileDrawer('chat');
+        } else {
+          setMobileDrawer('review');
+        }
+      } else if (window.innerWidth < 1280) {
+        // Single-docked-sidebar rule below 1280px: opening Copilot auto-collapses Outline
+        setOutlineOpen(false);
+      }
     }
   }, []);
 
   const handleToggleAiTutor = useCallback(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
       setMobileDrawer((prev) => (prev === 'chat' ? 'none' : 'chat'));
     } else {
-      if (activeView !== 'ai-tutor') {
-        setActiveView('ai-tutor');
+      if (activeView !== 'read' && activeView !== 'ai-tutor') {
+        setActiveView('read');
         setCopilotOpen(true);
+        if (typeof window !== 'undefined' && window.innerWidth < 1280) {
+          // Single-docked-sidebar rule below 1280px
+          setOutlineOpen(false);
+        }
       } else {
-        setCopilotOpen((prev) => !prev);
+        setCopilotOpen((prev) => {
+          const next = !prev;
+          if (next && typeof window !== 'undefined' && window.innerWidth < 1280) {
+            setOutlineOpen(false);
+          }
+          return next;
+        });
       }
     }
   }, [activeView]);
 
   const toggleToc = useCallback(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
       setMobileDrawer((prev) => (prev === 'toc' ? 'none' : 'toc'));
     } else {
-      setOutlineOpen((prev) => !prev);
+      setOutlineOpen((prev) => {
+        const next = !prev;
+        if (next && typeof window !== 'undefined' && window.innerWidth < 1280) {
+          // Mutually exclusive single-docked-sidebar rule below 1280px: opening Outline collapses Copilot
+          setCopilotOpen(false);
+        }
+        return next;
+      });
     }
   }, []);
 
   const closeMobileDrawer = useCallback(() => setMobileDrawer('none'), []);
 
-  // Close active mobile drawer on Escape key
+  // Close active mobile drawer, tablet overlay, or outline drawer on Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && mobileDrawer !== 'none') {
-        setMobileDrawer('none');
+      if (e.key === 'Escape') {
+        if (mobileDrawer !== 'none') {
+          setMobileDrawer('none');
+        } else if (typeof window !== 'undefined') {
+          if (window.innerWidth < 1280 && outlineOpen && copilotOpen) {
+            setOutlineOpen(false);
+          } else if (window.innerWidth < 1024) {
+            if (outlineOpen) setOutlineOpen(false);
+            if (copilotOpen) setCopilotOpen(false);
+          }
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [mobileDrawer]);
+  }, [mobileDrawer, outlineOpen, copilotOpen]);
 
   // Reader state
   const [currentPage, setCurrentPage] = useState<number>(initialPage);
@@ -211,8 +297,16 @@ function WorkspaceInner() {
         const currentScrollY = scrollEl.scrollTop;
         const diff = currentScrollY - lastScrollYRef.current;
 
-        // Auto-hide only on mobile screens when no drawer is open
-        if (window.innerWidth < 768 && mobileDrawer === 'none') {
+        // Auto-hide only on mobile screens when no drawer/modal is open and no active text selection
+        if (
+          window.innerWidth < 768 &&
+          mobileDrawer === 'none' &&
+          !isTextSelectionActive &&
+          !isPracticeModalOpen &&
+          !isConvertModalOpen &&
+          !isManageGroupModalOpen &&
+          !inspectingCitation
+        ) {
           if (diff > 60 && currentScrollY > 80) {
             setMobileNavHidden(true);
             lastScrollYRef.current = currentScrollY;
@@ -229,7 +323,42 @@ function WorkspaceInner() {
 
     scrollEl.addEventListener('scroll', handlePdfScroll, { passive: true });
     return () => scrollEl.removeEventListener('scroll', handlePdfScroll);
-  }, [mobileDrawer]);
+  }, [
+    mobileDrawer,
+    isTextSelectionActive,
+    isPracticeModalOpen,
+    isConvertModalOpen,
+    isManageGroupModalOpen,
+    inspectingCitation,
+  ]);
+
+  // Desktop Zen Focus Mode: restore standard workspace on Escape key
+  useEffect(() => {
+    if (!isFocusMode) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (
+          mobileDrawer !== 'none' ||
+          isPracticeModalOpen ||
+          isConvertModalOpen ||
+          isManageGroupModalOpen ||
+          inspectingCitation
+        ) {
+          return;
+        }
+        setIsFocusMode(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [
+    isFocusMode,
+    mobileDrawer,
+    isPracticeModalOpen,
+    isConvertModalOpen,
+    isManageGroupModalOpen,
+    inspectingCitation,
+  ]);
 
   // Redirect if unauthenticated
   useEffect(() => {
@@ -809,9 +938,13 @@ function WorkspaceInner() {
       {/* =========================================================================
           1. TOP NAVIGATION
           Desktop & Tablet (>=768px): Balanced Three-Zone True-Center Grid
-          Mobile (<768px): Dedicated Single 48px Header with Auto-Hide
+          Mobile (<768px): Unified Coordinated 2-Row Header (48px Header + 40px Reader Toolbar)
           ========================================================================= */}
-      <div className="hidden md:block shrink-0 z-30">
+      <div
+        className={`hidden md:block shrink-0 z-30 transition-transform duration-300 ${
+          isFocusMode ? '-translate-y-full h-0 overflow-hidden pointer-events-none' : 'translate-y-0 h-14'
+        }`}
+      >
         <TutorHeader
           document={currentDoc}
           workspaceType={workspace.type}
@@ -829,42 +962,124 @@ function WorkspaceInner() {
         />
       </div>
 
-      {/* Mobile (<768px) Single 48px Header with Immersive Auto-Hide */}
-      <div
-        className={`md:hidden h-12 w-full bg-[#FAF8F4] border-b-[1.5px] border-[#1B3428]/10 px-3 flex items-center justify-between shrink-0 select-none z-30 transition-transform duration-200 ${
+      {/* Mobile (<768px) Unified Coordinated Header Wrapper (Row 1: 48px Header + Row 2: 40px Reader Toolbar) */}
+      <header
+        className={`md:hidden fixed top-0 inset-x-0 z-30 w-full bg-[#FAF8F4] transition-transform duration-300 select-none ${
           mobileNavHidden ? '-translate-y-full' : 'translate-y-0'
         }`}
       >
-        <Link
-          href="/dashboard"
-          className="w-8 h-8 rounded-full border-[1.5px] border-[#1B3428] bg-[#FAF8F4] flex items-center justify-center text-[#14261D] shadow-[0_2px_0_0_#1B3428] active:translate-y-0.5 transition-all shrink-0 cursor-pointer"
-          title="Back to Books"
-          aria-label="Back to Books"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-        </Link>
+        {/* Row 1: 48px Application Header (Constrained 3-column grid prevents 320px collisions) */}
+        <div className="grid grid-cols-[32px_minmax(0,1fr)_auto] items-center gap-2 h-12 w-full border-b-[1.5px] border-[#1B3428]/10 px-3 bg-[#FAF8F4]">
+          {/* Left: Fixed 32x32 Back Button */}
+          <Link
+            href="/dashboard"
+            className="w-8 h-8 rounded-full border-[1.5px] border-[#1B3428] bg-[#FAF8F4] flex items-center justify-center text-[#14261D] shadow-[0_2px_0_0_#1B3428] active:translate-y-0.5 transition-all shrink-0 cursor-pointer"
+            title="Back to Books"
+            aria-label="Back to Books"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+          </Link>
 
-        <div className="flex items-center gap-1.5 max-w-[200px] truncate text-center font-display font-bold text-xs text-[#14261D]">
-          <span className="truncate">{currentDoc?.title || 'Textbook'}</span>
-          <span className="text-[#14261D]/50 font-mono text-[10px] shrink-0">
-            • p. {currentPage}/{totalPages || 1}
-          </span>
+          {/* Center: Flexible Truncatable Title */}
+          <div className="min-w-0 w-full overflow-hidden text-center px-1">
+            <h2
+              className="font-display font-bold text-xs text-[#14261D] truncate"
+              title={currentDoc?.title || 'Textbook'}
+            >
+              {currentDoc?.title || 'Textbook'}
+            </h2>
+          </div>
+
+          {/* Right: Unclipped Avatar Trigger with Protected Right Margin */}
+          <div className="shrink-0 flex items-center justify-end">
+            <ProfileMenu compact />
+          </div>
         </div>
 
-        <div className="w-8 h-8 flex items-center justify-center shrink-0">
-          <ProfileMenu compact />
+        {/* Row 2: 40px Secondary Reader Toolbar */}
+        <div className="h-10 w-full border-b border-[#1B3428]/15 px-3 flex items-center justify-between bg-[#FAF8F4]">
+          {/* Left: Outline Shortcut */}
+          <button
+            type="button"
+            onClick={toggleToc}
+            className="flex items-center gap-1 text-[11px] font-display font-bold text-[#14261D]/75 hover:text-[#14261D] cursor-pointer"
+            title="View Outline"
+          >
+            <List className="w-3.5 h-3.5 text-[#E8722C]" />
+            <span className="truncate max-w-[100px]">Outline</span>
+          </button>
+
+          {/* Center: Authoritative Page Navigation */}
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => {
+                if (currentPage > 1) {
+                  handlePageChange(currentPage - 1);
+                }
+              }}
+              disabled={currentPage <= 1}
+              className="w-6 h-6 rounded-md flex items-center justify-center text-[#14261D]/70 hover:text-[#14261D] disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+              title="Previous page"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+
+            <div className="px-2 py-0.5 rounded-lg bg-white border border-[#1B3428]/20 font-mono text-[11px] font-bold text-[#14261D]">
+              <span className="text-[#E8722C]">{currentPage}</span>
+              <span className="text-[#14261D]/40 mx-1">/</span>
+              <span>{totalPages || 1}</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (currentPage < (totalPages || 1)) {
+                  handlePageChange(currentPage + 1);
+                }
+              }}
+              disabled={currentPage >= (totalPages || 1)}
+              className="w-6 h-6 rounded-md flex items-center justify-center text-[#14261D]/70 hover:text-[#14261D] disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+              title="Next page"
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* Right: Bookmark Ribbon */}
+          {(() => {
+            const isBookmarked = Boolean(bookmarks?.some((b) => b.pageNumber === currentPage));
+            return (
+              <button
+                type="button"
+                onClick={() => handleToggleBookmark(currentPage)}
+                className={`w-7 h-7 rounded-lg border transition-all flex items-center justify-center cursor-pointer ${
+                  isBookmarked
+                    ? 'bg-[#FBE8DC] border-[#E8722C]/40 text-[#E8722C]'
+                    : 'bg-[#FAF8F4] border-[#1B3428]/20 text-[#14261D]/60'
+                }`}
+                title={isBookmarked ? `Remove Bookmark (Page ${currentPage})` : `Bookmark Page ${currentPage}`}
+              >
+                <Bookmark className={`w-3.5 h-3.5 ${isBookmarked ? 'fill-[#E8722C] text-[#E8722C]' : ''}`} />
+              </button>
+            );
+          })()}
         </div>
-      </div>
+      </header>
 
       {/* =========================================================================
           2. MAIN STUDY WORKSPACE
           Left TOC & Central PDF Reader are permanently mounted.
           They NEVER unmount or reload on companion mode changes.
           ========================================================================= */}
-      <div className="flex-1 min-h-0 flex w-full relative overflow-hidden">
-        {/* PANE 1: DESKTOP LEFT OUTLINE (Hidden on Mobile) */}
+      <div
+        className={`flex-1 min-h-0 flex w-full relative overflow-hidden transition-[padding] duration-300 md:pt-0 ${
+          mobileNavHidden ? 'pt-0' : 'pt-[88px]'
+        }`}
+      >
+        {/* PANE 1: DESKTOP LEFT OUTLINE (Hidden on Mobile, Single Docked Sidebar below 1280px) */}
         <DocumentOutlinePane
-          isOpen={outlineOpen}
+          isOpen={!isFocusMode && outlineOpen && (!isBelow1280 || !copilotOpen)}
           onToggle={() => setOutlineOpen((o) => !o)}
           outlineItems={outlineItems}
           loadingOutline={loadingOutline}
@@ -885,7 +1100,7 @@ function WorkspaceInner() {
         {/* PANE 2: CENTER DOCUMENT READER (The Permanent Central Reading Stage) */}
         <main
           onClick={() => setMobileNavHidden(false)}
-          className="w-full lg:flex-1 h-full min-h-0 flex flex-col min-w-0 bg-[#F4F0E5] relative overflow-hidden"
+          className="w-full lg:flex-1 h-full min-h-0 flex flex-col min-w-0 md:min-w-[620px] max-md:min-w-0 max-md:w-full bg-[#F4F0E5] relative overflow-hidden"
         >
           <DocumentReader
             document={currentDoc}
@@ -911,16 +1126,19 @@ function WorkspaceInner() {
             onToggleBookmark={handleToggleBookmark}
             fileUrl={fileUrl}
             accessToken={accessToken || undefined}
+            isFocusMode={isFocusMode}
+            onToggleFocusMode={() => setIsFocusMode((f) => !f)}
+            onSelectionActiveChange={setIsTextSelectionActive}
           />
         </main>
 
         {/* PANE 3: DESKTOP COMPANION SIDECAR (Multi-Mode Study Tools) */}
-        {copilotOpen && (
-          <aside className="hidden lg:flex flex-col h-full shrink-0 border-l-[2px] border-[#1B3428]/20 bg-[#FAF8F4] z-20 shadow-[-4px_0_12px_rgba(20,38,29,0.05)] w-[360px] xl:w-[420px]">
+        {!isFocusMode && copilotOpen && (!isBelow1280 || !outlineOpen) && (
+          <aside className="hidden lg:flex flex-col h-full shrink-0 border-l-[2px] border-[#1B3428]/20 bg-[#FAF8F4] z-20 shadow-[-4px_0_12px_rgba(20,38,29,0.05)] w-[340px] xl:w-[420px]">
             {/* Unified 44px Sidecar Title Bar */}
             <div className="h-11 px-4 bg-[#FAF8F4] border-b-[1.5px] border-[#1B3428]/15 flex items-center justify-between shrink-0 select-none">
               <h3 className="font-display font-bold text-xs sm:text-sm text-[#14261D] truncate">
-                {activeView === 'ai-tutor'
+                {activeView === 'read' || activeView === 'ai-tutor'
                   ? 'AI Study Tutor'
                   : activeView === 'quizzes'
                   ? 'Quizzes & Tests'
@@ -940,7 +1158,7 @@ function WorkspaceInner() {
             </div>
 
             <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-              {activeView === 'ai-tutor' && (
+              {(activeView === 'read' || activeView === 'ai-tutor') && (
                 <RightWorkspacePanel
                   hideHeader={true}
                   workspaceType={workspace.type}
@@ -1015,7 +1233,7 @@ function WorkspaceInner() {
         )}
 
         {/* Right-edge tactile companion anchor tab when sidecar is collapsed (Desktop) */}
-        {!copilotOpen && (
+        {!isFocusMode && !copilotOpen && (
           <button
             type="button"
             onClick={() => setCopilotOpen(true)}
@@ -1036,6 +1254,167 @@ function WorkspaceInner() {
               {activeView === 'ai-tutor' ? 'AI Tutor' : activeView === 'quizzes' ? 'Quizzes' : activeView === 'flashcards' ? 'Cards' : 'Progress'}
             </span>
           </button>
+        )}
+
+        {/* =========================================================================
+            TABLET & SINGLE-DOCKED-SIDEBAR SLIDE-OVER OVERLAYS
+            Prevents crushed PDF reader width below 1280px while preserving full outline and study sidecar access
+            ========================================================================= */}
+        {/* Tablet Left Outline Overlay & Single-Docked-Sidebar Overlay when Copilot is docked below 1280px */}
+        {!isFocusMode && outlineOpen && (isTablet || (isBelow1280 && copilotOpen)) && (
+          <div
+            className="hidden md:block fixed inset-0 top-14 z-40 bg-black/30 backdrop-blur-2xs animate-in fade-in duration-200"
+            onClick={() => setOutlineOpen(false)}
+          >
+            <div
+              className="absolute inset-y-0 left-0 w-72 sm:w-80 bg-[#FAF8F4] border-r-[2px] border-[#1B3428] shadow-2xl flex flex-col animate-in slide-in-from-left duration-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <DocumentOutlinePane
+                isOpen={true}
+                onToggle={() => setOutlineOpen(false)}
+                outlineItems={outlineItems}
+                loadingOutline={loadingOutline}
+                isNativeOutline={isNativeOutline}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageSelect={(p) => {
+                  handlePageChange(p);
+                  setOutlineOpen(false);
+                }}
+                bookmarks={bookmarks}
+                onAddBookmark={handleAddBookmark}
+                onDeleteBookmark={handleDeleteBookmark}
+                onPracticeChapter={(item) => {
+                  setPreselectedPracticeChapter(item.title);
+                  setPreselectedPracticePage(item.pageNumber);
+                  setOutlineOpen(false);
+                  setIsPracticeModalOpen(true);
+                }}
+                isMobileDrawer={true}
+                onCloseMobileDrawer={() => setOutlineOpen(false)}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Tablet Right Companion Sidecar Overlay */}
+        {!isFocusMode && copilotOpen && (
+          <div
+            className="hidden md:block lg:hidden fixed inset-0 top-14 z-40 bg-black/30 backdrop-blur-2xs animate-in fade-in duration-200"
+            onClick={() => setCopilotOpen(false)}
+          >
+            <div
+              className="absolute inset-y-0 right-0 w-[380px] max-w-[85vw] bg-[#FAF8F4] border-l-[2px] border-[#1B3428] shadow-2xl flex flex-col animate-in slide-in-from-right duration-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* 44px Unified Tablet Sidecar Header */}
+              <div className="h-11 px-4 bg-[#FAF8F4] border-b-[1.5px] border-[#1B3428]/15 flex items-center justify-between shrink-0 select-none">
+                <h3 className="font-display font-bold text-xs sm:text-sm text-[#14261D] truncate">
+                  {activeView === 'read' || activeView === 'ai-tutor'
+                    ? 'AI Study Tutor'
+                    : activeView === 'quizzes'
+                    ? 'Quizzes & Tests'
+                    : activeView === 'flashcards'
+                    ? 'Flashcard Decks'
+                    : 'My Progress'}
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setCopilotOpen(false)}
+                  className="w-7 h-7 rounded-full border border-[#1B3428]/20 flex items-center justify-center text-[#14261D]/70 hover:text-[#14261D] hover:bg-[#1B3428]/5 transition-all cursor-pointer"
+                  title="Close sidecar"
+                  aria-label="Close sidecar"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+                {(activeView === 'read' || activeView === 'ai-tutor') && (
+                  <RightWorkspacePanel
+                    hideHeader={true}
+                    workspaceType={workspace.type}
+                    workspaceId={workspace.id}
+                    currentUserId={user?.id || ''}
+                    currentPage={currentPage}
+                    currentChapter={
+                      [...outlineItems].reverse().find((o) => o.pageNumber <= currentPage)?.title || ''
+                    }
+                    isOpen={true}
+                    onToggle={() => setCopilotOpen(false)}
+                    document={currentDoc}
+                    conversations={conversations}
+                    activeConversationId={activeConversationId}
+                    activeConversation={activeConversation}
+                    loadingConv={loadingConv}
+                    onSelectConversation={setActiveConversationId}
+                    onNewSession={handleNewSession}
+                    onRenameSession={handleRenameSession}
+                    onDeleteSession={handleDeleteSession}
+                    onSendMessage={handleSendMessage}
+                    sendingMessage={sendingMessage}
+                    sendError={sendError}
+                    onRetryMessage={() => {
+                      if (activeConversation?.messages.length) {
+                        const lastUser = [...activeConversation.messages].reverse().find((m) => m.sender === 'USER');
+                        if (lastUser) handleSendMessage(lastUser.content);
+                      }
+                    }}
+                    onCitationClick={(chunkId, pageNum) => {
+                      handleCitationClick(chunkId, pageNum);
+                      setCopilotOpen(false);
+                    }}
+                    onOpenCitationInspector={handleOpenCitationInspector}
+                    preparedQuestion={preparedQuestion}
+                    onClearPreparedQuestion={() => setPreparedQuestion(null)}
+                    onShareConversation={handleShareConversation}
+                    isSharingConversation={isSharingConversation}
+                    isMobileDrawer={true}
+                    onCloseMobileDrawer={() => setCopilotOpen(false)}
+                  />
+                )}
+                {activeView === 'quizzes' && (
+                  <WorkspaceQuizzesView
+                    workspaceId={workspace.id}
+                    document={currentDoc}
+                    onReturnToBook={() => setCopilotOpen(false)}
+                    preselectedChapter={preselectedPracticeChapter}
+                    preselectedPage={preselectedPracticePage}
+                    onCitationClick={(page) => {
+                      handlePageChange(page);
+                      setCopilotOpen(false);
+                    }}
+                    isCompactSidecar={true}
+                  />
+                )}
+                {activeView === 'flashcards' && (
+                  <WorkspaceFlashcardsView
+                    workspaceId={workspace.id}
+                    document={currentDoc}
+                    onReturnToBook={() => setCopilotOpen(false)}
+                    preselectedChapter={preselectedPracticeChapter}
+                    preselectedPage={preselectedPracticePage}
+                    onCitationClick={(page) => {
+                      handlePageChange(page);
+                      setCopilotOpen(false);
+                    }}
+                    isCompactSidecar={true}
+                  />
+                )}
+                {activeView === 'progress' && (
+                  <WorkspaceProgressView
+                    workspaceId={workspace.id}
+                    document={currentDoc}
+                    onReturnToBook={() => setCopilotOpen(false)}
+                    onTakeQuiz={() => setActiveView('quizzes')}
+                    onStudyFlashcards={() => setActiveView('flashcards')}
+                    isCompactSidecar={true}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
         )}
 
         {/* =========================================================================
@@ -1079,20 +1458,20 @@ function WorkspaceInner() {
               </div>
             )}
 
-            {/* B. Mobile Practice Bottom Sheet (Quizzes | Flashcards | My Progress) */}
-            {mobileDrawer === 'practice' && (
+            {/* B. Mobile Review Bottom Sheet (Quizzes | Flashcards | My Progress) */}
+            {mobileDrawer === 'review' && (
               <div
                 className="absolute inset-x-0 bottom-0 max-h-[85vh] h-[85vh] bg-[#FAF8F4] border-t-[2px] border-[#1B3428] shadow-2xl rounded-t-3xl flex flex-col z-10 animate-in slide-in-from-bottom duration-200"
                 onClick={(e) => e.stopPropagation()}
               >
-                {/* Practice Sheet Header with Switcher & Close */}
+                {/* Review Sheet Header with Switcher & Close */}
                 <div className="px-4 py-3 border-b-[1.5px] border-[#1B3428]/15 flex items-center justify-between shrink-0 bg-[#FAF8F4] rounded-t-3xl">
-                  {/* Internal Practice Switcher */}
+                  {/* Internal Review Switcher */}
                   <nav className="flex items-center gap-1 bg-[#F4F0E5] p-1 rounded-full border border-[#1B3428]/15 shadow-2xs">
                     <button
                       type="button"
                       onClick={() => setActiveView('quizzes')}
-                      className={`px-3 py-1 rounded-full font-display font-bold text-xs flex items-center gap-1.5 transition-all ${
+                      className={`px-3 py-1 rounded-full font-display font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
                         activeView === 'quizzes'
                           ? 'bg-[#14261D] text-white shadow-xs'
                           : 'text-[#14261D]/70'
@@ -1104,7 +1483,7 @@ function WorkspaceInner() {
                     <button
                       type="button"
                       onClick={() => setActiveView('flashcards')}
-                      className={`px-3 py-1 rounded-full font-display font-bold text-xs flex items-center gap-1.5 transition-all ${
+                      className={`px-3 py-1 rounded-full font-display font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
                         activeView === 'flashcards'
                           ? 'bg-[#14261D] text-white shadow-xs'
                           : 'text-[#14261D]/70'
@@ -1116,7 +1495,7 @@ function WorkspaceInner() {
                     <button
                       type="button"
                       onClick={() => setActiveView('progress')}
-                      className={`px-3 py-1 rounded-full font-display font-bold text-xs flex items-center gap-1.5 transition-all ${
+                      className={`px-3 py-1 rounded-full font-display font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
                         activeView === 'progress'
                           ? 'bg-[#14261D] text-white shadow-xs'
                           : 'text-[#14261D]/70'
@@ -1131,14 +1510,14 @@ function WorkspaceInner() {
                     type="button"
                     onClick={closeMobileDrawer}
                     className="w-7 h-7 rounded-full border border-[#1B3428]/20 flex items-center justify-center text-[#14261D]/70 hover:bg-[#1B3428]/5 cursor-pointer"
-                    title="Close practice sheet"
-                    aria-label="Close practice sheet"
+                    title="Close review sheet"
+                    aria-label="Close review sheet"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
-                {/* Practice Sheet Content Body */}
+                {/* Review Sheet Content Body */}
                 <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
                   {activeView === 'quizzes' && (
                     <WorkspaceQuizzesView
@@ -1275,18 +1654,18 @@ function WorkspaceInner() {
           <span className="text-[10px] font-display font-bold">Outline</span>
         </button>
 
-        {/* Practice Button (opens Quizzes, Flashcards, Progress) */}
+        {/* Review Button (opens Quizzes, Flashcards, Progress) */}
         <button
           type="button"
-          onClick={() => setMobileDrawer((prev) => (prev === 'practice' ? 'none' : 'practice'))}
+          onClick={() => setMobileDrawer((prev) => (prev === 'review' ? 'none' : 'review'))}
           className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-colors cursor-pointer ${
-            mobileDrawer === 'practice' ? 'text-[#E8722C]' : 'text-[#14261D]/75 active:text-[#14261D]'
+            mobileDrawer === 'review' ? 'text-[#E8722C]' : 'text-[#14261D]/75 active:text-[#14261D]'
           }`}
-          title="Practice"
-          aria-label="Practice"
+          title="Review"
+          aria-label="Review"
         >
           <HelpCircle className="w-4 h-4" />
-          <span className="text-[10px] font-display font-bold">Practice</span>
+          <span className="text-[10px] font-display font-bold">Review</span>
         </button>
 
         {/* AI Tutor Button */}

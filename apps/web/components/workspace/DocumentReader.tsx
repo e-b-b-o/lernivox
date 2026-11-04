@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback, memo } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react';
 import {
   Bookmark,
   FileText,
@@ -16,6 +16,8 @@ import {
   Copy,
   ChevronLeft,
   ChevronRight,
+  Maximize2,
+  ArrowLeft,
 } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
 import type {
@@ -227,7 +229,7 @@ const ContinuousPdfPage = memo(function ContinuousPdfPage({
 
       {isNearViewport ? (
         <div
-          className="relative w-full overflow-hidden flex justify-center"
+          className="relative w-full overflow-hidden"
           style={{ width: `${pageWidth}px`, height: `${actualHeight}px` }}
         >
           {isRendering && (
@@ -269,6 +271,9 @@ export interface DocumentReaderProps {
   onToggleBookmark?: (pageNumber: number) => void;
   fileUrl: string;
   accessToken?: string;
+  isFocusMode?: boolean;
+  onToggleFocusMode?: () => void;
+  onSelectionActiveChange?: (isActive: boolean) => void;
 }
 
 function DocumentReaderComponent({
@@ -289,11 +294,13 @@ function DocumentReaderComponent({
   onToggleBookmark,
   fileUrl,
   accessToken,
+  isFocusMode = false,
+  onToggleFocusMode,
+  onSelectionActiveChange,
 }: DocumentReaderProps) {
   const isPdf = Boolean(doc?.mimeType === 'application/pdf' || doc?.fileName?.endsWith('.pdf'));
 
-  // View Mode: 'canvas' (continuous crisp PDF stream) | 'embed' (browser native iframe)
-  const [viewMode, setViewMode] = useState<'canvas' | 'embed'>('canvas');
+  // Standardized reader zoom and navigation
   const [zoomLevel, setZoomLevel] = useState<number>(1.0);
   const [pageJumpInput, setPageJumpInput] = useState<string>('');
 
@@ -302,7 +309,7 @@ function DocumentReaderComponent({
   const [containerWidth, setContainerWidth] = useState<number>(860);
   const [documentAspectRatio, setDocumentAspectRatio] = useState<number>(1.414);
 
-  // Current visible page tracked dynamically from vertical scrolling
+  // Current visible page tracked dynamically
   const [visiblePage, setVisiblePage] = useState<number>(currentPage || 1);
   const visiblePageRef = useRef<number>(visiblePage);
   visiblePageRef.current = visiblePage;
@@ -324,6 +331,9 @@ function DocumentReaderComponent({
   const [selectedText, setSelectedText] = useState<string>('');
   const [selectionCoords, setSelectionCoords] = useState<{ x: number; y: number } | null>(null);
   const [copiedRecently, setCopiedRecently] = useState(false);
+  const [highlightRects, setHighlightRects] = useState<
+    Array<{ top: number; left: number; width: number; height: number }>
+  >([]);
 
   const activeLoadingTaskRef = useRef<pdfjsLib.PDFDocumentLoadingTask | null>(null);
   const loadedDocIdRef = useRef<string | null>(null);
@@ -337,6 +347,14 @@ function DocumentReaderComponent({
 
   const onPageChangeRef = useRef(onPageChange);
   onPageChangeRef.current = onPageChange;
+
+  const onSelectionActiveChangeRef = useRef(onSelectionActiveChange);
+  onSelectionActiveChangeRef.current = onSelectionActiveChange;
+
+  // Stable aspect ratio callback to prevent ContinuousPdfPage memo invalidation
+  const handleDimensionsDetected = useCallback((ratio: number) => {
+    setDocumentAspectRatio(ratio);
+  }, []);
 
   // Measure container width responsively to expand PDF to available space
   useEffect(() => {
@@ -461,74 +479,40 @@ function DocumentReaderComponent({
     };
   }, [isPdf, doc?.id, fileUrl, accessToken, retryTrigger]);
 
-  // Smooth programmatic scroll to specific page (strictly container-scoped)
+  // Smooth programmatic navigation to specific page (strictly container-scoped)
   const scrollToPage = useCallback((pageNum: number, smooth = true) => {
-    const container = scrollContainerRef.current;
-    const el = document.getElementById(`pdf-page-${pageNum}`);
-    if (container && el) {
-      isProgrammaticScrollRef.current = true;
-      scrollToInternalElement(container, el, 0, smooth ? 'smooth' : 'auto');
-
-      setVisiblePage(pageNum);
-      visiblePageRef.current = pageNum;
-
-      setTimeout(() => {
-        isProgrammaticScrollRef.current = false;
-      }, 700);
-    }
-  }, []);
+    const total = pdfDoc ? pdfDoc.numPages : totalPages || 1;
+    const clamped = Math.max(1, Math.min(pageNum, total));
+    setVisiblePage(clamped);
+    visiblePageRef.current = clamped;
+    scrollContainerRef.current?.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'auto' });
+  }, [pdfDoc, totalPages]);
 
   // Initial scroll to saved currentPage upon document load
   useEffect(() => {
     if (pdfDoc && !hasScrolledToInitialRef.current && currentPage > 1) {
       hasScrolledToInitialRef.current = true;
-      setTimeout(() => {
-        scrollToPage(currentPage, false);
-      }, 300);
+      scrollToPage(currentPage, false);
     }
   }, [pdfDoc, currentPage, scrollToPage]);
 
   // Respond to parent currentPage changes (e.g., from TOC outline or bookmark click)
   useEffect(() => {
-    if (currentPage && currentPage !== visiblePageRef.current && !isProgrammaticScrollRef.current) {
+    if (currentPage && currentPage !== visiblePageRef.current) {
       scrollToPage(currentPage, true);
     }
   }, [currentPage, scrollToPage]);
 
   // Active citation scroll
   useEffect(() => {
-    if (citationPage && citationPage > 0) {
+    if (citationPage && citationPage > 0 && citationPage !== visiblePageRef.current) {
       scrollToPage(citationPage, true);
     }
   }, [citationPage, scrollToPage]);
 
-  // Track visible page on scroll
+  // Track scroll position if needed
   const handleScroll = useCallback(() => {
-    if (isProgrammaticScrollRef.current || !scrollContainerRef.current) return;
-
-    const container = scrollContainerRef.current;
-    const containerRect = container.getBoundingClientRect();
-    const sampleY = containerRect.top + Math.min(containerRect.height / 3, 220);
-    const sampleX = containerRect.left + containerRect.width / 2;
-
-    const targetEl = document.elementFromPoint(sampleX, sampleY);
-    const pageWrapper = targetEl?.closest('[data-page-number]');
-
-    if (pageWrapper) {
-      const pageNum = parseInt(pageWrapper.getAttribute('data-page-number') || '0', 10);
-      if (pageNum > 0 && pageNum !== visiblePageRef.current) {
-        visiblePageRef.current = pageNum;
-        setVisiblePage(pageNum);
-
-        // Debounce reporting to parent to keep reading progress in sync without spamming
-        if (scrollDebounceTimer.current) {
-          clearTimeout(scrollDebounceTimer.current);
-        }
-        scrollDebounceTimer.current = setTimeout(() => {
-          onPageChangeRef.current(pageNum);
-        }, 350);
-      }
-    }
+    // Paginated reading preserves scroll at top
   }, []);
 
   const handleRetryLoad = () => {
@@ -538,12 +522,17 @@ function DocumentReaderComponent({
     setRetryTrigger((prev) => prev + 1);
   };
 
+  const clearSelection = useCallback(() => {
+    setSelectedText('');
+    setSelectionCoords(null);
+    setHighlightRects([]);
+    onSelectionActiveChangeRef.current?.(false);
+  }, []);
+
   // Robust Native Text Selection Tracking for PDF and Workspace Text
   const handleSelectionUpdate = useCallback(() => {
     const selection = window.getSelection();
     if (!selection || selection.isCollapsed) {
-      setSelectedText('');
-      setSelectionCoords(null);
       return;
     }
 
@@ -561,12 +550,12 @@ function DocumentReaderComponent({
           container.contains(commonAncestor.parentElement));
 
       if (!isInsideReader) {
-        setSelectedText('');
-        setSelectionCoords(null);
+        clearSelection();
         return;
       }
 
       setSelectedText(text);
+      const containerRect = container.getBoundingClientRect();
       const rect = range.getBoundingClientRect();
       const viewportWidth = window.innerWidth;
 
@@ -578,11 +567,26 @@ function DocumentReaderComponent({
       const y = rect.top < 60 ? rect.bottom + 12 : rect.top - 10;
 
       setSelectionCoords({ x: clampedX, y });
-    } else {
-      setSelectedText('');
-      setSelectionCoords(null);
+
+      // Calculate non-destructive persistent highlight overlay rects
+      try {
+        const domRects = Array.from(range.getClientRects());
+        if (domRects.length > 0) {
+          const rects = domRects.map((r) => ({
+            top: r.top - containerRect.top + container.scrollTop,
+            left: r.left - containerRect.left + container.scrollLeft,
+            width: r.width,
+            height: r.height,
+          }));
+          setHighlightRects(rects);
+        }
+      } catch (err) {
+        console.warn('Could not extract selection client rects:', err);
+      }
+
+      onSelectionActiveChangeRef.current?.(true);
     }
-  }, []);
+  }, [clearSelection]);
 
   useEffect(() => {
     const onMouseUp = () => {
@@ -593,24 +597,28 @@ function DocumentReaderComponent({
       setTimeout(handleSelectionUpdate, 100);
     };
 
-    const onSelectionChange = () => {
-      const selection = window.getSelection();
-      if (!selection || selection.isCollapsed) {
-        setSelectedText('');
-        setSelectionCoords(null);
+    const onMouseDown = (e: MouseEvent) => {
+      // Clear persistent highlight when clicking outside the selection toolbar
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('#selection-toolbar')) {
+        return;
+      }
+      const sel = window.getSelection();
+      if (!sel || sel.isCollapsed) {
+        clearSelection();
       }
     };
 
     document.addEventListener('mouseup', onMouseUp);
     document.addEventListener('touchend', onTouchEnd);
-    document.addEventListener('selectionchange', onSelectionChange);
+    document.addEventListener('mousedown', onMouseDown);
 
     return () => {
       document.removeEventListener('mouseup', onMouseUp);
       document.removeEventListener('touchend', onTouchEnd);
-      document.removeEventListener('selectionchange', onSelectionChange);
+      document.removeEventListener('mousedown', onMouseDown);
     };
-  }, [handleSelectionUpdate]);
+  }, [handleSelectionUpdate, clearSelection]);
 
   const handleCopyText = async () => {
     if (!selectedText) return;
@@ -635,141 +643,158 @@ function DocumentReaderComponent({
   };
 
   // Fluid responsive page width calculation: eliminates excessive beige gutters
-  const basePageWidth =
-    containerWidth < 640
-      ? Math.round(containerWidth * 0.96)
-      : containerWidth < 1024
-      ? Math.min(Math.round(containerWidth * 0.94), 768)
-      : Math.min(containerWidth - 64, 896);
+  const basePageWidth = isFocusMode
+    ? Math.min(containerWidth - 32, 1024)
+    : containerWidth < 640
+    ? Math.round(containerWidth * 0.96)
+    : containerWidth < 1024
+    ? Math.min(Math.round(containerWidth * 0.94), 768)
+    : Math.min(containerWidth - 64, 896);
   const calculatedPageWidth = Math.round(basePageWidth * zoomLevel);
 
   const totalDocPages = pdfDoc ? pdfDoc.numPages : totalPages || 1;
-  const authorizedEmbedUrl = accessToken
-    ? `${fileUrl}?token=${accessToken}#page=${visiblePage}`
-    : `${fileUrl}#page=${visiblePage}`;
+  const authorizedEmbedUrl = useMemo(() => {
+    const zoomParam = Math.round(zoomLevel * 100);
+    const separator = fileUrl.includes('?') ? '&' : '?';
+    const baseUrl = accessToken ? `${fileUrl}${separator}token=${accessToken}` : fileUrl;
+    return `${baseUrl}#page=${visiblePage}&zoom=${zoomParam}`;
+  }, [fileUrl, accessToken, visiblePage, zoomLevel]);
 
   return (
     <div className="flex-1 min-h-0 flex flex-col h-full overflow-hidden bg-[#F4F0E5] relative w-full">
       {/* 1. READER SECONDARY TOOLBAR */}
-      <div className="h-12 bg-[#FAF8F4] border-b border-[#1B3428]/15 px-3 sm:px-4 md:px-6 flex items-center justify-between shrink-0 select-none z-20 shadow-2xs relative">
-        {/* Left: View Mode Toggle & Running Document Title */}
-        <div className="flex items-center gap-2 min-w-0 z-10">
-          {isPdf ? (
-            <div className="flex items-center p-0.5 sm:p-1 rounded-xl bg-[#EFECE6] border border-[#1B3428]/10 text-xs font-display font-bold shrink-0">
+      {isFocusMode ? (
+        /* Minimal Desktop Zen Focus Mode Ghost Bar (~36px) */
+        <div className="h-9 bg-[#FAF8F4]/90 backdrop-blur-xs border-b border-[#1B3428]/10 px-4 flex items-center justify-between shrink-0 select-none z-20 shadow-2xs relative text-xs">
+          {/* Left: Exit Focus Button */}
+          <button
+            type="button"
+            onClick={onToggleFocusMode}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#1B3428]/5 hover:bg-[#1B3428]/10 text-[#14261D] font-display font-bold text-xs transition-colors cursor-pointer"
+            title="Exit Focus Mode (Esc)"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Exit Focus (Esc)</span>
+          </button>
+
+          {/* Center: Minimal Page Status */}
+          <div className="font-mono text-xs font-bold text-[#14261D]/80">
+            Page {visiblePage} of {totalDocPages}
+          </div>
+
+          {/* Right: Bookmark Toggle */}
+          {(() => {
+            const isBookmarked = Boolean(bookmarks?.some((b) => b.pageNumber === visiblePage));
+            return (
               <button
                 type="button"
-                onClick={() => setViewMode('canvas')}
-                className={`p-1.5 sm:px-2.5 sm:py-1 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer ${
-                  viewMode === 'canvas'
-                    ? 'bg-[#FAF8F4] text-[#14261D] shadow-2xs'
-                    : 'text-[#14261D]/60 hover:text-[#14261D]'
+                onClick={() => {
+                  if (onToggleBookmark) {
+                    onToggleBookmark(visiblePage);
+                  } else {
+                    onAddBookmark(visiblePage);
+                  }
+                }}
+                className={`p-1 rounded-md transition-colors cursor-pointer ${
+                  isBookmarked ? 'text-[#E8722C]' : 'text-[#14261D]/60 hover:text-[#14261D]'
                 }`}
-                title="Continuous PDF Reader"
-                aria-label="Continuous PDF Reader"
+                title={isBookmarked ? `Remove Bookmark (Page ${visiblePage})` : `Bookmark Page ${visiblePage}`}
+                aria-label={isBookmarked ? `Remove Bookmark (Page ${visiblePage})` : `Bookmark Page ${visiblePage}`}
               >
-                <BookOpen className="w-3.5 h-3.5 shrink-0" />
-                <span className="hidden md:inline whitespace-nowrap">Continuous</span>
+                <Bookmark
+                  className={`w-4 h-4 transition-colors ${
+                    isBookmarked ? 'fill-[#E8722C] text-[#E8722C]' : ''
+                  }`}
+                />
               </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('embed')}
-                className={`p-1.5 sm:px-2.5 sm:py-1 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer ${
-                  viewMode === 'embed'
-                    ? 'bg-[#FAF8F4] text-[#14261D] shadow-2xs'
-                    : 'text-[#14261D]/60 hover:text-[#14261D]'
-                }`}
-                title="Browser Native PDF Embed"
-                aria-label="Browser Native PDF Embed"
-              >
-                <Eye className="w-3.5 h-3.5 shrink-0" />
-                <span className="hidden md:inline whitespace-nowrap">Embed</span>
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E2EBD8] text-[#497E64] font-mono text-xs font-bold border border-[#497E64]/20 shrink-0">
+            );
+          })()}
+        </div>
+      ) : (
+        /* Standard Reader Secondary Toolbar (Desktop; Mobile uses unified 2-row header) */
+        <div className="hidden md:flex min-h-12 py-1 bg-[#FAF8F4] border-b border-[#1B3428]/15 px-3 sm:px-4 md:px-6 items-center justify-between shrink-0 select-none z-20 shadow-2xs relative gap-2 sm:gap-4">
+          {/* Left: Document Identity / Title */}
+          <div className="flex items-center gap-2 min-w-0 shrink">
+            <div className="w-6 h-6 rounded-md bg-[#E8722C]/10 text-[#E8722C] flex items-center justify-center shrink-0 border border-[#E8722C]/20">
               <FileText className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Notes</span>
             </div>
-          )}
+            {doc?.title && (
+              <span
+                className="text-xs font-display font-bold text-[#14261D] truncate max-w-[130px] lg:max-w-[200px] xl:max-w-[300px]"
+                title={doc.title}
+              >
+                {doc.title}
+              </span>
+            )}
+          </div>
 
-          {/* Running Document Identity */}
-          {doc?.title && (
-            <span
-              className="text-xs font-display font-bold text-[#14261D] truncate max-w-[100px] sm:max-w-[160px] md:max-w-[220px]"
-              title={doc.title}
+          {/* Center: Authoritative Page Navigation */}
+          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 mx-auto">
+            <button
+              type="button"
+              onClick={() => {
+                if (visiblePage > 1) {
+                  const target = visiblePage - 1;
+                  scrollToPage(target, true);
+                  onPageChange(target);
+                }
+              }}
+              disabled={visiblePage <= 1}
+              className="w-7 h-7 rounded-lg border border-[#1B3428]/15 bg-[#FAF8F4] flex items-center justify-center text-[#14261D]/70 hover:text-[#14261D] hover:bg-[#1B3428]/5 disabled:opacity-30 disabled:pointer-events-none cursor-pointer transition-colors"
+              title="Previous page"
+              aria-label="Previous page"
             >
-              {doc.title}
-            </span>
-          )}
-        </div>
+              <ChevronLeft className="w-4 h-4" />
+            </button>
 
-        {/* Center: Authoritative Continuous Page Status & Jump Input (Strictly Centered) */}
-        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 pointer-events-auto z-10">
-          <button
-            type="button"
-            onClick={() => {
-              if (visiblePage > 1) {
-                const target = visiblePage - 1;
-                scrollToPage(target, true);
-                onPageChange(target);
-              }
-            }}
-            disabled={visiblePage <= 1}
-            className="w-6 h-6 rounded-md flex items-center justify-center text-[#14261D]/70 hover:text-[#14261D] hover:bg-[#1B3428]/5 disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
-            title="Previous page"
-            aria-label="Previous page"
-          >
-            <ChevronLeft className="w-3.5 h-3.5" />
-          </button>
+            <form
+              onSubmit={handlePageJumpSubmit}
+              className="flex items-center gap-1 font-mono text-xs bg-white border border-[#1B3428]/20 px-2 py-0.5 rounded-lg shadow-2xs"
+            >
+              <span className="text-[#14261D]/60 font-sans text-[11px] font-medium hidden lg:inline">
+                Page
+              </span>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={pageJumpInput}
+                onChange={(e) => setPageJumpInput(e.target.value)}
+                onBlur={handlePageJumpSubmit}
+                className="w-9 sm:w-10 h-5 text-center rounded bg-[#FAF8F4] border border-[#1B3428]/20 font-bold text-[#E8722C] focus:outline-none focus:border-[#E8722C] text-xs"
+                title="Enter page number to jump"
+              />
+              <span className="text-[#14261D]/40">/</span>
+              <span className="font-bold text-[#14261D]/80">{totalDocPages}</span>
+            </form>
 
-          <form
-            onSubmit={handlePageJumpSubmit}
-            className="flex items-center gap-1.5 font-mono text-xs bg-[#FAF8F4] border border-[#1B3428]/20 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-xl shadow-2xs"
-          >
-            <span className="text-[#14261D]/70 font-sans text-[11px] font-medium hidden sm:inline">
-              Page
-            </span>
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={pageJumpInput}
-              onChange={(e) => setPageJumpInput(e.target.value)}
-              onBlur={handlePageJumpSubmit}
-              className="w-10 sm:w-11 h-6 text-center rounded-md bg-white border border-[#1B3428]/25 font-bold text-[#E8722C] focus:outline-none focus:border-[#E8722C] text-xs"
-              title="Enter page number to jump"
-            />
-            <span className="text-[#14261D]/40">/</span>
-            <span className="font-bold text-[#14261D]/80">{totalDocPages}</span>
-          </form>
+            <button
+              type="button"
+              onClick={() => {
+                if (visiblePage < totalDocPages) {
+                  const target = visiblePage + 1;
+                  scrollToPage(target, true);
+                  onPageChange(target);
+                }
+              }}
+              disabled={visiblePage >= totalDocPages}
+              className="w-7 h-7 rounded-lg border border-[#1B3428]/15 bg-[#FAF8F4] flex items-center justify-center text-[#14261D]/70 hover:text-[#14261D] hover:bg-[#1B3428]/5 disabled:opacity-30 disabled:pointer-events-none cursor-pointer transition-colors"
+              title="Next page"
+              aria-label="Next page"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              if (visiblePage < totalDocPages) {
-                const target = visiblePage + 1;
-                scrollToPage(target, true);
-                onPageChange(target);
-              }
-            }}
-            disabled={visiblePage >= totalDocPages}
-            className="w-6 h-6 rounded-md flex items-center justify-center text-[#14261D]/70 hover:text-[#14261D] hover:bg-[#1B3428]/5 disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
-            title="Next page"
-            aria-label="Next page"
-          >
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        {/* Right: Zoom Controls & Bookmark Button */}
-        <div className="flex items-center gap-1 sm:gap-2 shrink-0 z-10">
-          {viewMode === 'canvas' && (
+          {/* Right: Zoom Controls, Bookmark & Focus Mode Buttons */}
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             <div className="flex items-center gap-0.5 sm:gap-1">
               <button
                 type="button"
                 onClick={() => setZoomLevel((z) => Math.max(0.6, Number((z - 0.1).toFixed(1))))}
                 className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border border-[#1B3428]/20 bg-[#FAF8F4] hover:bg-[#1B3428]/10 transition-colors flex items-center justify-center cursor-pointer"
                 title="Zoom out"
+                aria-label="Zoom out"
               >
                 <ZoomOut className="w-3.5 h-3.5 text-[#14261D]" />
               </button>
@@ -788,49 +813,65 @@ function DocumentReaderComponent({
                 onClick={() => setZoomLevel((z) => Math.min(2.0, Number((z + 0.1).toFixed(1))))}
                 className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border border-[#1B3428]/20 bg-[#FAF8F4] hover:bg-[#1B3428]/10 transition-colors flex items-center justify-center cursor-pointer"
                 title="Zoom in"
+                aria-label="Zoom in"
               >
                 <ZoomIn className="w-3.5 h-3.5 text-[#14261D]" />
               </button>
             </div>
-          )}
 
-          <div className="w-[1px] h-4 bg-[#1B3428]/15 mx-0.5" />
+            <div className="w-[1px] h-4 bg-[#1B3428]/15 mx-0.5" />
 
-          {/* Compact Icon-Only Bookmark Ribbon Toggle */}
-          {(() => {
-            const isBookmarked = Boolean(bookmarks?.some((b) => b.pageNumber === visiblePage));
-            return (
+            {/* Compact Icon-Only Bookmark Ribbon Toggle */}
+            {(() => {
+              const isBookmarked = Boolean(bookmarks?.some((b) => b.pageNumber === visiblePage));
+              return (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onToggleBookmark) {
+                      onToggleBookmark(visiblePage);
+                    } else {
+                      onAddBookmark(visiblePage);
+                    }
+                  }}
+                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg border transition-all flex items-center justify-center cursor-pointer shrink-0 ${
+                    isBookmarked
+                      ? 'bg-[#FBE8DC] border-[#E8722C]/40 text-[#E8722C] shadow-2xs'
+                      : 'bg-[#FAF8F4] border-[#1B3428]/20 text-[#14261D]/60 hover:text-[#14261D] hover:bg-[#1B3428]/5'
+                  }`}
+                  title={isBookmarked ? `Remove Bookmark (Page ${visiblePage})` : `Bookmark Page ${visiblePage}`}
+                  aria-label={isBookmarked ? `Remove Bookmark (Page ${visiblePage})` : `Bookmark Page ${visiblePage}`}
+                >
+                  <Bookmark
+                    className={`w-3.5 h-3.5 transition-colors ${
+                      isBookmarked ? 'fill-[#E8722C] text-[#E8722C]' : ''
+                    }`}
+                  />
+                </button>
+              );
+            })()}
+
+            {/* Desktop Zen Focus Mode Button */}
+            {onToggleFocusMode && (
               <button
                 type="button"
-                onClick={() => {
-                  if (onToggleBookmark) {
-                    onToggleBookmark(visiblePage);
-                  } else {
-                    onAddBookmark(visiblePage);
-                  }
-                }}
-                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg border transition-all flex items-center justify-center cursor-pointer shrink-0 ${
-                  isBookmarked
-                    ? 'bg-[#FBE8DC] border-[#E8722C]/40 text-[#E8722C] shadow-2xs'
-                    : 'bg-[#FAF8F4] border-[#1B3428]/20 text-[#14261D]/60 hover:text-[#14261D] hover:bg-[#1B3428]/5'
-                }`}
-                title={isBookmarked ? `Remove Bookmark (Page ${visiblePage})` : `Bookmark Page ${visiblePage}`}
-                aria-label={isBookmarked ? `Remove Bookmark (Page ${visiblePage})` : `Bookmark Page ${visiblePage}`}
+                onClick={onToggleFocusMode}
+                className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[#1B3428]/20 bg-[#FAF8F4] hover:bg-[#1B3428]/5 text-[#14261D]/80 hover:text-[#14261D] font-display font-bold text-xs transition-colors cursor-pointer shrink-0"
+                title="Zen Reading Mode"
+                aria-label="Zen Reading Mode"
               >
-                <Bookmark
-                  className={`w-3.5 h-3.5 transition-colors ${
-                    isBookmarked ? 'fill-[#E8722C] text-[#E8722C]' : ''
-                  }`}
-                />
+                <Maximize2 className="w-3.5 h-3.5 text-[#14261D]" />
+                <span>Focus</span>
               </button>
-            );
-          })()}
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 2. FLOATING CONTEXTUAL SELECTION TOOLBAR ("Copy", "Ask AI", "Practice") */}
       {selectedText && selectionCoords && (
         <div
+          id="selection-toolbar"
           style={{
             position: 'fixed',
             left: `${selectionCoords.x}px`,
@@ -867,8 +908,7 @@ function DocumentReaderComponent({
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => {
               onExplainParagraph(selectedText, visiblePage);
-              setSelectedText('');
-              setSelectionCoords(null);
+              clearSelection();
             }}
             className="py-1 px-3 rounded-full bg-[#E8722C] text-white font-display font-bold text-xs hover:-translate-y-0.5 active:translate-y-0.5 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
             title="Ask AI about this selection"
@@ -885,8 +925,7 @@ function DocumentReaderComponent({
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => {
                 onPracticeSelection(visiblePage);
-                setSelectedText('');
-                setSelectionCoords(null);
+                clearSelection();
               }}
               className="py-1 px-3 rounded-full bg-[#1B3428] text-white font-display font-bold text-xs hover:-translate-y-0.5 active:translate-y-0.5 transition-all flex items-center gap-1.5 cursor-pointer"
               title="Practice this chapter or section"
@@ -906,77 +945,37 @@ function DocumentReaderComponent({
         onScroll={handleScroll}
         className="flex-1 w-full h-full overflow-y-auto overscroll-contain overflow-x-auto relative"
       >
+        {/* Persistent Selection Highlight Rectangles */}
+        {highlightRects.map((rect, idx) => (
+          <div
+            key={`selection_highlight_${idx}`}
+            className="pointer-events-none absolute rounded-xs select-none"
+            style={{
+              top: `${rect.top}px`,
+              left: `${rect.left}px`,
+              width: `${rect.width}px`,
+              height: `${rect.height}px`,
+              backgroundColor: 'rgba(232, 114, 44, 0.25)',
+              zIndex: 15,
+            }}
+          />
+        ))}
         {isPdf ? (
-          viewMode === 'canvas' ? (
-            /* CONTINUOUS VERTICAL SCROLL STREAM */
-            <div className="w-full min-h-full flex flex-col items-center py-6 px-1 sm:px-4 md:px-6 space-y-6">
-              {lifecycle === 'FETCHING' || (lifecycle === 'INITIALIZING' && !pdfDoc) ? (
-                <div className="p-16 text-center bg-[#FAF8F4] rounded-[24px] border-[2px] border-[#1B3428]/20 shadow-[0_4px_0_0_#1B3428]/10 max-w-md mx-auto my-auto">
-                  <Loader2 className="w-8 h-8 animate-spin text-[#E8722C] mx-auto mb-3" />
-                  <p className="font-display font-bold text-sm text-[#14261D]">
-                    Loading original uploaded PDF...
-                  </p>
-                </div>
-              ) : lifecycle === 'ERROR' && !pdfDoc ? (
-                <div className="p-12 text-center bg-[#FAF8F4] rounded-[24px] border-[2px] border-[#1B3428]/20 shadow-[0_4px_0_0_#1B3428]/10 max-w-md mx-auto my-auto">
-                  <AlertCircle className="w-8 h-8 text-[#E8722C] mx-auto mb-3" />
-                  <p className="font-display font-bold text-sm text-[#14261D] mb-4">
-                    {pdfError || 'Failed to load PDF file'}
-                  </p>
-                  <div className="flex items-center justify-center gap-3">
-                    <button
-                      type="button"
-                      onClick={handleRetryLoad}
-                      className="px-4 py-2 rounded-full bg-[#E8722C] text-white font-display font-bold text-xs hover:bg-[#d0601e] transition-colors"
-                    >
-                      Retry
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setViewMode('embed')}
-                      className="px-4 py-2 rounded-full bg-[#1B3428] text-white font-display font-bold text-xs hover:bg-[#14261D] transition-colors"
-                    >
-                      Switch to Browser Embed
-                    </button>
-                  </div>
-                </div>
-              ) : pdfDoc ? (
-                /* Stacked Continuous Pages Stream */
-                Array.from({ length: pdfDoc.numPages }, (_, i) => i + 1).map((pageNum) => (
-                  <ContinuousPdfPage
-                    key={`pdf_page_${pageNum}`}
-                    pdfDoc={pdfDoc}
-                    pageNumber={pageNum}
-                    pageWidth={calculatedPageWidth}
-                    aspectRatio={documentAspectRatio}
-                    isActiveCitation={
-                      citationPage === pageNum ||
-                      Boolean(
-                        activeCitationChunkId &&
-                          readerContent?.pages.some(
-                            (p) =>
-                              p.pageNumber === pageNum &&
-                              p.chunkIds.includes(activeCitationChunkId),
-                          ),
-                      )
-                    }
-                    onDimensionsDetected={(ratio) => setDocumentAspectRatio(ratio)}
-                  />
-                ))
-              ) : null}
+          /* BROWSER EMBEDDED PDF VIEWER (Standardized Reading Engine) */
+          <div className="w-full h-full p-2 sm:p-4 md:p-6 flex flex-col items-center">
+            <div
+              className={`w-full h-full ${
+                isFocusMode ? 'max-w-5xl mx-auto' : 'max-w-6xl'
+              } rounded-[16px] border-[2px] border-[#1B3428] shadow-[0_4px_0_0_#1B3428] bg-white overflow-hidden flex flex-col min-h-[500px]`}
+            >
+              <iframe
+                id="pdf-embed-frame"
+                src={authorizedEmbedUrl}
+                className="w-full flex-1 border-0 h-full"
+                title={doc?.title || 'Original Textbook PDF Viewer'}
+              />
             </div>
-          ) : (
-            /* BROWSER EMBEDDED PDF VIEWER */
-            <div className="w-full h-full p-4 sm:p-6 flex flex-col items-center">
-              <div className="w-full h-full max-w-5xl rounded-[16px] border-[2px] border-[#1B3428] shadow-[0_8px_0_0_#1B3428] bg-white overflow-hidden flex flex-col min-h-[500px]">
-                <iframe
-                  src={authorizedEmbedUrl}
-                  className="w-full flex-1 border-0"
-                  title="Original Textbook PDF Viewer"
-                />
-              </div>
-            </div>
-          )
+          </div>
         ) : (
           /* NON-PDF EXTRACTED TEXT READING VIEW (Fully Selectable) */
           <div className="w-full min-h-full flex flex-col items-center py-8 px-4 select-text">
