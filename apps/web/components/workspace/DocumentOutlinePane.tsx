@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import {
   Bookmark,
   BookmarkPlus,
@@ -31,7 +31,7 @@ interface DocumentOutlinePaneProps {
   onCloseMobileDrawer?: () => void;
 }
 
-export function DocumentOutlinePane({
+function DocumentOutlinePaneComponent({
   isOpen,
   onToggle,
   outlineItems,
@@ -214,63 +214,74 @@ export function DocumentOutlinePane({
                 </span>
               </div>
               {outlineItems.map((item) => {
-              const isActive = activeChapter?.id === item.id;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => {
-                    onPageSelect(item.pageNumber);
-                    if (isMobileDrawer && onCloseMobileDrawer) {
-                      onCloseMobileDrawer();
-                    }
-                  }}
-                  className={`w-full text-left p-2.5 rounded-xl transition-all flex items-start justify-between gap-2 group ${
-                    isActive
-                      ? 'bg-[#1B3428] text-white shadow-xs'
-                      : 'hover:bg-[#FAF8F4] text-[#14261D]'
-                  }`}
-                >
-                  <div className="min-w-0 flex-1">
-                    <p
-                      className={`text-xs leading-snug font-serif ${
-                        isActive ? 'font-bold text-white' : 'font-medium text-[#14261D]'
-                      }`}
+                const isActive = activeChapter?.id === item.id;
+                return (
+                  <div
+                    key={item.id}
+                    className={`w-full p-2.5 rounded-xl transition-all flex items-start justify-between gap-2 group ${
+                      isActive
+                        ? 'bg-[#1B3428] text-white shadow-xs'
+                        : 'hover:bg-[#FAF8F4] text-[#14261D]'
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onPageSelect(item.pageNumber);
+                        if (isMobileDrawer && onCloseMobileDrawer) {
+                          onCloseMobileDrawer();
+                        }
+                      }}
+                      className="min-w-0 flex-1 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E8722C] rounded"
+                      title={`Go to page ${item.pageNumber}`}
                     >
-                      {item.title}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    {onPracticeChapter && (
+                      <p
+                        className={`text-xs leading-snug font-serif ${
+                          isActive ? 'font-bold text-white' : 'font-medium text-[#14261D]/80'
+                        }`}
+                      >
+                        {item.title}
+                      </p>
+                    </button>
+                    <div className="flex items-center gap-1 shrink-0">
+                      {onPracticeChapter && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onPracticeChapter(item);
+                          }}
+                          className={`p-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E8722C] ${
+                            isActive
+                              ? 'text-white hover:bg-white/20'
+                              : 'text-[#14261D]/60 hover:text-[#E8722C] hover:bg-[#FBE8DC]'
+                          }`}
+                          title={`Practice ${item.title}`}
+                          aria-label={`Practice ${item.title}`}
+                        >
+                          <HelpCircle className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                       <button
                         type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onPracticeChapter(item);
+                        onClick={() => {
+                          onPageSelect(item.pageNumber);
+                          if (isMobileDrawer && onCloseMobileDrawer) {
+                            onCloseMobileDrawer();
+                          }
                         }}
-                        className={`p-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity ${
+                        className={`font-mono text-[11px] px-1.5 py-0.5 rounded shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E8722C] ${
                           isActive
-                            ? 'text-white hover:bg-white/20'
-                            : 'text-[#14261D]/60 hover:text-[#E8722C] hover:bg-[#FBE8DC]'
+                            ? 'bg-white/20 text-white'
+                            : 'bg-[#1B3428]/5 text-[#14261D]/70 group-hover:bg-[#1B3428]/10'
                         }`}
-                        title={`Practice ${item.title}`}
+                        title={`Go to page ${item.pageNumber}`}
                       >
-                        <HelpCircle className="w-3.5 h-3.5" />
+                        p. {item.pageNumber}
                       </button>
-                    )}
-                    <span
-                      className={`font-mono text-[10px] px-1.5 py-0.5 rounded shrink-0 ${
-                        isActive
-                          ? 'bg-white/20 text-white'
-                          : 'bg-[#1B3428]/5 text-[#14261D]/60 group-hover:bg-[#1B3428]/10'
-                      }`}
-                    >
-                      p. {item.pageNumber}
-                    </span>
+                    </div>
                   </div>
-                </button>
-              );
-            })}
+                );
+              })}
           </>
         )
         ) : (
@@ -340,3 +351,6 @@ export function DocumentOutlinePane({
     </aside>
   );
 }
+
+export const DocumentOutlinePane = memo(DocumentOutlinePaneComponent);
+
