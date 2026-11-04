@@ -25,12 +25,16 @@ interface FlashcardStudyRunnerProps {
   deck: FlashcardDeckDetailDto;
   onClose: () => void;
   onDeckUpdated?: () => void;
+  onCitationClick?: (pageNumber: number) => void;
+  isCompactSidecar?: boolean;
 }
 
 export function FlashcardStudyRunner({
   deck,
   onClose,
   onDeckUpdated,
+  onCitationClick,
+  isCompactSidecar = false,
 }: FlashcardStudyRunnerProps) {
   const { accessToken } = useAuth();
 
@@ -222,12 +226,12 @@ export function FlashcardStudyRunner({
   return (
     <div className="h-full w-full flex flex-col bg-[#F4F0E5] text-[#14261D] select-none overflow-hidden">
       {/* Top Runner Bar */}
-      <div className="w-full h-14 bg-[#FAF8F4] border-b-[2px] border-[#1B3428]/15 px-4 sm:px-6 flex items-center justify-between shrink-0 shadow-2xs">
-        <div className="flex items-center gap-3 min-w-0">
+      <div className={`w-full bg-[#FAF8F4] border-b-[2px] border-[#1B3428]/15 flex items-center justify-between shrink-0 shadow-2xs ${isCompactSidecar ? 'h-12 px-3' : 'h-14 px-4 sm:px-6'}`}>
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button
             type="button"
             onClick={onClose}
-            className="h-8 px-2.5 sm:px-3 rounded-full border border-[#1B3428]/25 bg-[#FAF8F4] font-display font-bold text-xs flex items-center gap-1.5 hover:bg-[#F4F0E5] transition-colors"
+            className="h-7 sm:h-8 px-2 sm:px-3 rounded-full border border-[#1B3428]/25 bg-[#FAF8F4] font-display font-bold text-xs flex items-center gap-1 hover:bg-[#F4F0E5] transition-colors cursor-pointer shrink-0"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Exit</span>
@@ -237,12 +241,19 @@ export function FlashcardStudyRunner({
             <h2 className="font-display font-bold text-xs sm:text-sm text-[#14261D] truncate">
               {deck.title}
             </h2>
-            <div className="flex items-center gap-2 text-[10px] text-[#14261D]/60 font-mono">
-              <span>Card {currentIndex + 1} of {cards.length}</span>
+            <div className="flex items-center gap-1.5 text-[10px] text-[#14261D]/60 font-mono">
+              <span>{currentIndex + 1} of {cards.length}</span>
               {currentCard?.pageNumber && (
                 <>
                   <span>•</span>
-                  <span>Page {currentCard.pageNumber}</span>
+                  <button
+                    type="button"
+                    onClick={() => onCitationClick?.(currentCard.pageNumber!)}
+                    className="text-[#E8722C] hover:underline font-bold cursor-pointer"
+                    title={`Jump to page ${currentCard.pageNumber} in reader`}
+                  >
+                    Page {currentCard.pageNumber}
+                  </button>
                 </>
               )}
             </div>
@@ -250,33 +261,35 @@ export function FlashcardStudyRunner({
         </div>
 
         {/* Progress Pill */}
-        <div className="flex items-center gap-3">
-          <div className="w-24 sm:w-32 h-2 rounded-full bg-[#1B3428]/10 overflow-hidden">
+        <div className="flex items-center gap-2 shrink-0 ml-2">
+          <div className="w-16 sm:w-28 h-1.5 sm:h-2 rounded-full bg-[#1B3428]/10 overflow-hidden">
             <div
               className="h-full bg-[#E8722C] transition-all duration-300 rounded-full"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
-          <span className="font-mono text-xs font-bold text-[#E8722C]">
+          <span className="font-mono text-[11px] font-bold text-[#E8722C]">
             {progressPercent}%
           </span>
         </div>
       </div>
 
       {/* Main Card Viewport */}
-      <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 min-h-0 overflow-y-auto">
-        <div className="w-full max-w-xl flex flex-col items-center">
+      <div className={`flex-1 flex flex-col items-center justify-center min-h-0 overflow-y-auto ${isCompactSidecar ? 'p-3 sm:p-4' : 'p-4 sm:p-8'}`}>
+        <div className={`w-full flex flex-col items-center ${isCompactSidecar ? 'max-w-md' : 'max-w-xl'}`}>
           {/* Card Container with tactile flip feeling */}
           <div
             onClick={handleFlip}
-            className={`w-full min-h-[300px] sm:min-h-[340px] p-6 sm:p-8 rounded-3xl border-[2.5px] border-[#1B3428] bg-[#FAF8F4] shadow-[0_8px_0_0_#1B3428] cursor-pointer flex flex-col justify-between transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_10px_0_0_#1B3428] active:translate-y-0 active:shadow-[0_4px_0_0_#1B3428] relative ${
-              isFlipped ? 'border-[#E8722C] shadow-[0_8px_0_0_#E8722C]' : ''
+            className={`w-full rounded-2xl sm:rounded-3xl border-[2px] border-[#1B3428] bg-[#FAF8F4] cursor-pointer flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 relative ${
+              isCompactSidecar ? 'min-h-[220px] p-4 sm:p-5 shadow-[0_4px_0_0_#1B3428]' : 'min-h-[300px] sm:min-h-[340px] p-6 sm:p-8 shadow-[0_8px_0_0_#1B3428]'
+            } ${
+              isFlipped ? (isCompactSidecar ? 'border-[#E8722C] shadow-[0_4px_0_0_#E8722C]' : 'border-[#E8722C] shadow-[0_8px_0_0_#E8722C]') : ''
             }`}
           >
             {/* Top Indicator */}
-            <div className="flex items-center justify-between gap-2 mb-4">
+            <div className="flex items-center justify-between gap-2 mb-3">
               <span
-                className={`font-mono text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${
+                className={`font-mono text-[9px] sm:text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
                   isFlipped
                     ? 'bg-[#E8722C]/10 text-[#E8722C] border-[#E8722C]/25'
                     : 'bg-[#1B3428]/10 text-[#1B3428] border-[#1B3428]/20'
@@ -286,24 +299,24 @@ export function FlashcardStudyRunner({
               </span>
 
               {currentCard?.chapter && (
-                <span className="font-sans text-[11px] text-[#14261D]/60 truncate max-w-[200px]">
+                <span className="font-sans text-[10px] sm:text-[11px] text-[#14261D]/60 truncate max-w-[160px]">
                   {currentCard.chapter}
                 </span>
               )}
             </div>
 
             {/* Prompt or Answer Content */}
-            <div className="flex-1 flex flex-col justify-center my-4">
+            <div className="flex-1 flex flex-col justify-center my-2 sm:my-3">
               {!isFlipped ? (
                 <div className="animate-in fade-in duration-150">
-                  <h3 className="font-display font-bold text-lg sm:text-xl text-[#14261D] leading-snug">
+                  <h3 className="font-display font-bold text-base sm:text-lg text-[#14261D] leading-snug">
                     {currentCard?.front}
                   </h3>
 
                   {currentCard?.hint && (
-                    <div className="mt-4">
+                    <div className="mt-3">
                       {showHint ? (
-                        <p className="font-serif italic text-xs text-[#E8722C] bg-[#FBE8DC]/40 p-3 rounded-xl border border-[#E8722C]/20">
+                        <p className="font-serif italic text-xs text-[#E8722C] bg-[#FBE8DC]/40 p-2.5 rounded-xl border border-[#E8722C]/20">
                           Hint: {currentCard.hint}
                         </p>
                       ) : (
@@ -313,7 +326,7 @@ export function FlashcardStudyRunner({
                             e.stopPropagation();
                             setShowHint(true);
                           }}
-                          className="inline-flex items-center gap-1.5 text-xs text-[#14261D]/60 hover:text-[#E8722C] transition-colors"
+                          className="inline-flex items-center gap-1.5 text-[11px] text-[#14261D]/60 hover:text-[#E8722C] transition-colors cursor-pointer"
                         >
                           <HelpCircle className="w-3.5 h-3.5" />
                           <span>Show Hint</span>
@@ -324,14 +337,25 @@ export function FlashcardStudyRunner({
                 </div>
               ) : (
                 <div className="animate-in fade-in zoom-in-95 duration-150">
-                  <div className="font-serif text-sm sm:text-base leading-relaxed text-[#14261D] whitespace-pre-wrap">
+                  <div className="font-serif text-xs sm:text-sm sm:text-base leading-relaxed text-[#14261D] whitespace-pre-wrap">
                     {currentCard?.back}
                   </div>
 
                   {currentCard?.pageNumber && (
-                    <div className="mt-4 pt-3 border-t border-[#1B3428]/10 flex items-center gap-1.5 text-xs text-[#14261D]/60 font-sans">
-                      <BookOpen className="w-3.5 h-3.5 text-[#E8722C]" />
-                      <span>Found on Page {currentCard.pageNumber}</span>
+                    <div className="mt-3 pt-2.5 border-t border-[#1B3428]/10 flex items-center justify-between">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onCitationClick?.(currentCard.pageNumber!);
+                        }}
+                        className="inline-flex items-center gap-1.5 text-xs text-[#E8722C] font-mono hover:underline font-bold cursor-pointer"
+                        title={`Jump to page ${currentCard.pageNumber} in reader`}
+                      >
+                        <BookOpen className="w-3.5 h-3.5 text-[#E8722C]" />
+                        <span>Page {currentCard.pageNumber} in Book</span>
+                        <ChevronRight className="w-3 h-3" />
+                      </button>
                     </div>
                   )}
                 </div>
@@ -339,21 +363,21 @@ export function FlashcardStudyRunner({
             </div>
 
             {/* Bottom Flip Prompt */}
-            <div className="pt-4 border-t border-[#1B3428]/10 flex items-center justify-between text-xs text-[#14261D]/50 font-sans">
-              <span>Press Space or click to flip</span>
-              <span className="font-mono text-[11px]">
+            <div className="pt-2.5 border-t border-[#1B3428]/10 flex items-center justify-between text-[11px] text-[#14261D]/50 font-sans">
+              <span>Press Space or tap to flip</span>
+              <span className="font-mono text-[10px]">
                 {currentIndex + 1} / {cards.length}
               </span>
             </div>
           </div>
 
           {/* Control Bar */}
-          <div className="w-full mt-6">
+          <div className="w-full mt-4">
             {!isFlipped ? (
               <button
                 type="button"
                 onClick={handleFlip}
-                className="w-full py-3 rounded-2xl bg-[#1B3428] text-white font-display font-bold text-xs sm:text-sm shadow-[0_4px_0_0_#0D1B14] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none transition-all flex items-center justify-center gap-2"
+                className="w-full py-2.5 rounded-2xl bg-[#1B3428] text-white font-display font-bold text-xs sm:text-sm shadow-[0_3px_0_0_#0D1B14] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>Reveal Answer</span>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-white/20">
@@ -361,23 +385,23 @@ export function FlashcardStudyRunner({
                 </span>
               </button>
             ) : (
-              <div className="flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-2 duration-150">
-                <p className="text-center font-display font-bold text-xs text-[#14261D]/70 mb-1">
+              <div className="flex flex-col gap-1.5 animate-in fade-in slide-in-from-bottom-2 duration-150">
+                <p className="text-center font-display font-bold text-[11px] text-[#14261D]/70 mb-0.5">
                   How well did you remember this?
                 </p>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <button
                     type="button"
                     onClick={() => handleRate(1)}
                     disabled={isReviewing}
-                    className="p-3 rounded-2xl border-[1.5px] border-red-300 bg-red-50 text-red-700 font-display font-bold text-xs hover:bg-red-100 hover:border-red-400 shadow-[0_2px_0_0_#FCA5A5] active:translate-y-0.5 active:shadow-none transition-all flex flex-col items-center gap-1"
+                    className="p-2.5 rounded-xl border-[1.5px] border-red-300 bg-red-50 text-red-700 font-display font-bold text-xs hover:bg-red-100 hover:border-red-400 shadow-[0_2px_0_0_#FCA5A5] active:translate-y-0.5 active:shadow-none transition-all flex flex-col items-center gap-0.5 cursor-pointer"
                   >
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1">
                       <span>Again</span>
-                      <span className="font-mono text-[10px] opacity-60">(1)</span>
+                      <span className="font-mono text-[9px] opacity-60">(1)</span>
                     </div>
-                    <span className="font-mono text-[10px] text-red-500 font-normal">
+                    <span className="font-mono text-[9px] text-red-500 font-normal">
                       1 day
                     </span>
                   </button>
@@ -386,13 +410,13 @@ export function FlashcardStudyRunner({
                     type="button"
                     onClick={() => handleRate(2)}
                     disabled={isReviewing}
-                    className="p-3 rounded-2xl border-[1.5px] border-amber-300 bg-amber-50 text-amber-800 font-display font-bold text-xs hover:bg-amber-100 hover:border-amber-400 shadow-[0_2px_0_0_#FCD34D] active:translate-y-0.5 active:shadow-none transition-all flex flex-col items-center gap-1"
+                    className="p-2.5 rounded-xl border-[1.5px] border-amber-300 bg-amber-50 text-amber-800 font-display font-bold text-xs hover:bg-amber-100 hover:border-amber-400 shadow-[0_2px_0_0_#FCD34D] active:translate-y-0.5 active:shadow-none transition-all flex flex-col items-center gap-0.5 cursor-pointer"
                   >
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1">
                       <span>Hard</span>
-                      <span className="font-mono text-[10px] opacity-60">(2)</span>
+                      <span className="font-mono text-[9px] opacity-60">(2)</span>
                     </div>
-                    <span className="font-mono text-[10px] text-amber-600 font-normal">
+                    <span className="font-mono text-[9px] text-amber-600 font-normal">
                       1 day
                     </span>
                   </button>
@@ -401,13 +425,13 @@ export function FlashcardStudyRunner({
                     type="button"
                     onClick={() => handleRate(3)}
                     disabled={isReviewing}
-                    className="p-3 rounded-2xl border-[1.5px] border-emerald-300 bg-emerald-50 text-emerald-800 font-display font-bold text-xs hover:bg-emerald-100 hover:border-emerald-400 shadow-[0_2px_0_0_#6EE7B7] active:translate-y-0.5 active:shadow-none transition-all flex flex-col items-center gap-1"
+                    className="p-2.5 rounded-xl border-[1.5px] border-emerald-300 bg-emerald-50 text-emerald-800 font-display font-bold text-xs hover:bg-emerald-100 hover:border-emerald-400 shadow-[0_2px_0_0_#6EE7B7] active:translate-y-0.5 active:shadow-none transition-all flex flex-col items-center gap-0.5 cursor-pointer"
                   >
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1">
                       <span>Good</span>
-                      <span className="font-mono text-[10px] opacity-60">(3)</span>
+                      <span className="font-mono text-[9px] opacity-60">(3)</span>
                     </div>
-                    <span className="font-mono text-[10px] text-emerald-600 font-normal">
+                    <span className="font-mono text-[9px] text-emerald-600 font-normal">
                       6 days
                     </span>
                   </button>
@@ -416,13 +440,13 @@ export function FlashcardStudyRunner({
                     type="button"
                     onClick={() => handleRate(4)}
                     disabled={isReviewing}
-                    className="p-3 rounded-2xl border-[1.5px] border-blue-300 bg-blue-50 text-blue-800 font-display font-bold text-xs hover:bg-blue-100 hover:border-blue-400 shadow-[0_2px_0_0_#93C5FD] active:translate-y-0.5 active:shadow-none transition-all flex flex-col items-center gap-1"
+                    className="p-2.5 rounded-xl border-[1.5px] border-blue-300 bg-blue-50 text-blue-800 font-display font-bold text-xs hover:bg-blue-100 hover:border-blue-400 shadow-[0_2px_0_0_#93C5FD] active:translate-y-0.5 active:shadow-none transition-all flex flex-col items-center gap-0.5 cursor-pointer"
                   >
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1">
                       <span>Easy</span>
-                      <span className="font-mono text-[10px] opacity-60">(4)</span>
+                      <span className="font-mono text-[9px] opacity-60">(4)</span>
                     </div>
-                    <span className="font-mono text-[10px] text-blue-600 font-normal">
+                    <span className="font-mono text-[9px] text-blue-600 font-normal">
                       10 days
                     </span>
                   </button>
