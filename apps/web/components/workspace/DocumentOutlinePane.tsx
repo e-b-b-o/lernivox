@@ -8,7 +8,6 @@ import {
   Hash,
   HelpCircle,
   List,
-  PanelLeftOpen,
   Trash2,
   X,
 } from 'lucide-react';
@@ -71,55 +70,15 @@ function DocumentOutlinePaneComponent({
     .reverse()
     .find((item) => item.pageNumber <= currentPage);
 
-  // 1. COLLAPSED DESKTOP RAIL (when not mobile drawer)
+  // 1. COLLAPSED STATE: Return null to guarantee 0px width and completely remove the 48px rail
   if (!isOpen && !isMobileDrawer) {
-    return (
-      <aside className="hidden lg:flex w-12 h-full flex-col items-center py-4 bg-[#FAF8F4] border-r-[2px] border-[#1B3428]/15 shrink-0 select-none">
-        <button
-          type="button"
-          onClick={onToggle}
-          className="w-8 h-8 rounded-full bg-[#FAF8F4] border border-[#1B3428]/30 flex items-center justify-center text-[#14261D] hover:bg-[#FBE8DC] transition-colors mb-4"
-          title="Expand Table of Contents"
-        >
-          <PanelLeftOpen className="w-4 h-4" />
-        </button>
-
-        <div className="flex-1 flex flex-col items-center gap-4">
-          <button
-            type="button"
-            onClick={() => {
-              onToggle();
-              setActiveTab('outline');
-            }}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-[#14261D]/70 hover:bg-[#E2EBD8] hover:text-[#497E64] transition-colors"
-            title="Table of Contents"
-          >
-            <List className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              onToggle();
-              setActiveTab('bookmarks');
-            }}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-[#14261D]/70 hover:bg-[#FBE8DC] hover:text-[#E8722C] transition-colors"
-            title="Bookmarks"
-          >
-            <Bookmark className="w-4 h-4" />
-          </button>
-        </div>
-
-        <div className="text-[10px] font-mono text-[#14261D]/50 rotate-90 whitespace-nowrap mb-8">
-          p. {currentPage}
-        </div>
-      </aside>
-    );
+    return null;
   }
 
   // 2. EXPANDED PANE OR MOBILE SLIDE-OVER DRAWER
   const containerClasses = isMobileDrawer
     ? 'w-full h-full bg-[#FAF8F4] flex flex-col select-none'
-    : 'hidden lg:flex w-64 sm:w-72 h-full bg-[#FAF8F4] border-r-[2px] border-[#1B3428]/15 flex-col shrink-0 select-none z-20';
+    : 'hidden lg:flex w-60 xl:w-72 h-full bg-[#FAF8F4] border-r-[2px] border-[#1B3428]/15 flex-col shrink-0 select-none z-20';
 
   return (
     <aside className={containerClasses}>
@@ -152,13 +111,14 @@ function DocumentOutlinePaneComponent({
           </button>
         </div>
 
-        {/* Close Button only for mobile drawer */}
+        {/* Subtle Close Button for drawer overlay only (Header owns primary [Outline] toggle) */}
         {isMobileDrawer && (
           <button
             type="button"
             onClick={onCloseMobileDrawer}
-            className="w-7 h-7 rounded-full bg-[#FAF8F4] border border-[#1B3428]/20 flex items-center justify-center text-[#14261D]/70 hover:bg-[#FBE8DC]"
-            title="Close Table of Contents"
+            className="w-7 h-7 rounded-full bg-[#FAF8F4] border border-[#1B3428]/20 flex items-center justify-center text-[#14261D]/70 hover:bg-[#FBE8DC] hover:text-[#E8722C] transition-colors cursor-pointer shrink-0"
+            title="Close Outline Drawer"
+            aria-label="Close Outline Drawer"
           >
             <X className="w-4 h-4" />
           </button>

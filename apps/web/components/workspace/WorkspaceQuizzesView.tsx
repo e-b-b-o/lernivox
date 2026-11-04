@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Loader2,
   Trash2,
+  Plus,
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
@@ -144,11 +145,6 @@ export function WorkspaceQuizzesView({
         {/* Header Banner */}
         <div className={`bg-[#FAF8F4] border-[2px] border-[#1B3428] rounded-[24px] shadow-[0_4px_0_0_#1B3428] flex flex-col ${isCompactSidecar ? 'p-4 gap-3' : 'sm:flex-row items-start sm:items-center justify-between p-6 sm:p-7 gap-4'}`}>
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-2 py-0.5 rounded-full bg-[#E2EBD8] text-[#1B3428] text-[10px] font-bold border border-[#497E64]/30">
-                Book Assessment Center
-              </span>
-            </div>
             <h1 className={`font-display font-black text-[#14261D] ${isCompactSidecar ? 'text-lg' : 'text-2xl'}`}>
               Quizzes & Assessments
             </h1>
@@ -157,14 +153,17 @@ export function WorkspaceQuizzesView({
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsGenerateModalOpen(true)}
-            className="w-full sm:w-auto px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-[#E8722C] text-white font-display font-bold text-xs shadow-[0_3px_0_0_#B26E45] hover:-translate-y-0.5 hover:shadow-[0_4px_0_0_#B26E45] active:translate-y-0.5 active:shadow-none transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-white" />
-            <span>Generate Range Quiz</span>
-          </button>
+          {/* Single Primary Generation CTA: Shown here ONLY when quizzes already exist */}
+          {quizzes.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setIsGenerateModalOpen(true)}
+              className="w-full sm:w-auto px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-[#E8722C] text-white font-display font-bold text-xs shadow-[0_3px_0_0_#B26E45] hover:-translate-y-0.5 hover:shadow-[0_4px_0_0_#B26E45] active:translate-y-0.5 active:shadow-none transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5 text-white" />
+              <span>+ Create New Quiz</span>
+            </button>
+          )}
         </div>
 
         {/* View Tabs */}

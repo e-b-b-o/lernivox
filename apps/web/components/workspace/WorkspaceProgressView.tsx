@@ -166,14 +166,6 @@ export function WorkspaceProgressView({
         {/* Header Banner */}
         <div className={`bg-[#FAF8F4] border-[2px] border-[#1B3428] rounded-[24px] shadow-[0_4px_0_0_#1B3428] flex flex-col ${isCompactSidecar ? 'p-4 gap-3' : 'sm:flex-row items-start sm:items-center justify-between p-6 sm:p-7 gap-4'}`}>
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-2 py-0.5 rounded-full bg-[#E2EBD8] text-[#1B3428] text-[10px] font-bold border border-[#497E64]/30">
-                Individual Learning Report
-              </span>
-              <span className="text-[11px] text-[#14261D]/60 font-sans truncate max-w-[160px]">
-                {document?.title || progress.documentTitle}
-              </span>
-            </div>
             <h1 className={`font-display font-black text-[#14261D] tracking-tight ${isCompactSidecar ? 'text-lg' : 'text-xl sm:text-2xl'}`}>
               Learning & Mastery Progress
             </h1>
@@ -205,51 +197,54 @@ export function WorkspaceProgressView({
           </div>
         </div>
 
-        {/* Readiness Overview Card */}
+        {/* Current Mastery Card (Clean 2-Row Architecture) */}
         <div
-          className={`border-[2px] border-[#1B3428] rounded-2xl p-4 sm:p-5 shadow-[0_3px_0_0_#1B3428] ${readiness.color}`}
+          className={`border-[2px] border-[#1B3428] rounded-2xl p-4 sm:p-5 shadow-[0_3px_0_0_#1B3428] ${readiness.color} space-y-3 sm:space-y-4`}
         >
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
+          {/* Row 1: Status tag, clean mastery progress/gauge, progress labels */}
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-3 min-w-0">
               <div
-                className={`w-10 h-10 rounded-xl ${readiness.badgeColor} flex items-center justify-center shrink-0 shadow-xs`}
+                className={`w-9 h-9 rounded-xl ${readiness.badgeColor} flex items-center justify-center shrink-0 shadow-xs`}
               >
-                <TrendingUp className="w-5 h-5" />
+                <TrendingUp className="w-4 h-4 text-white" />
               </div>
               <div>
                 <span className="font-mono text-[9px] font-bold uppercase tracking-wider opacity-70 block mb-0.5">
                   Current Mastery Status
                 </span>
-                <h2 className="font-display font-black text-base sm:text-lg text-[#14261D]">
-                  {readiness.title}
-                </h2>
-                <p className="text-[11px] text-[#14261D]/80 font-sans">
-                  Status in &ldquo;{progress.documentTitle}&rdquo;
-                </p>
+                <div className="flex items-center gap-2">
+                  <h2 className="font-display font-black text-base sm:text-lg text-[#14261D]">
+                    {readiness.title}
+                  </h2>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#14261D]/10 text-[#14261D]">
+                    {progress.assessment.averageScore > 0 ? `${progress.assessment.averageScore}% Accuracy` : 'Diagnostic Phase'}
+                  </span>
+                </div>
               </div>
             </div>
+          </div>
 
-            {/* Quick Actions */}
-            <div className="flex items-center gap-2">
-              {onTakeQuiz && (
-                <button
-                  type="button"
-                  onClick={onTakeQuiz}
-                  className="px-3.5 py-1.5 rounded-full bg-[#1B3428] text-white font-display font-bold text-xs shadow-[0_2px_0_0_#0D1B14] hover:-translate-y-0.5 transition-all cursor-pointer"
-                >
-                  Take Practice Quiz
-                </button>
-              )}
-              {onStudyFlashcards && (
-                <button
-                  type="button"
-                  onClick={onStudyFlashcards}
-                  className="px-3.5 py-1.5 rounded-full border-[1.5px] border-[#1B3428] bg-[#FAF8F4] text-[#14261D] font-display font-bold text-xs shadow-[0_2px_0_0_#1B3428] hover:-translate-y-0.5 transition-all cursor-pointer"
-                >
-                  Study Cards
-                </button>
-              )}
-            </div>
+          {/* Row 2: Tactile study actions */}
+          <div className="pt-2 border-t border-[#1B3428]/10 flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
+            {onTakeQuiz && (
+              <button
+                type="button"
+                onClick={onTakeQuiz}
+                className="flex-1 sm:flex-none px-4 py-2 rounded-full bg-[#1B3428] text-white font-display font-bold text-xs shadow-[0_2px_0_0_#0D1B14] hover:-translate-y-0.5 active:translate-y-0.5 transition-all text-center cursor-pointer"
+              >
+                Take Practice Quiz
+              </button>
+            )}
+            {onStudyFlashcards && (
+              <button
+                type="button"
+                onClick={onStudyFlashcards}
+                className="flex-1 sm:flex-none px-4 py-2 rounded-full border-[1.5px] border-[#1B3428] bg-[#FAF8F4] text-[#14261D] font-display font-bold text-xs shadow-[0_2px_0_0_#1B3428] hover:-translate-y-0.5 active:translate-y-0.5 transition-all text-center cursor-pointer"
+              >
+                Study Cards
+              </button>
+            )}
           </div>
         </div>
 
