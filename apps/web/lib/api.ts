@@ -86,11 +86,20 @@ async function request<T>(
     headers['Authorization'] = `Bearer ${accessToken}`;
   }
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-    credentials: 'include', // Always send and receive HttpOnly cookies
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers,
+      credentials: 'include', // Always send and receive HttpOnly cookies
+    });
+  } catch (netErr: any) {
+    throw new ApiError(
+      0,
+      `Cannot connect to Lernivox API at ${API_BASE_URL}. Please ensure the NestJS API server is running on port 4000.`,
+      netErr,
+    );
+  }
 
   if (!response.ok) {
     let errorMessage = `HTTP error ${response.status}`;
@@ -539,8 +548,19 @@ export const api = {
         token,
       ),
 
-    delete: (quizId: string, token: string): Promise<{ success: boolean }> =>
-      request<{ success: boolean }>(`/quizzes/${quizId}`, { method: 'DELETE' }, token),
+    retry: (quizId: string, token: string): Promise<QuizSummaryDto> =>
+      request<QuizSummaryDto>(`/quizzes/${quizId}/retry`, { method: 'POST' }, token),
+
+    delete: (
+      quizId: string,
+      token: string,
+      workspaceId?: string,
+    ): Promise<{ success: boolean }> => {
+      const url = workspaceId
+        ? `/quizzes/workspace/${workspaceId}/${quizId}`
+        : `/quizzes/${quizId}`;
+      return request<{ success: boolean }>(url, { method: 'DELETE' }, token);
+    },
   },
 
   flashcards: {
