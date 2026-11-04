@@ -87,17 +87,113 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 
 ## 6. Current Task Record
 
-- **Task**: Phase 3: Workspace Learning Experience — Quizzes, Flashcards, Individual Progress and Book-Range Selection
+- **Task**: Unified Reading Workspace, Companion Study Tools, Text Selection & Responsive Architecture
 - **Status**: **Complete**
 - **Objective**:
-  - Implement chapter- and range-grounded quizzes with pre-generation content scope selection (Entire book vs Custom range from/to).
-  - Resolve content structure using native document outline -> extracted headings -> page range -> text chunk fallbacks.
-  - Enforce backend range validation and restrict AI retrieval strictly to the selected range.
-  - Implement dedicated in-workspace assessment runner, multi-type question support, deterministic objective grading, and semantic AI short-answer grading.
-  - Save independent quiz attempts and provide failed-questions review history per user and workspace.
-  - Implement grounded flashcard generation, deck management, and interactive review runner with SM-2 spaced repetition.
-  - Implement individual workspace learning progress strictly derived from persisted reading, assessment, and flashcard evidence.
-  - Guarantee privacy: one member in a GROUP workspace never sees another's attempts, reviews, or progress.
+  1. Permanent Textbook & TOC: Establish the original textbook reader and Table of Contents as permanent workspace components that never unmount, reload, or lose state when switching companion tools.
+  2. Eliminate "Read" as a Study Mode: Completely remove `Read` from the study-mode switcher, mobile navigation, and workspace state. Study modes are strictly `Quizzes | Flashcards | My Progress`.
+  3. Independent AI Tutor Companion Tool: Provide dedicated access to AI Tutor through an explicit action rather than a redundant study mode tab.
+  4. Professional PDF & Workspace Text Selection: Diagnose and fix native text selection failures in PDF.js and text content (eliminate root-level `select-none`, restore text-layer alignment, provide contextual selection toolbar with `Copy`, `Ask AI`, and `Practice`).
+  5. Isolated Rendering Performance: Ensure switching between `Quizzes`, `Flashcards`, `My Progress`, and `AI Tutor` never re-renders or reloads `DocumentReader` and `DocumentOutlinePane`.
+  6. Desktop Three-Zone True-Center Grid: Balanced `grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]` with Zone 1 (brand, outline toggle, document title), Zone 2 (mathematically centered Quizzes/Flashcards/Progress + dedicated AI Tutor action), Zone 3 (`← Books` + `ProfileMenu`).
+  7. Mobile Architecture & Auto-Hide: Single 48px top bar (back button, running title + page, avatar) and 56px bottom thumb dock (`Outline`, `Practice`, `AI Tutor` with NO `Read`), with scroll-aware auto-hide (down >60px, up ~10px) suspended during text selection and modal interactions.
+  8. Secondary PDF Toolbar & Fluid Widths: Continuous/embed 2-state toggle, centered `< Page X / Y >` with chevron jump controls, compact bookmark ribbon toggle, and responsive container widths (`w-[96%]` mobile, `w-[94%]` tablet, `max-w-4xl` desktop).
+
+- **Work Completed**:
+  - **Permanent Reading Workspace & Mode Isolation**:
+    - Removed `read` completely from `WorkspaceViewMode` in `TutorHeader.tsx` and `page.tsx`. Study modes strictly: `Quizzes | Flashcards | My Progress`.
+    - Defined `CompanionToolMode = 'ai-tutor' | 'quizzes' | 'flashcards' | 'progress'`.
+    - Wrapped both `DocumentReader` and `DocumentOutlinePane` in `React.memo` with stable props and callback identities. Neither component re-renders or unmounts when toggling companion tools.
+    - Verified with automated tests in `apps/web/test/workspace-architecture.test.ts` (6/6 assertions passing).
+  - **Desktop Balanced Three-Zone Navigation**:
+    - Rebuilt `TutorHeader.tsx` on a true-center CSS grid `grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] h-14`.
+    - **Zone 1**: Terracotta squircle brand icon + bold `Lernivox` wordmark, vertical separator `h-5 w-px bg-[#1B3428]/15`, compact tactile `Outline` button, truncated document title (`max-w-[160px] xl:max-w-[260px] 2xl:max-w-[320px]`), and workspace type badge/controls.
+    - **Zone 2**: Mathematically centered segmented control (`Quizzes | Flashcards | My Progress`) styled with `whitespace-nowrap px-3 sm:px-4 py-1.5 font-display font-bold text-xs`, plus separate tactile `AI Tutor` button (`Sparkles` + label) with active state highlighting.
+    - **Zone 3**: Tactile bordered `← Books` button navigating to `/dashboard`, and compact circular avatar `ProfileMenu`. Zero duplicate Ask AI button.
+  - **Mobile Workspace Architecture (<768px) & Immersive Auto-Hide**:
+    - Implemented single 48px mobile header: 32x32 back button `←`, single-line running document title and page progress (`doc.title • p. X/Y`), and 32x32 circular profile menu.
+    - Implemented 56px mobile thumb dock (`fixed bottom-0 inset-x-0 h-14 bg-[#FAF8F4]/95 backdrop-blur-md`): `Outline`, `Practice`, `AI Tutor` (strictly zero `Read` button; textbook is the default resting state).
+    - `Practice` dock button opens a dedicated bottom sheet (`h-[85vh] rounded-t-3xl`) containing segmented tabs for Quizzes, Flashcards, and Progress with mutual exclusion.
+    - Added scroll-aware auto-hide on `#pdf-scroll-container`: translates top header `-translate-y-full` and bottom dock `translate-y-full` on scroll down >60px, restores immediately on scroll up ~10px or canvas tap. Auto-hide is suspended when text selection is active or a drawer/sheet is open.
+  - **Professional Text Selection & PDF.js Text-Layer Restoration**:
+    - Diagnosed root causes:
+      1. Root-level `select-none` on outer workspace shell in `page.tsx` cascaded to child containers, suppressing browser native text selection.
+      2. Misalignment in `ContinuousPdfPage` caused by flexbox centering (`justify-center`) shifting canvas independently of the absolutely positioned `.textLayer`.
+      3. Missing PDF.js text-layer rules (`.endOfContent`, `user-select: text !important`, `pointer-events: auto !important`).
+      4. Missing selection toolbar preventDefault on mousedown, which caused button clicks to collapse active selections before execution.
+      5. Non-PDF extracted notes view lacked `select-text` styling.
+    - Solutions implemented:
+      - Removed `select-none` from root workspace `div` in `page.tsx`; applied `select-none` strictly to non-reading chrome toolbars and buttons.
+      - Added comprehensive `.textLayer` styles with `user-select: text !important`, `-webkit-user-select: text !important`, `.endOfContent` handling, and terracotta highlight tint `rgba(232, 114, 44, 0.25)` in `apps/web/styles/globals.css`.
+      - Locked `ContinuousPdfPage` canvas and textLayer into a shared container with matching dimensions `width: ${pageWidth}px; height: ${actualHeight}px;` without flex-centering offsets.
+      - Created responsive contextual floating selection toolbar:
+        - `Copy`: Copies text to clipboard via `navigator.clipboard.writeText` with word boundaries, displaying green "Copied!" checkmark feedback for 2s.
+        - `Ask AI`: Opens AI Tutor companion sidecar (or mobile sheet) with document title, page number, chapter name, and verbatim excerpt.
+        - `Practice`: Contextual practice launcher for the current page.
+        - Added `onMouseDown={(e) => e.preventDefault()}` across toolbar buttons to prevent selection collapse.
+        - Viewport boundary clamping ensures toolbar never clips outside screen bounds.
+      - Added `select-text` and `-webkit-user-select: text` to non-PDF extracted notes `<article>` and `<p>` elements.
+  - **Secondary PDF Toolbar & Reading Widths**:
+    - Compact 2-state view mode icon toggle: `Continuous` (BookOpen) vs `Embed` (Eye).
+    - Centered page indicator with previous/next chevron buttons (`< Page 3 / 10 >`) and numeric jump input.
+    - Compact bookmark ribbon toggle: outline when inactive, terracotta fill (`#E8722C`) when active on visible page.
+    - Responsive reading widths: mobile `<640px` `w-[96%] max-w-full mx-auto px-1`, tablet `640px–1024px` `w-[94%] max-w-3xl mx-auto px-4`, desktop `≥1024px` `max-w-4xl w-full mx-auto py-6 px-8`.
+  - **Unified Companion Sidecar**:
+    - Consistent 44px header height across all 4 modes (`AI Study Tutor`, `Quizzes & Tests`, `Flashcard Decks`, `My Progress`) with right collapse button (`PanelRightClose`).
+    - Standardized primary generator CTAs to terracotta `#E8722C` with tactile shadow `#B26E45`.
+    - Right-edge vertical companion anchor tab (~28px wide) when sidecar is collapsed.
+
+- **Files Created / Modified**:
+  - `apps/web/styles/globals.css` (enhanced textLayer selection rules, selection tint, readable text classes)
+  - `apps/web/components/workspace/TutorHeader.tsx` (three-zone true-center grid, removed Read, independent AI Tutor, non-wrapping tablet tabs)
+  - `apps/web/components/workspace/DocumentReader.tsx` (memoized reader, aligned canvas/textLayer, contextual Copy/Ask AI toolbar, centered `< Page X / Y >`, fluid widths)
+  - `apps/web/components/workspace/DocumentOutlinePane.tsx` (memoized outline pane)
+  - `apps/web/app/(workspace)/dashboard/workspaces/[workspaceId]/page.tsx` (eliminated select-none on root, isolated companion mode state, mobile 48px header & 56px dock, Practice sheet, auto-hide on scroll)
+  - `apps/web/package.json` (added test script)
+  - `apps/web/test/workspace-architecture.test.ts` (new automated architectural invariant test suite)
+  - `PROGRESS.md`
+
+- **Verification Results**:
+  - `pnpm --filter @lernivox/web test`: 6/6 architectural tests passed (100% pass on Read elimination, 3-zone grid, mobile dock, memoized reader, selectable text, and secondary toolbar).
+  - `pnpm --filter @lernivox/ai-core test`: 4/4 test suites, 20/20 unit tests passed.
+  - `pnpm --filter @lernivox/api test`: 11/11 test suites, 129/129 unit tests passed.
+  - `pnpm --filter @lernivox/worker test`: 4/4 test suites, 11/11 unit tests passed.
+  - `pnpm type-check`: 11/11 packages type-checked with 0 errors across the entire monorepo.
+  - `pnpm --filter @lernivox/web build`: Next.js 15 production build compiled 17/17 static/dynamic routes with exit code 0.
+  - `ss -tulpn`: Process and port check confirmed zero orphaned processes or leaked ports.
+
+- **Processes & Ports**:
+  - Cleaned up: No agent-spawned background processes or dev servers remaining.
+
+- **Next Recommended Action**:
+  - Launch live development environment (`pnpm infra:up && pnpm dev:all`) and verify interactive mouse text-selection, copy-to-clipboard, Ask AI contextual drawer opening, and mobile auto-hide in a live browser.
+
+---
+
+## 7. Update History
+
+- **2026-11-04 (Part 3)**:
+  - Completed Unified Reading Workspace, Companion Study Tools, Text Selection & Responsive Architecture:
+    - Removed `Read` completely from study mode navigation (`WorkspaceViewMode` now strictly `Quizzes | Flashcards | My Progress`).
+    - Made original textbook reader and outline permanent components that never unmount or reload. Memoized both `DocumentReader` and `DocumentOutlinePane` with stable prop references.
+    - Implemented desktop Balanced Three-Zone True-Center Grid in `TutorHeader`: Zone 1 (brand lockup, outline toggle, document title), Zone 2 (mathematically centered Quizzes/Flashcards/Progress + separate `AI Tutor` action button), Zone 3 (`← Books` + `ProfileMenu compact`).
+    - Implemented mobile architecture (<768px): single 48px top header (back button, document title + page, profile avatar), 56px bottom thumb dock (`Outline`, `Practice`, `AI Tutor` with zero `Read`), dedicated Practice bottom sheet with tabs for Quizzes/Flashcards/Progress, and scroll-aware auto-hide (down >60px, up ~10px) suspended during text selection and modal interactions.
+    - Diagnosed and fixed text selection across PDF.js and reading workspace: removed root `select-none` on workspace container, locked canvas and `.textLayer` relative alignment without flexbox centering offsets, added comprehensive `.textLayer` styles with terracotta highlight tint `rgba(232, 114, 44, 0.25)`, and built floating contextual toolbar with `Copy` (with visual feedback), `Ask AI` (with citation context), and `Practice`.
+    - Consolidated secondary PDF toolbar: compact 2-state view mode icon toggle (Continuous vs Embed), centered `< Page X / Y >` with jump input and chevron controls, compact bookmark ribbon toggle, and fluid container widths.
+    - Created automated architectural invariant test suite `apps/web/test/workspace-architecture.test.ts` (6/6 passing).
+    - Verified: `pnpm type-check` (11/11 passing), 166/166 unit tests passing across packages, Next.js 15 production build compiled 17/17 routes, clean port audit.
+
+
+- **2026-11-04**:
+  - Completed Workspace Study Modes & Companion Panel Architecture (Direction A) & Quiz Runtime Fixes:
+    - Fixed `Cannot read properties of undefined (reading 'questionOrder')` in API and Web frontend with safe bounds clamping and empty-state fallbacks.
+    - Implemented Direction A Companion Panel Architecture: `DocumentReader` stays continuously mounted in center stage across all study modes (`Read`, `Quizzes`, `Flashcards`, `My Progress`).
+    - Multi-mode companion study sidecar (width 360-460px) in desktop layout and slide-over overlay in mobile layout.
+    - Segmented header mode switcher: `Read | Quizzes | Flashcards | My Progress`.
+    - Removed redundant `[📖 Back to Reader]` button and eliminated competing CTAs in flashcards.
+    - Added citation jumping from quiz results, tricky questions, and flashcards directly into reader canvas.
+    - Added `"dev:all": "turbo run dev"` to root `package.json`.
+    - Verified: `pnpm type-check` (11/11 passing), 140/140 unit tests passing, Next.js build (17/17 routes passing), clean process cleanup.
   - Add workspace learning navigation (Read, Quizzes, Flashcards, My Progress) and contextual triggers ("Practice Chapter" and "Practice this part").
   - Verify 100% data preservation, monorepo type-checking, automated tests, production builds, and clean process cleanup.
 - **Work Completed**:
@@ -420,4 +516,16 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
     - Implemented canonical workspace route `/dashboard/workspaces/[workspaceId]`, preserving the 3-pane study layout (outline, PDF reader, and AI tutor sidecar).
     - Built compatibility redirect adapter on `/dashboard/tutor?documentId=...` and safely retired obsolete routes (`/dashboard/library`, `/dashboard/courses`, `/dashboard/practice`, `/dashboard/groups`, `/dashboard/progress`) to `/dashboard`.
     - Fully verified with `pnpm type-check` (11/11 passing), `pnpm test` (all passing across API, database, and AI-core), and `pnpm build` (7/7 passing with all static/dynamic routes generated).
+- **2026-11-04**:
+  - Completed Companion Sidecar UX Refinement, Tablet Responsiveness & Workspace Navigation Polish:
+    - Eliminated competing sidecar triggers and floating bottom-right buttons (`CopilotSidecar.tsx`, `RightWorkspacePanel.tsx`, `TutorHeader.tsx`).
+    - Standardized primary generator CTAs to terracotta `#E8722C` with tactile `#B26E45` offset shadow across Quizzes and Flashcards (`WorkspaceQuizzesView.tsx`, `WorkspaceFlashcardsView.tsx`).
+    - Resolved duplicate flashcard generation CTAs: informational-only top banner when 0 decks exist, compact secondary `+ New Deck` when >0 decks exist.
+    - Unified companion sidecar header (44-48px height) with contextual study titles and tactile `PanelRightClose`/`X` button.
+    - Added right-edge companion panel tactile tab (~28px wide) with sparkle/study icon opening the active study mode when sidecar is collapsed.
+    - Simplified reader secondary toolbar with 2-state view mode icon toggle, running book title, strictly centered page indicator, and compact icon-only bookmark ribbon toggle.
+    - Fixed segmented navigation wrapping on tablet widths (768px): non-wrapping mode tab buttons, condensed Books icon button below 1024px, and book title moved from header to reader toolbar.
+    - Expanded PDF reading area on tablet to 94% width (`max-w-3xl mx-auto`), reducing excess beige margins.
+    - Upgraded inactive Table of Contents contrast (`DocumentOutlinePane.tsx`).
+    - Verified all compiler checks (`pnpm type-check` 11/11), unit tests (API 129/129, Worker 11/11), and Next.js 15 production build (17/17 routes).
 
