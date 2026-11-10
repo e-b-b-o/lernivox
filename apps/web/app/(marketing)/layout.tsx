@@ -8,7 +8,7 @@ export default function MarketingLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col bg-[#F4F0E5] text-lernivox-forest selection:bg-lernivox-peach selection:text-lernivox-forest overflow-x-clip">
+    <div className="flex min-h-screen flex-col bg-[#F4EFE4] text-lernivox-forest selection:bg-lernivox-peach selection:text-lernivox-forest overflow-x-clip">
       <Navbar />
 
       {/* Main Page Body */}

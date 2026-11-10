@@ -50,62 +50,69 @@ export default function MarketingPage() {
       {/* ======================================================== */}
       {/* SECTION 1: HERO & UPLOAD ENTRY POINT */}
       {/* ======================================================== */}
-      <section className="relative overflow-hidden pt-[120px] lg:pt-[146px] pb-12">
+      <section className="relative overflow-hidden pt-[120px] lg:pt-[146px] pb-12 px-4 sm:px-6 md:px-10">
         {/* Subtle decorative background gradient glow */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-[#F9D8C0]/30 rounded-full blur-3xl pointer-events-none -z-10" />
 
-        <div className="mx-auto max-w-[1380px] px-4 sm:px-6 md:px-10 text-center">
-          {/* Main Headline */}
+        <div className="mx-auto max-w-[1380px] text-center">
+          {/* Main Headline — Three intentional lines on mobile (28-34px), two lines on tablet/desktop */}
           <ScrollReveal id="hero-headline" delay={0.1}>
-            <h1 className="font-display font-extrabold text-[32px] xs:text-[38px] sm:text-5xl md:text-7xl lg:text-8xl xl:text-[103px] leading-[1.08] tracking-tight text-[#14261D] max-w-6xl mx-auto text-center mb-6">
-              Understand every book, <br className="hidden md:block" />
-              one question at a{' '}
-              <span 
-                className="relative inline-block text-[#497E64] ml-1 sm:ml-1.5 select-none"
-                style={{
-                  transform: 'translateY(-2px) rotate(2deg)',
-                  transformOrigin: 'bottom right',
-                  display: 'inline-block'
-                }}
-              >
-                time.
-
-                {/* Responsive SVG Doodle Underline */}
-                <svg
-                  className="absolute -bottom-2 sm:-bottom-3 left-0 w-full h-[10px] sm:h-[14px] md:h-[18px] text-[#E8722C] pointer-events-none overflow-visible"
-                  viewBox="0 0 320 16"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  preserveAspectRatio="none"
+            <h1 className="font-display font-extrabold text-[clamp(1.75rem,1.25rem+2.5vw,2.125rem)] sm:text-[clamp(2.5rem,5.6vw,3.9rem)] lg:text-[clamp(3.9rem,5.2vw,5.25rem)] leading-[1.15] sm:leading-[1.12] tracking-tight text-[#14261D] max-w-6xl mx-auto text-center mb-6">
+              <span>Understand every </span>
+              <br className="sm:hidden" />
+              <span>book, </span>
+              <br className="hidden sm:block" />
+              <span>one question </span>
+              <br className="sm:hidden" />
+              <span>
+                at a{' '}
+                <span 
+                  className="relative inline-block text-[#497E64] ml-1 sm:ml-1.5 select-none"
+                  style={{
+                    transform: 'translateY(-2px) rotate(2deg)',
+                    transformOrigin: 'bottom right',
+                    display: 'inline-block'
+                  }}
                 >
-                  <path d="M 4 8 C 70 3, 200 4, 315 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                  <path d="M 16 12 C 100 6, 230 11, 300 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.85" />
-                </svg>
+                  time.
 
-                {/* Spark Ticks */}
-                <svg
-                  className="absolute -top-2.5 sm:-top-3.5 -right-4 sm:-right-6 w-3.5 h-3.5 sm:w-5 sm:h-5 text-[#E8722C] pointer-events-none rotate-[10deg]"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M4 14L8 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                  <path d="M12 16L16 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                </svg>
+                  {/* Responsive SVG Doodle Underline */}
+                  <svg
+                    className="absolute -bottom-2 sm:-bottom-3 left-0 w-full h-[10px] sm:h-[14px] md:h-[18px] text-[#E8722C] pointer-events-none overflow-visible"
+                    viewBox="0 0 320 16"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    preserveAspectRatio="none"
+                  >
+                    <path d="M 4 8 C 70 3, 200 4, 315 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                    <path d="M 16 12 C 100 6, 230 11, 300 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.85" />
+                  </svg>
+
+                  {/* Spark Ticks */}
+                  <svg
+                    className="absolute -top-2.5 sm:-top-3.5 -right-4 sm:-right-6 w-3.5 h-3.5 sm:w-5 sm:h-5 text-[#E8722C] pointer-events-none rotate-[10deg]"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M4 14L8 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                    <path d="M12 16L16 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                  </svg>
+                </span>
               </span>
             </h1>
           </ScrollReveal>
 
-          {/* Subheadline */}
+          {/* Subheadline — Concise, Human Editorial Copy with Balanced Wrapping */}
           <ScrollReveal id="hero-subheadline" delay={0.2}>
-            <p className="font-sans font-normal text-base sm:text-lg md:text-xl text-[#14261D]/80 max-w-2xl mx-auto text-center leading-relaxed mt-4 sm:mt-6 mb-8">
-              Bring your books, articles, or notes. Read at your own pace, ask questions whenever something is unclear, and explore ideas with your personal AI tutor.
+            <p className="font-sans font-normal text-base sm:text-lg md:text-xl text-[#14261D]/80 max-w-4xl mx-auto text-center leading-relaxed mt-4 sm:mt-6 mb-8 [text-wrap:balance]">
+              Bring a book, article, or notes. Read, ask questions, and learn with your AI tutor.
             </p>
           </ScrollReveal>
 
-          {/* Action CTAs */}
+          {/* Action CTAs — Proportional tactile 44px pill buttons with intrinsic widths and intentional wrapping */}
           <ScrollReveal id="hero-ctas" delay={0.3}>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 mb-12 md:mb-16 w-full max-w-sm sm:max-w-none mx-auto">
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mb-10 sm:mb-12 md:mb-16 w-full mx-auto">
               <a
                 href="#how-it-works"
                 onClick={(e) => {
@@ -116,7 +123,7 @@ export default function MarketingPage() {
                     window.history.pushState(null, '', '#how-it-works');
                   }
                 }}
-                className="w-full sm:w-auto h-[50px] sm:h-[54px] px-6 sm:px-[30px] py-[14px] sm:py-[16px] rounded-[100px] bg-[#E8722C] text-white font-sans text-sm sm:text-[16px] font-medium leading-[22.4px] shadow-[0_4px_0_0_#B26E45] hover:-translate-y-[1px] hover:shadow-[0_5px_0_0_#B26E45] active:translate-y-[2px] active:shadow-[0_2px_0_0_#B26E45] transition-all duration-150 inline-flex items-center justify-center select-none text-center"
+                className="w-auto h-11 sm:h-12 px-5 sm:px-6 rounded-full bg-[#E8722C] text-white font-sans text-sm sm:text-[15px] font-semibold shadow-[0_3px_0_0_#B26E45] hover:-translate-y-0.5 hover:shadow-[0_4px_0_0_#B26E45] active:translate-y-0.5 active:shadow-[0_1px_0_0_#B26E45] transition-all duration-150 inline-flex items-center justify-center whitespace-nowrap select-none text-center cursor-pointer"
               >
                 Upload a Book or Notes
               </a>
@@ -130,7 +137,7 @@ export default function MarketingPage() {
                     window.history.pushState(null, '', '#features');
                   }
                 }}
-                className="w-full sm:w-auto h-[50px] sm:h-[54px] px-6 sm:px-[30px] py-[14px] sm:py-[16px] rounded-[100px] bg-[#F4F0E5] text-[#14261D] font-sans text-sm sm:text-[16px] font-medium leading-[22.4px] border border-[#1B3428] shadow-[0_4px_0_0_#1B3428] hover:-translate-y-[1px] hover:shadow-[0_5px_0_0_#1B3428] active:translate-y-[2px] active:shadow-[0_2px_0_0_#1B3428] transition-all duration-150 inline-flex items-center justify-center select-none text-center"
+                className="w-auto h-11 sm:h-12 px-5 sm:px-6 rounded-full bg-[#F4EFE4] text-[#14261D] font-sans text-sm sm:text-[15px] font-medium border border-[#1B3428]/30 shadow-2xs hover:border-[#1B3428] hover:bg-[#FAF8F4] active:translate-y-0.5 transition-all duration-150 inline-flex items-center justify-center whitespace-nowrap select-none text-center cursor-pointer"
               >
                 Explore Features
               </a>
@@ -206,7 +213,7 @@ export default function MarketingPage() {
       {/* ======================================================== */}
       <section
         id="features"
-        className="w-full bg-[#F4F0E5] pt-28 pb-20 sm:pt-32 sm:pb-24 md:pt-36 md:pb-32 px-4 sm:px-6 md:px-10 scroll-mt-0 overflow-hidden"
+        className="w-full bg-[#F4EFE4] pt-28 pb-20 sm:pt-32 sm:pb-24 md:pt-36 md:pb-32 px-4 sm:px-6 md:px-10 scroll-mt-0 overflow-hidden"
       >
         <div className="max-w-[1380px] mx-auto">
         {/* ======================================================== */}

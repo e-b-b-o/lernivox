@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
-import { UserCircle, LogOut, ChevronDown, BookOpen } from 'lucide-react';
+import { UserCircle, ChevronDown, BookOpen } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { ProfileMenu } from '../workspace/ProfileMenu';
 
@@ -16,23 +16,10 @@ const NAV_ITEMS = [
 
 export function Navbar() {
   const { isAuthenticated, isLoading, logout } = useAuth();
-  const [activeSection, setActiveSection] = useState<string>('how-it-works');
+  const [activeSection, setActiveSection] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [exploreOpen, setExploreOpen] = useState(false);
-  const exploreRef = useRef<HTMLDivElement>(null);
 
-  // Close explore dropdown on click outside
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (exploreRef.current && !exploreRef.current.contains(e.target as Node)) {
-        setExploreOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Single Topmost Winner Scroll-Spy Engine
+  // Section Tracking Scroll-Spy Engine
   useEffect(() => {
     const sectionIds = ['how-it-works', 'features', 'readiness', 'pricing', 'faq'];
     const sections = sectionIds
@@ -42,10 +29,17 @@ export function Navbar() {
     if (sections.length === 0) return;
 
     const handleScroll = () => {
-      const scrollPosition = window.scrollY + 140; // Offset for navbar height + buffer
+      // 140px offset accounts for sticky navbar height (64px-80px) plus threshold buffer
+      const scrollPosition = window.scrollY + 140;
 
-      // Find the section whose top edge has passed the scroll position, picking the last one that qualifies
-      let currentId = sections[0]?.id ?? 'how-it-works';
+      // When at top of page in hero section (before first section), no section is active
+      if (sections[0] && scrollPosition < sections[0].offsetTop) {
+        setActiveSection(null);
+        return;
+      }
+
+      // Find the active section whose top edge has passed scroll position
+      let currentId: string | null = null;
       for (const section of sections) {
         if (section.offsetTop <= scrollPosition) {
           currentId = section.id;
@@ -67,11 +61,9 @@ export function Navbar() {
   // Body Scroll-Lock & Touch-Containment Engine
   useEffect(() => {
     if (mobileMenuOpen) {
-      // Save original overflow and touch-action states
       const originalOverflow = document.body.style.overflow;
       const originalTouchAction = document.body.style.touchAction;
 
-      // Lock page scrolling and gesture drags
       document.body.style.overflow = 'hidden';
       document.body.style.touchAction = 'none';
 
@@ -95,197 +87,144 @@ export function Navbar() {
 
   return (
     <>
-      <header className="w-full bg-[#FAF8F4] py-3 md:py-[20px] h-[72px] md:h-[86px] sticky top-0 z-50 border-b border-[#1B3428]/10 transition-colors">
-        <div className="max-w-[1440px] h-[46px] px-4 sm:px-6 md:px-8 mx-auto flex items-center justify-center">
-          <div className="w-full max-w-[1380px] h-[46px] flex items-center justify-between gap-2 sm:gap-3 lg:gap-6 xl:gap-10">
-            
-            {/* Zone 1 — Left: Logo Lockup */}
-            <div className="w-auto h-[32px] flex items-center shrink-0">
-              <Link href="/" className="h-[32px] inline-flex items-center gap-[10px] group">
-                <div className="w-[32px] h-[32px] rounded-[8px] bg-[#E8722C] text-white flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105">
-                  <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2.2"
-                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                    />
-                  </svg>
-                </div>
-                <span className="font-display font-bold text-[20px] sm:text-[22px] leading-[32px] tracking-[-0.02em] text-[#14261D]">
-                  Lernivox
-                </span>
-              </Link>
-            </div>
-
-            {/* Zone 2 — Center: Navigation Links (Inline above 1100px, Explore dropdown between 768px and 1100px) */}
-            <div className="hidden md:flex items-center justify-center">
-              {/* Tablet (768px - 1100px): Progressive Explore Dropdown */}
-              <div className="relative min-[1101px]:hidden" ref={exploreRef}>
-                <button
-                  type="button"
-                  onClick={() => setExploreOpen((prev) => !prev)}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border-[1.5px] border-[#1B3428] bg-[#FAF8F4] text-xs font-display font-bold text-[#14261D] shadow-[0_2px_0_0_#1B3428] hover:bg-[#FBE8DC] hover:text-[#E8722C] transition-all cursor-pointer"
-                  aria-expanded={exploreOpen}
-                  aria-haspopup="true"
-                >
-                  <span>Explore</span>
-                  <ChevronDown
-                    className={`w-3.5 h-3.5 text-[#14261D]/70 transition-transform duration-200 ${
-                      exploreOpen ? 'rotate-180' : ''
-                    }`}
+      <header className="w-full bg-[#F4EFE4]/95 backdrop-blur-sm sticky top-0 z-50 border-b-[1.5px] border-[#1B3428]/10 transition-colors px-4 sm:px-6 md:px-10">
+        <div className="w-full max-w-[1380px] mx-auto h-16 md:h-20 flex lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center justify-between">
+          
+          {/* Zone 1 — Left: Logo Lockup anchored to left boundary */}
+          <div className="flex items-center justify-start shrink-0">
+            <Link href="/" className="h-8 inline-flex items-center gap-2.5 group">
+              <div className="w-8 h-8 rounded-lg bg-[#E8722C] text-white flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105 shadow-sm">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2.2"
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
                   />
-                </button>
-
-                {exploreOpen && (
-                  <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-48 rounded-[20px] bg-[#FAF8F4] border-[2px] border-[#1B3428] shadow-[0_6px_0_0_#1B3428] p-2 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-0.5">
-                    {NAV_ITEMS.map((item) => (
-                      <a
-                        key={item.href}
-                        href={item.href}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setExploreOpen(false);
-                          handleNavClick(item.href);
-                        }}
-                        className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-display font-bold text-[#14261D] hover:bg-[#FBE8DC] hover:text-[#E8722C] transition-colors"
-                      >
-                        <span>{item.label}</span>
-                        <span className="font-mono text-[10px] text-[#14261D]/40">{item.num}</span>
-                      </a>
-                    ))}
-                  </div>
-                )}
+                </svg>
               </div>
-
-              {/* Desktop (above 1100px): Full Inline Navigation Links */}
-              <nav className="hidden min-[1101px]:flex items-center justify-center gap-6 xl:gap-8">
-                {NAV_ITEMS.map((item) => {
-                  const targetId = item.href.replace('#', '');
-                  const isActive = activeSection === targetId;
-                  return (
-                    <a
-                      key={item.href}
-                      href={item.href}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleNavClick(item.href);
-                      }}
-                      className={`font-sans text-[14px] xl:text-[15px] font-medium leading-[22.4px] transition-colors duration-200 relative whitespace-nowrap ${
-                        isActive
-                          ? 'text-[#E8722C] font-semibold after:content-[\'\'] after:absolute after:-bottom-[3px] after:left-0 after:w-full after:h-[2px] after:bg-[#E8722C] after:rounded-full'
-                          : 'text-[#14261D] hover:text-[#E8722C]'
-                      }`}
-                    >
-                      {item.label}
-                    </a>
-                  );
-                })}
-              </nav>
-            </div>
-
-            {/* Zone 3 — Right: Auth Actions & Mobile/Tablet Trigger */}
-            <div className="flex items-center justify-end shrink-0 gap-2 sm:gap-3 lg:gap-4 h-[46px]">
-              {isLoading ? (
-                <>
-                  <div className="hidden lg:flex items-center gap-3">
-                    <div className="h-[40px] w-32 rounded-full bg-[#1B3428]/10 animate-pulse" />
-                    <div className="h-9 w-9 rounded-full bg-[#1B3428]/10 animate-pulse" />
-                  </div>
-                  <div className="lg:hidden w-9 h-9 rounded-full bg-[#1B3428]/10 animate-pulse" />
-                </>
-              ) : isAuthenticated ? (
-                <>
-                  {/* Desktop Auth Layout (>= 1024px) */}
-                  <div className="hidden lg:flex items-center gap-3">
-                    <Link
-                      href="/dashboard"
-                      className="h-[40px] px-5 py-[8px] rounded-[100px] bg-[#1B3428] text-white font-sans text-[14px] font-semibold shadow-[0_3px_0_0_#497E64] hover:-translate-y-[1px] hover:shadow-[0_4px_0_0_#497E64] active:translate-y-[1px] active:shadow-[0_1px_0_0_#497E64] transition-all duration-150 ease-out whitespace-nowrap inline-flex items-center justify-center gap-2 select-none"
-                    >
-                      <span>Go to Dashboard</span>
-                    </Link>
-
-                    {/* Compact Profile Menu Trigger & Dropdown */}
-                    <ProfileMenu compact />
-                  </div>
-
-                  {/* Mobile & Tablet Direct Dashboard Shortcut (< 1024px) */}
-                  <div className="flex lg:hidden items-center gap-2">
-                    <Link
-                      href="/dashboard"
-                      className="w-9 h-9 rounded-full bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/20 flex items-center justify-center text-[#14261D] hover:text-[#E8722C] hover:border-[#E8722C] shadow-2xs active:translate-y-0.5 transition-all cursor-pointer"
-                      title="Go to Dashboard"
-                      aria-label="Go to Dashboard"
-                    >
-                      <BookOpen className="w-4 h-4" />
-                    </Link>
-                  </div>
-                </>
-              ) : (
-                <>
-                  {/* Desktop Unauthenticated Layout (>= 1024px) */}
-                  <div className="hidden lg:flex items-center gap-[18px]">
-                    <Link
-                      href="/login"
-                      className="font-sans text-[15px] font-medium leading-[22.4px] text-[#14261D] hover:text-[#E8722C] transition-colors duration-200 whitespace-nowrap"
-                    >
-                      Sign In
-                    </Link>
-                    <Link
-                      href="/register"
-                      className="h-[42px] px-6 py-[10px] rounded-[100px] bg-[#1B3428] text-white font-sans text-[15px] font-medium leading-[22.4px] shadow-[0_4px_0_0_#497E64] hover:-translate-y-[1px] hover:shadow-[0_5px_0_0_#497E64] active:translate-y-[2px] active:shadow-[0_2px_0_0_#497E64] transition-all duration-150 ease-out whitespace-nowrap inline-flex items-center justify-center select-none"
-                    >
-                      Get started
-                    </Link>
-                  </div>
-
-                  {/* Mobile & Tablet Sign In Link (< 1024px) */}
-                  <div className="flex lg:hidden items-center gap-2">
-                    <Link
-                      href="/login"
-                      className="font-sans text-xs font-semibold px-2 py-1 text-[#14261D] hover:text-[#E8722C] transition-colors"
-                    >
-                      Sign In
-                    </Link>
-                  </div>
-                </>
-              )}
-
-              {/* Mobile Animated Hamburger Button (< 1024px) */}
-              <button
-                type="button"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden relative w-10 h-10 rounded-full border border-[#1B3428]/15 bg-white/90 flex items-center justify-center text-[#14261D] hover:bg-white hover:text-[#E8722C] transition-all focus:outline-none shadow-sm"
-                aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
-                aria-expanded={mobileMenuOpen}
-              >
-                <div className="w-5 h-4 flex flex-col justify-between items-center">
-                  <span
-                    className={`w-5 h-[2px] bg-[#14261D] rounded-full transform transition-all duration-300 ease-out origin-center ${
-                      mobileMenuOpen ? 'translate-y-[7px] rotate-45' : ''
-                    }`}
-                  />
-                  <span
-                    className={`w-5 h-[2px] bg-[#14261D] rounded-full transition-all duration-200 ease-out ${
-                      mobileMenuOpen ? 'opacity-0 scale-x-0' : 'opacity-100'
-                    }`}
-                  />
-                  <span
-                    className={`w-5 h-[2px] bg-[#14261D] rounded-full transform transition-all duration-300 ease-out origin-center ${
-                      mobileMenuOpen ? '-translate-y-[7px] -rotate-45' : ''
-                    }`}
-                  />
-                </div>
-              </button>
-            </div>
-
+              <span className="font-display font-bold text-xl sm:text-[22px] leading-none tracking-tight text-[#14261D]">
+                Lernivox
+              </span>
+            </Link>
           </div>
+
+          {/* Zone 2 — Center: Mathematically Centered Public Navigation (Desktop >= 1024px) */}
+          <div className="hidden lg:flex items-center justify-center">
+            <nav className="flex items-center justify-center gap-6 xl:gap-8">
+              {NAV_ITEMS.map((item) => {
+                const targetId = item.href.replace('#', '');
+                const isActive = activeSection === targetId;
+                return (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleNavClick(item.href);
+                    }}
+                    className={`font-sans text-sm xl:text-[15px] font-medium transition-colors duration-200 motion-reduce:transition-none relative whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E77130]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4EFE4] rounded-xs ${
+                      isActive
+                        ? 'text-[#14261D] hover:text-[#E77130] after:content-[\'\'] after:absolute after:-bottom-[6px] after:left-0 after:w-full after:h-[2px] after:bg-[#E8722C] after:rounded-full'
+                        : 'text-[#14261D]/75 hover:text-[#E77130]'
+                    }`}
+                  >
+                    {item.label}
+                  </a>
+                );
+              })}
+            </nav>
+          </div>
+
+          {/* Zone 3 — Right: Authentication-Aware Actions aligned to right content margin */}
+          <div className="flex items-center justify-end shrink-0 gap-2">
+            {isLoading ? (
+              <>
+                <div className="hidden lg:flex items-center gap-2">
+                  <div className="w-9 h-9 rounded-full bg-[#1B3428]/10 animate-pulse shrink-0" />
+                  <div className="w-9 h-9 rounded-full bg-[#1B3428]/10 animate-pulse shrink-0" />
+                </div>
+                <div className="lg:hidden w-9 h-9 rounded-full bg-[#1B3428]/10 animate-pulse shrink-0" />
+              </>
+            ) : isAuthenticated ? (
+              <>
+                {/* Direct Dashboard Icon Shortcut — Visible on all screen sizes */}
+                <Link
+                  href="/dashboard"
+                  className="w-9 h-9 rounded-full bg-[#F4EFE4] border-[1.5px] border-[#1B3428]/20 flex items-center justify-center text-[#14261D] hover:text-[#E8722C] hover:border-[#E8722C] shadow-2xs active:translate-y-0.5 transition-all cursor-pointer shrink-0"
+                  title="Go to Dashboard"
+                  aria-label="Go to Dashboard"
+                >
+                  <BookOpen className="w-4 h-4" />
+                </Link>
+
+                {/* Desktop Profile Menu (>= 1024px) */}
+                <div className="hidden lg:flex items-center">
+                  <ProfileMenu compact />
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Desktop Unauthenticated Layout (>= 1024px): Restrained, Quiet Actions */}
+                <div className="hidden lg:flex items-center gap-4">
+                  <Link
+                    href="/login"
+                    className="font-sans text-sm font-medium text-[#14261D]/75 hover:text-[#E77130] transition-colors duration-200 motion-reduce:transition-none whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E77130]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F4EFE4] rounded-xs"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="h-9 px-5 rounded-full border-[1.5px] border-[#1B3428] text-[#14261D] font-sans text-sm font-semibold hover:bg-[#1B3428] hover:text-white shadow-xs transition-all duration-150 inline-flex items-center justify-center whitespace-nowrap select-none"
+                  >
+                    Get started
+                  </Link>
+                </div>
+
+                {/* Mobile & Tablet Sign In Link (< 1024px) */}
+                <Link
+                  href="/login"
+                  className="lg:hidden font-sans text-xs font-semibold px-2 py-1 text-[#14261D]/80 hover:text-[#14261D] transition-colors shrink-0"
+                >
+                  Sign In
+                </Link>
+              </>
+            )}
+
+            {/* Mobile Animated Hamburger Button (< 1024px) — Shared 36px Tactile Button System */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden relative w-9 h-9 rounded-full border-[1.5px] border-[#1B3428]/20 bg-[#F4EFE4] flex items-center justify-center text-[#14261D] hover:text-[#E8722C] hover:border-[#E8722C] transition-all focus:outline-none shadow-2xs active:translate-y-0.5 shrink-0"
+              aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={mobileMenuOpen}
+            >
+              <div className="w-4 h-3.5 flex flex-col justify-between items-center">
+                <span
+                  className={`w-4 h-[2px] bg-[#14261D] rounded-full transform transition-all duration-300 ease-out origin-center ${
+                    mobileMenuOpen ? 'translate-y-[6px] rotate-45' : ''
+                  }`}
+                />
+                <span
+                  className={`w-4 h-[2px] bg-[#14261D] rounded-full transition-all duration-200 ease-out ${
+                    mobileMenuOpen ? 'opacity-0 scale-x-0' : 'opacity-100'
+                  }`}
+                />
+                <span
+                  className={`w-4 h-[2px] bg-[#14261D] rounded-full transform transition-all duration-300 ease-out origin-center ${
+                    mobileMenuOpen ? '-translate-y-[6px] -rotate-45' : ''
+                  }`}
+                />
+              </div>
+            </button>
+          </div>
+
         </div>
       </header>
 
       {/* Full-Screen Bi-Directional Mobile/Tablet Navigation Drawer */}
       <div
-        className={`fixed inset-0 z-50 w-full h-[100dvh] bg-[#FAF8F4] flex flex-col px-6 pt-5 pb-8 overflow-y-auto select-none transition-all duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] lg:hidden ${
+        className={`fixed inset-0 z-50 w-full h-[100dvh] bg-[#F4EFE4] flex flex-col px-6 pt-5 pb-8 overflow-y-auto select-none transition-all duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] lg:hidden ${
           mobileMenuOpen
             ? 'opacity-100 translate-y-0 pointer-events-auto visible'
             : 'opacity-0 -translate-y-4 pointer-events-none invisible'
@@ -312,7 +251,7 @@ export function Navbar() {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(false)}
-            className="w-10 h-10 rounded-full bg-[#FAF8F4] border-[1.5px] border-[#1B3428] text-[#14261D] flex items-center justify-center shadow-[0_2px_0_0_#1B3428] active:translate-y-0.5 active:shadow-none transition-all"
+            className="w-10 h-10 rounded-full bg-[#F4EFE4] border-[1.5px] border-[#1B3428] text-[#14261D] flex items-center justify-center shadow-[0_2px_0_0_#1B3428] active:translate-y-0.5 active:shadow-none transition-all"
             aria-label="Close Navigation Menu"
           >
             <svg className="w-5 h-5 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -321,7 +260,7 @@ export function Navbar() {
           </button>
         </div>
 
-        {/* 2. NAVIGATION LINKS: Anchored Directly Below Header (No Middle-Screen Void) */}
+        {/* 2. NAVIGATION LINKS: Anchored Directly Below Header */}
         <nav className="flex flex-col mt-6 w-full">
           {NAV_ITEMS.map((item) => {
             const targetId = item.href.replace('#', '');
@@ -334,28 +273,27 @@ export function Navbar() {
                   e.preventDefault();
                   handleNavClick(item.href);
                 }}
-                className={`flex items-center justify-between py-4 border-b border-[#1B3428]/10 transition-colors duration-200 group ${
-                  isActive ? 'text-[#14261D] font-bold' : 'text-[#14261D]/75 hover:text-[#14261D]'
+                className={`flex items-center justify-between py-4 border-b border-[#1B3428]/10 transition-colors duration-200 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E77130]/60 rounded-xs group ${
+                  isActive ? 'text-[#14261D] font-bold' : 'text-[#14261D]/75 hover:text-[#E77130]'
                 }`}
               >
                 <div className="flex items-center gap-4">
                   <span
-                    className={`font-mono text-xs font-bold transition-colors ${
-                      isActive ? 'text-[#E8722C]' : 'text-[#14261D]/35 group-hover:text-[#E8722C]'
+                    className={`font-mono text-xs font-bold transition-colors duration-200 ${
+                      isActive ? 'text-[#E8722C]' : 'text-[#14261D]/35 group-hover:text-[#E77130]'
                     }`}
                   >
                     {item.num}
                   </span>
                   <span
-                    className={`font-display text-2xl sm:text-3xl tracking-tight transition-transform duration-200 ${
-                      isActive ? 'font-extrabold text-[#14261D] translate-x-1' : 'font-bold group-hover:translate-x-1'
+                    className={`font-display text-2xl sm:text-3xl tracking-tight transition-transform duration-200 motion-reduce:transition-none font-bold ${
+                      isActive ? 'text-[#14261D] translate-x-1' : 'group-hover:translate-x-1 group-hover:text-[#E77130]'
                     }`}
                   >
                     {item.label}
                   </span>
                 </div>
 
-                {/* Directional Arrow (Matching Video) */}
                 <svg
                   className={`w-5 h-5 transition-all duration-200 ${
                     isActive
@@ -400,7 +338,6 @@ export function Navbar() {
             </>
           ) : (
             <>
-              {/* Full-Width 3D CTA Button */}
               <Link
                 href="/register"
                 onClick={() => setMobileMenuOpen(false)}
@@ -409,7 +346,6 @@ export function Navbar() {
                 Start Learning Free
               </Link>
 
-              {/* High-Contrast Auth Link */}
               <div className="text-center py-1">
                 <span className="font-sans text-sm text-[#14261D]/80">
                   Already have an account?{' '}
@@ -426,7 +362,6 @@ export function Navbar() {
           )}
         </div>
       </div>
-
     </>
   );
 }

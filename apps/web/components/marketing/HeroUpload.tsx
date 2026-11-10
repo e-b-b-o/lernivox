@@ -5,7 +5,6 @@ import Link from 'next/link';
 import {
   FileText,
   CheckCircle2,
-  Sparkles,
   ArrowRight,
   BookOpen,
   Layers,
@@ -28,11 +27,11 @@ interface SampleMaterial {
 const SAMPLE_MATERIALS: SampleMaterial[] = [
   {
     id: 'literature',
-    label: 'Literature PDF',
+    label: 'Fiction',
     format: 'PDF',
     fileName: 'Pride_and_Prejudice_Chapter_Analysis.pdf',
     fileSize: '680 KB',
-    title: 'Themes of Pride, Class, and Social Perception',
+    title: 'Pride & Prejudice — Themes of Class and Perception',
     summary:
       'Character dynamics between Elizabeth Bennet and Mr. Darcy, social mobility in Regency England, and irony in Austen’s narrative voice.',
     chunksCount: 12,
@@ -40,11 +39,11 @@ const SAMPLE_MATERIALS: SampleMaterial[] = [
   },
   {
     id: 'neuroscience',
-    label: 'Neuroscience PDF',
+    label: 'Science',
     format: 'PDF',
     fileName: 'Introduction_to_Neuroscience_Ch3.pdf',
     fileSize: '740 KB',
-    title: 'Synaptic Transmission & Neural Signaling',
+    title: 'Neuroscience — Synaptic Transmission & Neural Signaling',
     summary:
       'Action potential propagation, voltage-gated ion channels, neurotransmitter release kinetics, and dendritic summation.',
     chunksCount: 12,
@@ -52,11 +51,11 @@ const SAMPLE_MATERIALS: SampleMaterial[] = [
   },
   {
     id: 'macroeconomics',
-    label: 'Macroeconomics DOCX',
+    label: 'Economics',
     format: 'DOCX',
     fileName: 'Principles_of_Macroeconomics_Unit2.docx',
     fileSize: '580 KB',
-    title: 'Fiscal Policy & Aggregate Demand Dynamics',
+    title: 'Macroeconomics — Fiscal Policy & Aggregate Demand',
     summary:
       'Keynesian expenditure multipliers, IS-LM framework equilibria, automatic stabilizers, and central bank open-market operations.',
     chunksCount: 15,
@@ -64,11 +63,11 @@ const SAMPLE_MATERIALS: SampleMaterial[] = [
   },
   {
     id: 'history',
-    label: 'World History DOCX',
+    label: 'History',
     format: 'DOCX',
     fileName: 'The_Industrial_Revolution_Overview.docx',
     fileSize: '540 KB',
-    title: 'Technological Change & Urban Society (1760–1840)',
+    title: 'World History — Technological Change & Urban Society',
     summary:
       'Steam power development, factory labor transitions, demographic shifts from rural villages to industrial centers, and early labor movements.',
     chunksCount: 15,
@@ -116,7 +115,7 @@ export function HeroUpload() {
   return (
     <section id="how-it-works" className="relative w-full max-w-full bg-[#EAE4D3] scroll-mt-0 overflow-hidden">
       {/* Cloud Canopy Divider (BrightPath Design System Reference) */}
-      <div className="w-full max-w-full overflow-hidden leading-none select-none pointer-events-none relative bg-[#F4F0E5]">
+      <div className="w-full max-w-full overflow-hidden leading-none select-none pointer-events-none relative bg-[#F4EFE4]">
         <div
           className="w-full h-[64px] sm:h-[72px] md:h-[78px]"
           style={{
@@ -129,7 +128,8 @@ export function HeroUpload() {
         />
       </div>
 
-      <div className="w-full max-w-[1380px] mx-auto px-4 sm:px-6 md:px-10 pt-16 sm:pt-20 md:pt-24 pb-20 sm:pb-28 md:pb-36">
+      <div className="w-full px-4 sm:px-6 md:px-10">
+        <div className="w-full max-w-[1380px] mx-auto pt-16 sm:pt-20 md:pt-24 pb-20 sm:pb-28 md:pb-36">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
           {/* Left Side (5 Columns) — Editorial Narrative & 3-Step Flow */}
           <div className="lg:col-span-5 text-left">
@@ -139,7 +139,7 @@ export function HeroUpload() {
               </span>
 
               <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-[54px] text-[#14261D] tracking-tight leading-[1.08] mb-8">
-                From dense PDFs to clear, guided{' '}
+                From dense reading to clear, guided{' '}
                 <span
                   className="relative inline-block text-[#497E64] ml-1 select-none"
                   style={{
@@ -165,33 +165,48 @@ export function HeroUpload() {
               </h2>
             </ScrollReveal>
 
-            {/* 3 Numbered Steps */}
-            <StaggerContainer id="workspace-steps" initialDelay={0.1} staggerDelay={0.1} className="space-y-4 font-sans text-[#14261D]/80">
-              <div className="flex items-start gap-3.5">
+            {/* 3 Numbered Steps — Clear, Human, Benefit-Driven Cards */}
+            <StaggerContainer id="workspace-steps" initialDelay={0.1} staggerDelay={0.1} className="space-y-3.5 font-sans">
+              <div className="p-4 rounded-2xl bg-[#FAF8F4]/70 border border-[#1B3428]/10 shadow-xs flex items-start gap-3.5">
                 <div className="w-7 h-7 rounded-full bg-[#1B3428] text-white font-display font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
                   1
                 </div>
-                <p className="text-sm md:text-base leading-relaxed">
-                  <strong className="text-[#14261D] font-semibold">Select a textbook chapter</strong> — See how Lernivox ingests structured chapters, mathematical notes, or lecture documents.
-                </p>
+                <div>
+                  <h3 className="font-display font-bold text-sm sm:text-base text-[#14261D] mb-0.5">
+                    Bring your material
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[#14261D]/75 leading-relaxed">
+                    Choose a book, chapter, lecture notes, or reference document in PDF, DOCX, or TXT format.
+                  </p>
+                </div>
               </div>
 
-              <div className="flex items-start gap-3.5">
+              <div className="p-4 rounded-2xl bg-[#FAF8F4]/70 border border-[#1B3428]/10 shadow-xs flex items-start gap-3.5">
                 <div className="w-7 h-7 rounded-full bg-[#1B3428] text-white font-display font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
                   2
                 </div>
-                <p className="text-sm md:text-base leading-relaxed">
-                  <strong className="text-[#14261D] font-semibold">Semantic chunking & vector indexing</strong> — Dense pages are partitioned into grounded conceptual units with verbatim citation tracking.
-                </p>
+                <div>
+                  <h3 className="font-display font-bold text-sm sm:text-base text-[#14261D] mb-0.5">
+                    Explore what you're reading
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[#14261D]/75 leading-relaxed">
+                    Read with an AI tutor ready to clarify difficult passages, explain unfamiliar ideas, and cite exact page sources.
+                  </p>
+                </div>
               </div>
 
-              <div className="flex items-start gap-3.5">
+              <div className="p-4 rounded-2xl bg-[#FAF8F4]/70 border border-[#1B3428]/10 shadow-xs flex items-start gap-3.5">
                 <div className="w-7 h-7 rounded-full bg-[#1B3428] text-white font-display font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
                   3
                 </div>
-                <p className="text-sm md:text-base leading-relaxed">
-                  <strong className="text-[#14261D] font-semibold">Grounding & active study</strong> — Generate range-bound quizzes, SM-2 flashcard decks, and private AI tutoring tied to the exact source.
-                </p>
+                <div>
+                  <h3 className="font-display font-bold text-sm sm:text-base text-[#14261D] mb-0.5">
+                    Practice and remember
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[#14261D]/75 leading-relaxed">
+                    Reinforce key ideas with chapter quizzes, spaced-repetition flashcards, and personalized progress tracking.
+                  </p>
+                </div>
               </div>
             </StaggerContainer>
           </div>
@@ -206,22 +221,22 @@ export function HeroUpload() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-[#1B3428]/10">
                 <div>
                   <h3 className="font-display font-bold text-base sm:text-lg text-[#14261D]">
-                    Simulated Ingestion Showcase
+                    See how Lernivox helps you understand a book
                   </h3>
                   <p className="text-xs text-[#14261D]/70 font-sans mt-0.5">
-                    Choose a sample learning material below to preview chunking and indexing:
+                    Select a sample material below to preview reading and tutoring:
                   </p>
                 </div>
                 <span className="self-start sm:self-auto px-2.5 py-1 rounded-full bg-[#E2EBD8] text-[#497E64] font-mono font-bold text-[11px] uppercase tracking-wider border border-[#497E64]/20 shrink-0">
-                  Interactive Demo
+                  Interactive Preview
                 </span>
               </div>
 
-              {/* 3 Interactive Sample Selector Pills */}
+              {/* 4 Interactive Sample Selector Pills — 2x2 grid on mobile/narrow, 4-column on desktop (zero 3+1 wrap) */}
               <div
                 role="tablist"
                 aria-label="Sample learning materials"
-                className="grid grid-cols-3 gap-1.5 sm:gap-2 p-1.5 bg-[#EAE4D3] rounded-2xl mb-6 border border-[#1B3428]/15"
+                className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-2.5 p-1.5 bg-[#EAE4D3] rounded-2xl mb-6 border border-[#1B3428]/15"
               >
                 {SAMPLE_MATERIALS.map((sample) => {
                   const isActive = sample.id === activeSampleId;
@@ -232,13 +247,22 @@ export function HeroUpload() {
                       role="tab"
                       aria-selected={isActive}
                       onClick={() => handleSelectSample(sample.id)}
-                      className={`py-2 px-1 sm:px-2 md:px-3 text-[11px] sm:text-xs md:text-sm font-display font-bold rounded-xl transition-all text-center select-none truncate cursor-pointer ${
+                      className={`py-2 px-2 sm:px-3 text-xs sm:text-[13px] font-display font-bold rounded-xl transition-all flex items-center justify-between gap-1.5 select-none truncate cursor-pointer ${
                         isActive
-                          ? 'bg-[#1B3428] text-white shadow-[0_2px_0_0_#0D1B14] -translate-y-0.5'
-                          : 'text-[#14261D]/70 hover:text-[#14261D] hover:bg-[#FAF8F4]/60'
+                          ? 'bg-[#14261D] text-white shadow-[0_2px_0_0_#0D1B14] -translate-y-0.5'
+                          : 'bg-[#FAF8F4]/80 text-[#14261D] border border-[#1B3428]/15 hover:bg-[#FAF8F4] hover:border-[#1B3428]/30'
                       }`}
                     >
-                      {sample.label}
+                      <span className="truncate">{sample.label}</span>
+                      <span
+                        className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold tracking-wider shrink-0 ${
+                          isActive
+                            ? 'bg-white/20 text-white'
+                            : 'bg-[#14261D]/10 text-[#14261D]/70'
+                        }`}
+                      >
+                        {sample.format}
+                      </span>
                     </button>
                   );
                 })}
@@ -289,7 +313,7 @@ export function HeroUpload() {
                         <span>
                           {simulationStep === 'analyzing'
                             ? 'Analyzing Document...'
-                            : 'Chunking Passages...'}
+                            : 'Preparing Sections...'}
                         </span>
                       </span>
                     )}
@@ -327,43 +351,34 @@ export function HeroUpload() {
                 </div>
               </div>
 
-              {/* Conversion Footer with Micro-Copy & CTAs */}
-              <div className="border-t border-[#1B3428]/10 pt-5 mt-6 text-left">
-                {/* Micro-copy banner */}
-                <div className="flex items-center gap-2 mb-4 p-2.5 rounded-xl bg-[#FAF8F4] border border-[#1B3428]/15">
-                  <Sparkles className="w-4 h-4 text-[#E8722C] shrink-0" />
-                  <p className="font-sans text-xs text-[#14261D]/80 leading-snug">
-                    <strong className="text-[#14261D] font-semibold">Ready to study your own textbooks?</strong> Create an account to upload and index your own learning materials.
-                  </p>
-                </div>
+              {/* Bottom Actions Row — Consistent 44px Height & Single-Line Labels */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-5 mt-5 border-t border-[#1B3428]/10 text-left">
+                <p className="font-sans text-xs text-[#14261D]/70 hidden sm:block max-w-[240px] leading-relaxed">
+                  Bring your own books or notes up to 1 MB and start reading with your AI tutor.
+                </p>
 
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <span className="font-sans text-xs text-[#14261D]/60 hidden sm:inline">
-                    Free student tier includes 3 active material workspaces.
-                  </span>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+                  <Link
+                    href="/login"
+                    className="inline-flex h-11 shrink-0 items-center justify-center whitespace-nowrap px-5 rounded-full bg-transparent text-[#14261D] font-display font-bold text-sm border-[1.5px] border-[#1B3428] shadow-[0_2px_0_0_#1B3428] active:translate-y-0.5 active:shadow-none hover:bg-black/5 transition-all text-center select-none"
+                  >
+                    Sign In
+                  </Link>
 
-                  <div className="w-full sm:w-auto flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3">
-                    <Link
-                      href="/login"
-                      className="w-full sm:w-auto py-2.5 px-6 rounded-full bg-transparent text-[#14261D] font-display font-bold text-sm border-[1.5px] border-[#1B3428] shadow-[0_2px_0_0_#1B3428] active:translate-y-0.5 active:shadow-none hover:bg-black/5 transition-all text-center select-none"
-                    >
-                      Sign In
-                    </Link>
-
-                    <Link
-                      href="/register"
-                      className="w-full sm:w-auto py-2.5 px-6 rounded-full bg-[#E8722C] text-white font-display font-bold text-sm shadow-[0_3px_0_0_#1B3428] active:translate-y-0.5 active:shadow-none hover:bg-[#D66522] transition-all text-center select-none whitespace-nowrap inline-flex items-center justify-center gap-1.5"
-                    >
-                      <span>Create Free Account</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </Link>
-                  </div>
+                  <Link
+                    href="/register"
+                    className="inline-flex h-11 shrink-0 items-center justify-center whitespace-nowrap px-5 rounded-full bg-[#E8722C] text-white font-display font-bold text-sm shadow-[0_3px_0_0_#1B3428] active:translate-y-0.5 active:shadow-none hover:bg-[#D66522] transition-all text-center select-none gap-2"
+                  >
+                    <span>Create Free Account</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
                 </div>
               </div>
             </div>
           </ScrollReveal>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
   );
 }
