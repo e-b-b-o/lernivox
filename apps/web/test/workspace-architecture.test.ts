@@ -303,10 +303,10 @@ describe('Unified Workspace Architecture Invariants', () => {
   });
 
   test('15. Application-wide responsiveness eliminates rigid pixel min-widths and enables tablet slide-over drawers', () => {
-    // Navbar: No rigid pixel min-widths causing 768px-900px tablet collisions
+    // Navbar: No rigid pixel min-widths, desktop navigation reveals at lg (1024px) to preserve two-pole tablet header
     assert.doesNotMatch(navbarCode, /md:min-w-\[220px\]/);
     assert.doesNotMatch(navbarCode, /md:min-w-\[240px\]/);
-    assert.match(navbarCode, /hidden md:flex items-center justify-center/);
+    assert.match(navbarCode, /hidden lg:flex items-center justify-center/);
 
     // Homepage photo showcase: fluid percentage widths preventing horizontal overflow across 320px–1024px
     assert.match(marketingPageCode, /w-\[27%\] max-w-\[220px\]/);
@@ -344,10 +344,10 @@ describe('Unified Workspace Architecture Invariants', () => {
     assert.doesNotMatch(progressViewCode, /Individual Learning Report/);
     assert.doesNotMatch(progressViewCode, /Status in &ldquo;/);
 
-    // Homepage tablet navigation (768px-1100px) compact Explore dropdown
-    assert.match(navbarCode, /Explore/);
-    assert.match(navbarCode, /min-\[1101px\]:hidden/);
-    assert.match(navbarCode, /hidden min-\[1101px\]:flex/);
+    // Homepage mobile/tablet navigation (< 1024px) two-zone layout with flexible center and desktop 3-zone grid
+    assert.match(navbarCode, /flex lg:grid/);
+    assert.match(navbarCode, /justify-between/);
+    assert.match(navbarCode, /hidden lg:flex/);
   });
 
   test('17. Final mobile workspace navigation & dashboard responsive repairs: Group Hub in Row 2, synchronized 144px vertical space reclamation, portaled modals with z-50 backdrops', () => {
@@ -720,5 +720,144 @@ describe('Unified Workspace Architecture Invariants', () => {
     assert.doesNotMatch(heroUploadCode, /768-dim Vectors/);
     assert.match(heroUploadCode, /Pride_and_Prejudice/);
     assert.match(heroUploadCode, /The_Industrial_Revolution/);
+  });
+
+  test('26. Marketing Website Layout Refinement, Responsive Navigation & Product Experience Polish', () => {
+    // 1. Shared Marketing Container Standard (outer px-4 sm:px-6 md:px-10, inner max-w-[1380px] mx-auto)
+    const navbarPath = path.join(baseDir, 'components/marketing/Navbar.tsx');
+    const navbarCode = fs.readFileSync(navbarPath, 'utf8');
+    assert.match(navbarCode, /px-4 sm:px-6 md:px-10/);
+    assert.match(navbarCode, /max-w-\[1380px\] mx-auto/);
+    assert.match(navbarCode, /flex lg:grid lg:grid-cols-\[minmax\(0,1fr\)_auto_minmax\(0,1fr\)\]/);
+    assert.match(navbarCode, /justify-between/);
+
+    // 2. Warm parchment background (#F4EFE4) with subtle structural divider border-b-[1.5px]
+    assert.match(navbarCode, /bg-\[#F4EFE4\]/);
+    assert.match(navbarCode, /border-b-\[1\.5px\] border-\[#1B3428\]\/10/);
+
+    const marketingLayoutPath = path.join(baseDir, 'app/(marketing)/layout.tsx');
+    const marketingLayoutCode = fs.readFileSync(marketingLayoutPath, 'utf8');
+    assert.match(marketingLayoutCode, /bg-\[#F4EFE4\]/);
+
+    // 3. Section Tracking Scroll-Spy: activeSection initializes to null (no orange line in hero)
+    assert.match(navbarCode, /useState<string \| null>\(null\)/);
+    assert.match(navbarCode, /scrollPosition < sections\[0\]\.offsetTop/);
+    assert.match(navbarCode, /setActiveSection\(null\)/);
+
+    // 4. Authenticated desktop buttons: Redundant Go to Dashboard button removed beside ProfileMenu
+    assert.match(navbarCode, /<ProfileMenu compact \/>/);
+    assert.doesNotMatch(navbarCode, /<Link[\s\S]*?href="\/dashboard"[\s\S]*?>[\s\S]*?<span>Go to Dashboard<\/span>[\s\S]*?<\/Link>[\s\S]*?<ProfileMenu/);
+
+    // 5. Mobile & Tablet Unified 36px Tactile Button System (< 1024px)
+    assert.match(navbarCode, /href="\/dashboard"[\s\S]*?w-9 h-9 rounded-full bg-\[#F4EFE4\] border-\[1\.5px\] border-\[#1B3428\]\/20/);
+    assert.match(navbarCode, /button[\s\S]*?w-9 h-9 rounded-full border-\[1\.5px\] border-\[#1B3428\]\/20 bg-\[#F4EFE4\]/);
+    assert.match(navbarCode, /flex items-center justify-end shrink-0 gap-2/);
+
+    // 6. Hero Headline: Intentional responsive line composition with fluid typography clamp
+    const marketingPagePath = path.join(baseDir, 'app/(marketing)/page.tsx');
+    const marketingPageCode = fs.readFileSync(marketingPagePath, 'utf8');
+    assert.match(marketingPageCode, /max-w-\[1380px\]/);
+    assert.match(marketingPageCode, /px-4 sm:px-6 md:px-10/);
+    assert.match(marketingPageCode, /Understand every/);
+    assert.match(marketingPageCode, /book,/);
+    assert.match(marketingPageCode, /one question/);
+    assert.match(marketingPageCode, /time\./);
+    assert.match(marketingPageCode, /clamp\(/);
+
+    // Reference section "Engineered for genuine academic retention" establishes the shared container standard
+    assert.match(marketingPageCode, /id="features"[\s\S]*?px-4 sm:px-6 md:px-10/);
+    assert.match(marketingPageCode, /id="features"[\s\S]*?max-w-\[1380px\] mx-auto/);
+    assert.match(marketingPageCode, /Engineered for genuine academic/);
+
+    // 7. How It Works Shared Container & Balanced Columns
+    const heroUploadPath = path.join(baseDir, 'components/marketing/HeroUpload.tsx');
+    const heroUploadCode = fs.readFileSync(heroUploadPath, 'utf8');
+    assert.match(heroUploadCode, /max-w-\[1380px\] mx-auto/);
+    assert.match(heroUploadCode, /px-4 sm:px-6 md:px-10/);
+    assert.match(heroUploadCode, /Bring your material/);
+    assert.match(heroUploadCode, /Explore what you're reading/);
+    assert.match(heroUploadCode, /Practice and remember/);
+    assert.doesNotMatch(heroUploadCode, /Semantic chunking & vector indexing/);
+
+    // 8. Showcase Sample Materials: 2x2 grid on mobile, 4 columns on desktop (zero 3+1 wrap)
+    assert.match(heroUploadCode, /grid grid-cols-2 md:grid-cols-4/);
+    assert.doesNotMatch(heroUploadCode, /grid grid-cols-3/);
+    assert.match(heroUploadCode, /Fiction/);
+    assert.match(heroUploadCode, /Science/);
+    assert.match(heroUploadCode, /Economics/);
+    assert.match(heroUploadCode, /History/);
+    assert.match(heroUploadCode, /Pride & Prejudice/);
+    assert.match(heroUploadCode, /Neuroscience/);
+    assert.match(heroUploadCode, /Macroeconomics/);
+    assert.match(heroUploadCode, /World History/);
+    assert.match(heroUploadCode, /sample\.format/);
+
+    // 9. Single-Line Protected CTA Buttons (44px height, no vertical text collapse)
+    assert.match(heroUploadCode, /href="\/login"[\s\S]*?inline-flex h-11 shrink-0 items-center justify-center whitespace-nowrap px-5 rounded-full/);
+    assert.match(heroUploadCode, /href="\/register"[\s\S]*?inline-flex h-11 shrink-0 items-center justify-center whitespace-nowrap px-5 rounded-full/);
+  });
+
+  test('27. Hero Typography, Supporting Copy & Navigation Hover Interaction Polish', () => {
+    // 1. Supporting Copy (human, concise, and benefit-driven)
+    const marketingPagePath = path.join(baseDir, 'app/(marketing)/page.tsx');
+    const marketingPageCode = fs.readFileSync(marketingPagePath, 'utf8');
+    assert.match(marketingPageCode, /Bring a book, article, or notes\. Read, ask questions, and learn with your AI tutor\./);
+    assert.doesNotMatch(marketingPageCode, /Bring your books, articles, or notes\. Read at your own pace/);
+
+    // 2. Smooth Navbar Hover Color Matching Footer Link Interaction (#E77130, duration-200)
+    const navbarPath = path.join(baseDir, 'components/marketing/Navbar.tsx');
+    const navbarCode = fs.readFileSync(navbarPath, 'utf8');
+    const footerPath = path.join(baseDir, 'components/marketing/Footer.tsx');
+    const footerCode = fs.readFileSync(footerPath, 'utf8');
+
+    // Footer establishes the shared design system interaction style
+    assert.match(footerCode, /hover:text-\[#E77130\]/);
+    assert.match(footerCode, /transition-colors duration-200/);
+
+    // Navbar reuses the exact same hover color and transition duration
+    assert.match(navbarCode, /hover:text-\[#E77130\]/);
+    assert.match(navbarCode, /transition-colors duration-200/);
+    assert.match(navbarCode, /motion-reduce:transition-none/);
+
+    // Active underline behavior preserved exactly as before
+    assert.match(navbarCode, /after:bg-\[#E8722C\] after:rounded-full/);
+    assert.match(navbarCode, /after:-bottom-\[6px\] after:left-0 after:w-full after:h-\[2px\]/);
+
+    // No font weight jumping on hover: links remain font-medium without toggling font-bold on hover
+    assert.doesNotMatch(navbarCode, /hover:font-bold/);
+    assert.doesNotMatch(navbarCode, /hover:font-semibold/);
+
+    // Accessible keyboard-focus treatment
+    assert.match(navbarCode, /focus-visible:ring-\[#E77130\]\/60/);
+    assert.match(navbarCode, /focus-visible:ring-offset-\[#F4EFE4\]/);
+  });
+
+  test('28. Responsive Hero Typography & CTA Visual Hierarchy Correction', () => {
+    const marketingPagePath = path.join(baseDir, 'app/(marketing)/page.tsx');
+    const marketingPageCode = fs.readFileSync(marketingPagePath, 'utf8');
+
+    // 1. Mobile 3-line & Desktop 2-line Responsive Headline Composition (zero text duplication)
+    assert.match(marketingPageCode, /<span>Understand every <\/span>/);
+    assert.match(marketingPageCode, /<br className="sm:hidden" \/>/);
+    assert.match(marketingPageCode, /<span>book, <\/span>/);
+    assert.match(marketingPageCode, /<br className="hidden sm:block" \/>/);
+    assert.match(marketingPageCode, /<span>one question <\/span>/);
+    assert.match(marketingPageCode, /time\./);
+
+    // 2. Fluid Scale: Mobile 28-34px fluid clamp, tablet fluid scale, and desktop continuity
+    assert.match(marketingPageCode, /text-\[clamp\(1\.75rem,1\.25rem\+2\.5vw,2\.125rem\)\]/);
+    assert.match(marketingPageCode, /sm:text-\[clamp\(2\.5rem,5\.6vw,3\.9rem\)\]/);
+    assert.match(marketingPageCode, /lg:text-\[clamp\(3\.9rem,5\.2vw,5\.25rem\)\]/);
+    assert.match(marketingPageCode, /max-w-6xl/);
+
+    // 3. Supporting Paragraph: One elegant line on desktop (max-w-4xl = 896px) & [text-wrap:balance]
+    assert.match(marketingPageCode, /max-w-4xl mx-auto text-center leading-relaxed mt-4 sm:mt-6 mb-8 \[text-wrap:balance\]/);
+    assert.match(marketingPageCode, /Bring a book, article, or notes\. Read, ask questions, and learn with your AI tutor\./);
+
+    // 4. Proportional CTA Buttons: 44px height (h-11), intrinsic width (w-auto), centered, no max-w-sm or w-full bloat
+    assert.match(marketingPageCode, /div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mb-10 sm:mb-12 md:mb-16 w-full mx-auto"/);
+    assert.match(marketingPageCode, /href="#how-it-works"[\s\S]*?className="w-auto h-11 sm:h-12 px-5 sm:px-6 rounded-full bg-\[#E8722C\] text-white/);
+    assert.match(marketingPageCode, /href="#features"[\s\S]*?className="w-auto h-11 sm:h-12 px-5 sm:px-6 rounded-full bg-\[#F4EFE4\] text-\[#14261D\]/);
+    assert.doesNotMatch(marketingPageCode, /max-w-sm sm:max-w-none/);
   });
 });
