@@ -136,4 +136,74 @@ canvas.pdf-canvas {
   pointer-events: none !important;
 }
 
+/* ==========================================================================
+   PDF.js Internal Utility Measuring Canvas
+   Prevents invisible calculation canvases from rendering as 300x150 layout blocks
+   ========================================================================== */
+canvas.hiddenCanvasElement,
+.hiddenCanvasElement {
+  display: none !important;
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+  width: 0 !important;
+  height: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* ==========================================================================
+   PDF Annotation Layer
+   Allows interactive links and document anchors without blocking text selection
+   ========================================================================== */
+.annotationLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: clip;
+  opacity: 1;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.annotationLayer :is(a, button, input) {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.annotationLayer a {
+  color: transparent;
+}
+
+/* ==========================================================================
+   DOCX Native Preview Styling
+   Integrates docx-preview DOM into Lernivox BrightPath aesthetic
+   ========================================================================== */
+.docx-wrapper {
+  background: transparent !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 1.5rem !important;
+}
+
+.docx-wrapper > section.docx {
+  background: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(20, 38, 29, 0.08) !important;
+  border: 1px solid rgba(27, 52, 40, 0.15) !important;
+  border-radius: 8px !important;
+  box-sizing: border-box !important;
+  margin-bottom: 0 !important;
+  user-select: text !important;
+  color: #14261D !important;
+}
+
+.docx-wrapper > section.docx ::selection {
+  background: rgba(232, 114, 44, 0.28) !important;
+}
+
+
 

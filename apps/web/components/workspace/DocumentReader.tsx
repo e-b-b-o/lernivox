@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react';
+import { createPortal } from 'react-dom';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import {
   Bookmark,
   FileText,
@@ -18,6 +20,8 @@ import {
   ChevronRight,
   Maximize2,
   ArrowLeft,
+  RotateCw,
+  Layers,
 } from 'lucide-react';
 import * as pdfjsLib from 'pdfjs-dist';
 import type {
@@ -26,93 +30,70 @@ import type {
   DocumentReaderContentDto,
   DocumentBookmarkDto,
 } from '@lernivox/contracts';
-import { scrollToInternalElement } from '../../lib/scroll-utils';
 
-// Configure PDF.js worker to local static file in /public/pdf.worker.min.mjs
+// Configure PDF.js worker to local bundled static file in /public/pdf.worker.min.mjs
 if (typeof window !== 'undefined' && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
   pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 }
 
-interface ContinuousPageProps {
+interface NativeVirtualPdfPageProps {
   pdfDoc: pdfjsLib.PDFDocumentProxy;
   pageNumber: number;
   pageWidth: number;
-  aspectRatio: number;
+  defaultRatio: number;
   isActiveCitation: boolean;
-  onDimensionsDetected?: (aspectRatio: number) => void;
+  onDimensionsDetected?: (pageNumber: number, ratio: number) => void;
+  isPinned?: boolean;
 }
 
 /**
- * High-performance virtualized page renderer for continuous vertical PDF flow.
- * Uses IntersectionObserver to render pages only when near the viewport,
- * avoiding canvas memory exhaustion on 400+ page textbooks.
+ * High-fidelity native PDF.js page renderer with separate Canvas and TextLayer.
+ * Mounts only when virtualized in view, cancelling obsolete render tasks on unmount/zoom.
+ * Ensures transparent text alignment over canvas with zero black text ghosting.
  */
-const ContinuousPdfPage = memo(function ContinuousPdfPage({
+const NativeVirtualPdfPage = memo(function NativeVirtualPdfPage({
   pdfDoc,
   pageNumber,
   pageWidth,
-  aspectRatio,
+  defaultRatio,
   isActiveCitation,
   onDimensionsDetected,
-}: ContinuousPageProps) {
+  isPinned,
+}: NativeVirtualPdfPageProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const textLayerRef = useRef<HTMLDivElement>(null);
-  const [isNearViewport, setIsNearViewport] = useState(false);
-  const [isRendering, setIsRendering] = useState(false);
-  const [actualHeight, setActualHeight] = useState<number>(Math.round(pageWidth * aspectRatio));
+  const [isRendering, setIsRendering] = useState(true);
+  const [pageError, setPageError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState<number>(0);
+  const [aspectRatio, setAspectRatio] = useState<number>(defaultRatio);
 
-  // Observe container intersection with generous margins for seamless scrolling
+  const calculatedHeight = Math.round(pageWidth * aspectRatio);
+
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        if (entry) {
-          setIsNearViewport(entry.isIntersecting);
-        }
-      },
-      {
-        root: null,
-        rootMargin: '1000px 0px 1000px 0px', // Preload 1000px ahead/behind
-      },
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
-  // Update calculated height when width or aspect ratio changes
-  useEffect(() => {
-    setActualHeight(Math.round(pageWidth * aspectRatio));
-  }, [pageWidth, aspectRatio]);
-
-  // Render PDF page into canvas and text layer when near viewport
-  useEffect(() => {
-    if (!isNearViewport || !pdfDoc) return;
+    if (!pdfDoc || pageWidth <= 0) return;
 
     let isCancelled = false;
     let renderTask: pdfjsLib.RenderTask | null = null;
     let textLayerInstance: { cancel?: () => void } | null = null;
 
     setIsRendering(true);
+    setPageError(null);
 
     pdfDoc
       .getPage(pageNumber)
       .then(async (page) => {
-        if (isCancelled || !canvasRef.current) return;
+        if (isCancelled) return;
 
         const unscaledViewport = page.getViewport({ scale: 1 });
         const detectedRatio = unscaledViewport.height / unscaledViewport.width;
-        setActualHeight(Math.round(pageWidth * detectedRatio));
-
-        if (pageNumber === 1 && onDimensionsDetected) {
-          onDimensionsDetected(detectedRatio);
+        if (Math.abs(detectedRatio - aspectRatio) > 0.01) {
+          setAspectRatio(detectedRatio);
+          onDimensionsDetected?.(pageNumber, detectedRatio);
         }
 
         const canvas = canvasRef.current;
+        if (!canvas) return;
         const context = canvas.getContext('2d');
         if (!context) return;
 
@@ -120,8 +101,8 @@ const ContinuousPdfPage = memo(function ContinuousPdfPage({
         const displayScale = pageWidth / unscaledViewport.width;
         const displayViewport = page.getViewport({ scale: displayScale });
 
-        // Retina / Hi-DPI scaling for crisp canvas rendering
-        const pixelRatio = window.devicePixelRatio || 1;
+        // Hi-DPI / Retina rendering capped at 2x to prevent GPU memory exhaustion
+        const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
         const renderScale = displayScale * pixelRatio;
         const renderViewport = page.getViewport({ scale: renderScale });
 
@@ -141,7 +122,7 @@ const ContinuousPdfPage = memo(function ContinuousPdfPage({
 
         if (isCancelled || !textLayerRef.current) return;
 
-        // Render PDF.js Text Layer for native text selection and copying
+        // Render PDF.js Text Layer for native selectable, copyable text
         const textLayerDiv = textLayerRef.current;
         textLayerDiv.innerHTML = '';
         textLayerDiv.style.width = `${Math.floor(pageWidth)}px`;
@@ -168,15 +149,16 @@ const ContinuousPdfPage = memo(function ContinuousPdfPage({
       .then(() => {
         if (!isCancelled) {
           setIsRendering(false);
+          setPageError(null);
         }
       })
       .catch((err) => {
-        if (err?.name !== 'RenderingCancelledException') {
-          console.error(`Page ${pageNumber} render error:`, err);
+        if (isCancelled || err?.name === 'RenderingCancelledException') {
+          return;
         }
-        if (!isCancelled) {
-          setIsRendering(false);
-        }
+        console.error(`Page ${pageNumber} render error:`, err);
+        setPageError(err instanceof Error ? err.message : 'Render failed');
+        setIsRendering(false);
       });
 
     return () => {
@@ -196,7 +178,7 @@ const ContinuousPdfPage = memo(function ContinuousPdfPage({
         }
       }
     };
-  }, [isNearViewport, pdfDoc, pageNumber, pageWidth, onDimensionsDetected]);
+  }, [pdfDoc, pageNumber, pageWidth, retryCount]);
 
   return (
     <div
@@ -206,9 +188,9 @@ const ContinuousPdfPage = memo(function ContinuousPdfPage({
       style={{
         width: `${pageWidth}px`,
         maxWidth: '100%',
-        minHeight: `${actualHeight}px`,
+        height: `${calculatedHeight}px`,
       }}
-      className={`relative bg-white rounded-lg transition-all duration-200 overflow-hidden flex flex-col items-center shrink-0 shadow-md mx-auto ${
+      className={`relative bg-white rounded-lg transition-shadow duration-200 overflow-hidden flex flex-col items-center shrink-0 shadow-md mx-auto ${
         isActiveCitation
           ? 'border-[2.5px] border-[#E8722C] ring-4 ring-[#E8722C]/25 shadow-xl'
           : 'border border-[#1B3428]/15 hover:shadow-lg'
@@ -227,28 +209,130 @@ const ContinuousPdfPage = memo(function ContinuousPdfPage({
         p. {pageNumber}
       </div>
 
-      {isNearViewport ? (
-        <div
-          className="relative w-full overflow-hidden"
-          style={{ width: `${pageWidth}px`, height: `${actualHeight}px` }}
-        >
-          {isRendering && (
-            <div className="absolute inset-0 bg-white/50 backdrop-blur-2xs flex items-center justify-center z-10 transition-opacity pointer-events-none">
-              <Loader2 className="w-6 h-6 animate-spin text-[#E8722C]" />
-            </div>
-          )}
-          <canvas ref={canvasRef} className="block pdf-canvas pointer-events-none select-none" />
-          <div ref={textLayerRef} className="textLayer select-text" />
-        </div>
-      ) : (
-        /* Lightweight Skeleton Card while out of viewport to preserve scroll height */
-        <div className="flex flex-col items-center justify-center p-8 text-[#14261D]/30 select-none min-h-[300px]">
-          <div className="w-8 h-8 rounded-full border-2 border-[#1B3428]/10 border-t-[#E8722C] animate-spin mb-2" />
-          <span className="font-mono text-xs font-bold text-[#14261D]/40">
-            Page {pageNumber}
-          </span>
+      <div
+        className="relative w-full h-full overflow-hidden"
+        style={{ width: `${pageWidth}px`, height: `${calculatedHeight}px` }}
+      >
+        {isRendering && !pageError && (
+          <div className="absolute inset-0 bg-white/60 backdrop-blur-2xs flex items-center justify-center z-10 transition-opacity pointer-events-none">
+            <Loader2 className="w-6 h-6 animate-spin text-[#E8722C]" />
+          </div>
+        )}
+
+        {pageError && (
+          <div className="absolute inset-0 bg-[#FAF8F4] flex flex-col items-center justify-center p-6 text-center z-10 select-none">
+            <AlertCircle className="w-6 h-6 text-red-500 mb-2" />
+            <p className="text-xs font-bold text-[#14261D] mb-1 font-display">
+              Page {pageNumber} failed to render
+            </p>
+            <p className="text-[11px] text-[#14261D]/60 mb-3">{pageError}</p>
+            <button
+              type="button"
+              onClick={() => {
+                setPageError(null);
+                setRetryCount((c) => c + 1);
+              }}
+              className="px-3 py-1.5 rounded-full bg-[#1B3428] text-white text-[11px] font-display font-bold inline-flex items-center gap-1.5 cursor-pointer hover:bg-[#14261D] transition-colors"
+            >
+              <RotateCw className="w-3 h-3" />
+              <span>Retry Page</span>
+            </button>
+          </div>
+        )}
+
+        <canvas ref={canvasRef} className="block pdf-canvas pointer-events-none select-none" />
+        <div ref={textLayerRef} className="textLayer select-text" />
+      </div>
+    </div>
+  );
+});
+
+interface NativeDocxViewerProps {
+  fileUrl: string;
+  accessToken?: string;
+  zoomLevel: number;
+}
+
+/**
+ * Native Word DOCX Renderer using docx-preview.
+ * Faithfully renders Word document structures, tables, page breaks, fonts, and images.
+ * Runs completely in-browser without browser Embed/iframe or external Microsoft Office Online.
+ */
+const NativeDocxViewer = memo(function NativeDocxViewer({
+  fileUrl,
+  accessToken,
+  zoomLevel,
+}: NativeDocxViewerProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isCancelled = false;
+    setLoading(true);
+    setError(null);
+
+    const authorizedUrl = accessToken
+      ? `${fileUrl}${fileUrl.includes('?') ? '&' : '?'}token=${accessToken}`
+      : fileUrl;
+
+    fetch(authorizedUrl, {
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to download document binary`);
+        return res.blob();
+      })
+      .then(async (blob) => {
+        if (isCancelled || !containerRef.current) return;
+        containerRef.current.innerHTML = '';
+        const docxPreview = await import('docx-preview');
+        await docxPreview.renderAsync(blob, containerRef.current, undefined, {
+          inWrapper: true,
+          ignoreWidth: false,
+          ignoreHeight: false,
+          breakPages: true,
+          experimental: true,
+        });
+        if (!isCancelled) setLoading(false);
+      })
+      .catch((err) => {
+        if (isCancelled) return;
+        console.error('Failed to render DOCX document:', err);
+        setError(err instanceof Error ? err.message : 'Failed to render DOCX document');
+        setLoading(false);
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [fileUrl, accessToken]);
+
+  return (
+    <div className="w-full flex flex-col items-center py-6 px-3 sm:px-6 select-text">
+      {loading && (
+        <div className="p-16 text-center bg-[#FAF8F4] rounded-[24px] border-[2px] border-[#1B3428]/20 shadow-[0_4px_0_0_#1B3428]/10 my-8">
+          <Loader2 className="w-8 h-8 animate-spin text-[#E8722C] mx-auto mb-3" />
+          <p className="font-display font-bold text-sm text-[#14261D]">
+            Rendering Word document...
+          </p>
         </div>
       )}
+      {error && (
+        <div className="p-8 text-center bg-red-50 text-red-700 rounded-2xl border border-red-200 my-8">
+          <AlertCircle className="w-6 h-6 mx-auto mb-2 text-red-600" />
+          <p className="font-display font-bold text-sm mb-1">Failed to load Word document</p>
+          <p className="text-xs">{error}</p>
+        </div>
+      )}
+      <div
+        ref={containerRef}
+        style={{
+          transform: `scale(${zoomLevel})`,
+          transformOrigin: 'top center',
+        }}
+        className="w-full max-w-4xl transition-transform duration-150 ease-out select-text"
+      />
     </div>
   );
 });
@@ -266,6 +350,7 @@ export interface DocumentReaderProps {
   citationPage?: number | null;
   onExplainParagraph: (text: string, pageNumber: number) => void;
   onPracticeSelection?: (pageNumber: number) => void;
+  onCreateCardSelection?: (text: string, pageNumber: number) => void;
   onAddBookmark: (pageNumber: number) => void;
   bookmarks?: DocumentBookmarkDto[];
   onToggleBookmark?: (pageNumber: number) => void;
@@ -274,6 +359,8 @@ export interface DocumentReaderProps {
   isFocusMode?: boolean;
   onToggleFocusMode?: () => void;
   onSelectionActiveChange?: (isActive: boolean) => void;
+  onScrollDelta?: (deltaY: number, scrollTop: number) => void;
+  onCanvasTap?: () => void;
 }
 
 function DocumentReaderComponent({
@@ -289,6 +376,7 @@ function DocumentReaderComponent({
   citationPage,
   onExplainParagraph,
   onPracticeSelection,
+  onCreateCardSelection,
   onAddBookmark,
   bookmarks,
   onToggleBookmark,
@@ -297,39 +385,63 @@ function DocumentReaderComponent({
   isFocusMode = false,
   onToggleFocusMode,
   onSelectionActiveChange,
+  onScrollDelta,
+  onCanvasTap,
 }: DocumentReaderProps) {
-  const isPdf = Boolean(doc?.mimeType === 'application/pdf' || doc?.fileName?.endsWith('.pdf'));
+  const isPdf = Boolean(
+    doc?.mimeType === 'application/pdf' || doc?.fileName?.toLowerCase().endsWith('.pdf'),
+  );
+  const isDocx = Boolean(
+    doc?.mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+      doc?.fileName?.toLowerCase().endsWith('.docx'),
+  );
 
   // Standardized reader zoom and navigation
   const [zoomLevel, setZoomLevel] = useState<number>(1.0);
   const [pageJumpInput, setPageJumpInput] = useState<string>('');
 
-  // Reader Scroll Container Measurement for Container Width Expansion
+  // Reader Scroll Container Measurement
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState<number>(860);
+  const [containerWidth, setContainerWidth] = useState<number>(() => {
+    if (typeof window !== 'undefined' && window.innerWidth > 0) {
+      return Math.min(window.innerWidth, 860);
+    }
+    return 860;
+  });
   const [documentAspectRatio, setDocumentAspectRatio] = useState<number>(1.414);
+  const pageAspectRatiosRef = useRef<Map<number, number>>(new Map());
 
   // Current visible page tracked dynamically
   const [visiblePage, setVisiblePage] = useState<number>(currentPage || 1);
   const visiblePageRef = useRef<number>(visiblePage);
   visiblePageRef.current = visiblePage;
 
-  // Track user scroll vs program-initiated scroll
-  const isProgrammaticScrollRef = useRef(false);
-  const scrollDebounceTimer = useRef<NodeJS.Timeout | null>(null);
+  // Track initial scroll restoration
   const hasScrolledToInitialRef = useRef(false);
 
   // PDF Document Lifecycle
-  const [lifecycle, setLifecycle] = useState<
-    'INITIALIZING' | 'FETCHING' | 'LOADED' | 'ERROR'
-  >(isPdf ? 'INITIALIZING' : 'LOADED');
+  const [lifecycle, setLifecycle] = useState<'INITIALIZING' | 'FETCHING' | 'LOADED' | 'ERROR'>(
+    isPdf ? 'INITIALIZING' : 'LOADED',
+  );
   const [pdfDoc, setPdfDoc] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [retryTrigger, setRetryTrigger] = useState(0);
 
+  // Client-side mount flag for React portal rendering
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Text Selection State for Contextual Floating Action Toolbar
   const [selectedText, setSelectedText] = useState<string>('');
-  const [selectionCoords, setSelectionCoords] = useState<{ x: number; y: number } | null>(null);
+  const selectedPageRef = useRef<number>(visiblePage);
+  const [pinnedPage, setPinnedPage] = useState<number | null>(null);
+  const [selectionCoords, setSelectionCoords] = useState<{
+    x: number;
+    y: number;
+    placement: 'above' | 'below';
+  } | null>(null);
   const [copiedRecently, setCopiedRecently] = useState(false);
   const [highlightRects, setHighlightRects] = useState<
     Array<{ top: number; left: number; width: number; height: number }>
@@ -338,7 +450,7 @@ function DocumentReaderComponent({
   const activeLoadingTaskRef = useRef<pdfjsLib.PDFDocumentLoadingTask | null>(null);
   const loadedDocIdRef = useRef<string | null>(null);
 
-  // Callback refs to maintain stable effect dependencies
+  // Stable callback refs
   const onTotalPagesDetectedRef = useRef(onTotalPagesDetected);
   onTotalPagesDetectedRef.current = onTotalPagesDetected;
 
@@ -351,12 +463,50 @@ function DocumentReaderComponent({
   const onSelectionActiveChangeRef = useRef(onSelectionActiveChange);
   onSelectionActiveChangeRef.current = onSelectionActiveChange;
 
-  // Stable aspect ratio callback to prevent ContinuousPdfPage memo invalidation
-  const handleDimensionsDetected = useCallback((ratio: number) => {
-    setDocumentAspectRatio(ratio);
-  }, []);
+  const onScrollDeltaRef = useRef(onScrollDelta);
+  onScrollDeltaRef.current = onScrollDelta;
 
-  // Measure container width responsively to expand PDF to available space
+  const onCanvasTapRef = useRef(onCanvasTap);
+  onCanvasTapRef.current = onCanvasTap;
+
+  // Responsive page width calculation based on viewport and zoom
+  const isMobile = containerWidth < 640;
+  const pageGap = isMobile ? 12 : 24;
+
+  const basePageWidth = isFocusMode
+    ? Math.min(containerWidth - 32, 1024)
+    : isMobile
+    ? Math.round(containerWidth * 0.96)
+    : containerWidth < 1024
+    ? Math.min(Math.round(containerWidth * 0.94), 768)
+    : Math.min(containerWidth - 64, 896);
+  const calculatedPageWidth = Math.round(basePageWidth * zoomLevel);
+
+  const totalDocPages = pdfDoc ? pdfDoc.numPages : totalPages || 1;
+
+  // Ref to virtualizer instance for measurement callbacks
+  const virtualizerRef = useRef<any>(null);
+
+  // Update aspect ratio map dynamically when individual page dimensions are detected
+  const handleDimensionsDetected = useCallback(
+    (pageNum: number, ratio: number) => {
+      const prev = pageAspectRatiosRef.current.get(pageNum);
+      pageAspectRatiosRef.current.set(pageNum, ratio);
+      if (pageNum === 1 && Math.abs(documentAspectRatio - ratio) > 0.01) {
+        setDocumentAspectRatio(ratio);
+      }
+      if (!prev || Math.abs(prev - ratio) > 0.01) {
+        try {
+          virtualizerRef.current?.resizeItem(pageNum - 1, Math.round(calculatedPageWidth * ratio));
+        } catch {
+          // ignore if virtualizer not mounted yet
+        }
+      }
+    },
+    [calculatedPageWidth, documentAspectRatio],
+  );
+
+  // Measure container width responsively
   useEffect(() => {
     const el = scrollContainerRef.current;
     if (!el) return;
@@ -374,12 +524,12 @@ function DocumentReaderComponent({
     return () => resizeObserver.disconnect();
   }, []);
 
-  // Sync page jump input with current visible page
+  // Sync page jump input with visible page
   useEffect(() => {
     setPageJumpInput(String(visiblePage));
   }, [visiblePage]);
 
-  // Load PDF Document
+  // Load PDF Document via PDF.js with Range / Streaming Support
   useEffect(() => {
     if (!isPdf || !doc?.id || !fileUrl) {
       if (!isPdf) setLifecycle('LOADED');
@@ -403,11 +553,13 @@ function DocumentReaderComponent({
       activeLoadingTaskRef.current = null;
     }
 
-    const authorizedUrl = accessToken ? `${fileUrl}?token=${accessToken}` : fileUrl;
+    const separator = fileUrl.includes('?') ? '&' : '?';
+    const authorizedUrl = accessToken ? `${fileUrl}${separator}token=${accessToken}` : fileUrl;
 
     const loadingTask = pdfjsLib.getDocument({
       url: authorizedUrl,
       withCredentials: true,
+      cMapPacked: true,
     });
     activeLoadingTaskRef.current = loadingTask;
 
@@ -416,6 +568,20 @@ function DocumentReaderComponent({
         if (isCancelled) return;
         activeLoadingTaskRef.current = null;
         loadedDocIdRef.current = doc.id;
+
+        // Immediately inspect page 1 dimensions to prevent slide vs portrait layout shifts
+        try {
+          const firstPage = await docProxy.getPage(1);
+          const firstVp = firstPage.getViewport({ scale: 1 });
+          const initialRatio = firstVp.height / firstVp.width;
+          if (initialRatio > 0) {
+            setDocumentAspectRatio(initialRatio);
+            pageAspectRatiosRef.current.set(1, initialRatio);
+          }
+        } catch (pageErr) {
+          console.warn('Initial aspect ratio probe skipped:', pageErr);
+        }
+
         setPdfDoc(docProxy);
         setLifecycle('LOADED');
 
@@ -479,14 +645,55 @@ function DocumentReaderComponent({
     };
   }, [isPdf, doc?.id, fileUrl, accessToken, retryTrigger]);
 
-  // Smooth programmatic navigation to specific page (strictly container-scoped)
-  const scrollToPage = useCallback((pageNum: number, smooth = true) => {
-    const total = pdfDoc ? pdfDoc.numPages : totalPages || 1;
-    const clamped = Math.max(1, Math.min(pageNum, total));
-    setVisiblePage(clamped);
-    visiblePageRef.current = clamped;
-    scrollContainerRef.current?.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'auto' });
-  }, [pdfDoc, totalPages]);
+  // Virtualizer for 400+ page documents with native gap support
+  const virtualizer = useVirtualizer({
+    count: isPdf ? totalDocPages : 0,
+    getScrollElement: () => scrollContainerRef.current,
+    estimateSize: useCallback(
+      (index: number) => {
+        const pageNum = index + 1;
+        const ratio = pageAspectRatiosRef.current.get(pageNum) || documentAspectRatio;
+        return Math.round(calculatedPageWidth * ratio);
+      },
+      [calculatedPageWidth, documentAspectRatio],
+    ),
+    gap: pageGap,
+    overscan: 3,
+  });
+  virtualizerRef.current = virtualizer;
+
+  // Re-measure virtual item heights and maintain scroll anchor when calculatedPageWidth changes
+  const prevWidthRef = useRef(calculatedPageWidth);
+  useEffect(() => {
+    if (prevWidthRef.current !== calculatedPageWidth) {
+      prevWidthRef.current = calculatedPageWidth;
+      virtualizer.measure();
+      if (visiblePageRef.current > 1 && isPdf) {
+        virtualizer.scrollToIndex(visiblePageRef.current - 1, {
+          align: 'start',
+          behavior: 'auto',
+        });
+      }
+    }
+  }, [calculatedPageWidth, isPdf, virtualizer]);
+
+  // Smooth programmatic navigation to specific page
+  const scrollToPage = useCallback(
+    (pageNum: number, smooth = true) => {
+      const clamped = Math.max(1, Math.min(pageNum, totalDocPages));
+      setVisiblePage(clamped);
+      visiblePageRef.current = clamped;
+      if (isPdf) {
+        virtualizer.scrollToIndex(clamped - 1, {
+          align: 'start',
+          behavior: smooth ? 'smooth' : 'auto',
+        });
+      } else {
+        scrollContainerRef.current?.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'auto' });
+      }
+    },
+    [totalDocPages, isPdf, virtualizer],
+  );
 
   // Initial scroll to saved currentPage upon document load
   useEffect(() => {
@@ -496,7 +703,7 @@ function DocumentReaderComponent({
     }
   }, [pdfDoc, currentPage, scrollToPage]);
 
-  // Respond to parent currentPage changes (e.g., from TOC outline or bookmark click)
+  // Respond to parent currentPage changes (e.g. from TOC outline click)
   useEffect(() => {
     if (currentPage && currentPage !== visiblePageRef.current) {
       scrollToPage(currentPage, true);
@@ -510,9 +717,87 @@ function DocumentReaderComponent({
     }
   }, [citationPage, scrollToPage]);
 
-  // Track scroll position if needed
+  // Track active visible page while scrolling and notify parent of mobile scroll delta
+  const lastScrollTopRef = useRef<number>(0);
   const handleScroll = useCallback(() => {
-    // Paginated reading preserves scroll at top
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const scrollTop = container.scrollTop;
+    const deltaY = scrollTop - lastScrollTopRef.current;
+    lastScrollTopRef.current = scrollTop;
+
+    if (Math.abs(deltaY) > 0) {
+      onScrollDeltaRef.current?.(deltaY, scrollTop);
+    }
+
+    if (isPdf) {
+      const readingLine = scrollTop + container.clientHeight * 0.35;
+
+      const items = virtualizer.getVirtualItems();
+      if (items.length > 0) {
+        const activeItem =
+          items.find((it) => it.start <= readingLine && it.start + it.size >= readingLine) ||
+          items[0];
+
+        if (activeItem) {
+          const pageNum = activeItem.index + 1;
+          if (pageNum !== visiblePageRef.current) {
+            setVisiblePage(pageNum);
+            visiblePageRef.current = pageNum;
+            onPageChangeRef.current?.(pageNum);
+          }
+        }
+      }
+    }
+  }, [isPdf, virtualizer]);
+
+  // Touch and tap coordination for mobile auto-hide and restore
+  const touchStartYRef = useRef<number>(0);
+  const touchStartPosRef = useRef<{ x: number; y: number } | null>(null);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.touches[0]) {
+      touchStartYRef.current = e.touches[0].clientY;
+      touchStartPosRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    if (!e.touches[0]) return;
+    const currentY = e.touches[0].clientY;
+    const diff = touchStartYRef.current - currentY; // positive = swipe up = scroll down
+    touchStartYRef.current = currentY;
+    const container = scrollContainerRef.current;
+    const scrollTop = container?.scrollTop ?? 0;
+    if (Math.abs(diff) > 2) {
+      onScrollDeltaRef.current?.(diff, scrollTop);
+    }
+  }, []);
+
+  const handleContainerClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    // If text was selected, do not treat as an intentional canvas tap
+    const sel = typeof window !== 'undefined' ? window.getSelection() : null;
+    if (sel && !sel.isCollapsed && sel.toString().trim().length > 0) {
+      return;
+    }
+
+    // Ignore clicks on buttons, links, inputs, or toolbars
+    const target = e.target as HTMLElement | null;
+    if (target?.closest('button, a, input, select, textarea, [role="button"], #selection-toolbar')) {
+      return;
+    }
+
+    // Check pointer movement distance from touchStart (ignore drags/swipes)
+    if (touchStartPosRef.current) {
+      const dx = Math.abs(e.clientX - touchStartPosRef.current.x);
+      const dy = Math.abs(e.clientY - touchStartPosRef.current.y);
+      if (dx > 8 || dy > 8) {
+        return;
+      }
+    }
+
+    onCanvasTapRef.current?.();
   }, []);
 
   const handleRetryLoad = () => {
@@ -525,11 +810,12 @@ function DocumentReaderComponent({
   const clearSelection = useCallback(() => {
     setSelectedText('');
     setSelectionCoords(null);
+    setPinnedPage(null);
     setHighlightRects([]);
     onSelectionActiveChangeRef.current?.(false);
   }, []);
 
-  // Robust Native Text Selection Tracking for PDF and Workspace Text
+  // Robust Native Text Selection Tracking
   const handleSelectionUpdate = useCallback(() => {
     const selection = window.getSelection();
     if (!selection || selection.isCollapsed) {
@@ -537,7 +823,7 @@ function DocumentReaderComponent({
     }
 
     const text = selection.toString().trim();
-    if (text.length > 3) {
+    if (text.length > 2) {
       const container = scrollContainerRef.current;
       if (!container) return;
 
@@ -554,24 +840,38 @@ function DocumentReaderComponent({
         return;
       }
 
+      // Determine page number from nearest page element
+      const node = commonAncestor.nodeType === Node.ELEMENT_NODE
+        ? (commonAncestor as HTMLElement)
+        : commonAncestor.parentElement;
+      const pageEl = node?.closest?.('[data-page-number]');
+      const detectedPage = pageEl
+        ? parseInt(pageEl.getAttribute('data-page-number') || '1', 10)
+        : visiblePageRef.current;
+
       setSelectedText(text);
-      const containerRect = container.getBoundingClientRect();
+      selectedPageRef.current = detectedPage;
+      setPinnedPage(detectedPage);
+
       const rect = range.getBoundingClientRect();
       const viewportWidth = window.innerWidth;
 
-      // Clamp X position so the toolbar is never clipped horizontally
+      // Clamp X position within viewport margins
       const rawX = rect.left + rect.width / 2;
       const clampedX = Math.max(120, Math.min(viewportWidth - 120, rawX));
 
-      // Position above selection, or below if near top of viewport
-      const y = rect.top < 60 ? rect.bottom + 12 : rect.top - 10;
+      // Position above selection, or below if near top
+      const isNearTop = rect.top < 70;
+      const y = isNearTop ? rect.bottom + 10 : rect.top - 10;
+      const placement = isNearTop ? 'below' : 'above';
 
-      setSelectionCoords({ x: clampedX, y });
+      setSelectionCoords({ x: clampedX, y, placement });
 
-      // Calculate non-destructive persistent highlight overlay rects
+      // Calculate non-destructive highlight rects
       try {
         const domRects = Array.from(range.getClientRects());
         if (domRects.length > 0) {
+          const containerRect = container.getBoundingClientRect();
           const rects = domRects.map((r) => ({
             top: r.top - containerRect.top + container.scrollTop,
             left: r.left - containerRect.left + container.scrollLeft,
@@ -598,7 +898,6 @@ function DocumentReaderComponent({
     };
 
     const onMouseDown = (e: MouseEvent) => {
-      // Clear persistent highlight when clicking outside the selection toolbar
       const target = e.target as HTMLElement | null;
       if (target?.closest('#selection-toolbar')) {
         return;
@@ -634,7 +933,7 @@ function DocumentReaderComponent({
   const handlePageJumpSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const parsed = parseInt(pageJumpInput.trim(), 10);
-    if (!isNaN(parsed) && parsed >= 1 && parsed <= (totalPages || 1)) {
+    if (!isNaN(parsed) && parsed >= 1 && parsed <= totalDocPages) {
       scrollToPage(parsed, true);
       onPageChange(parsed);
     } else {
@@ -642,23 +941,30 @@ function DocumentReaderComponent({
     }
   };
 
-  // Fluid responsive page width calculation: eliminates excessive beige gutters
-  const basePageWidth = isFocusMode
-    ? Math.min(containerWidth - 32, 1024)
-    : containerWidth < 640
-    ? Math.round(containerWidth * 0.96)
-    : containerWidth < 1024
-    ? Math.min(Math.round(containerWidth * 0.94), 768)
-    : Math.min(containerWidth - 64, 896);
-  const calculatedPageWidth = Math.round(basePageWidth * zoomLevel);
+  // Virtual items rendered directly on each scroll frame, with pinned page protected against recycling
+  const virtualRows = isPdf ? virtualizer.getVirtualItems() : [];
+  const renderedVirtualItems = [...virtualRows];
 
-  const totalDocPages = pdfDoc ? pdfDoc.numPages : totalPages || 1;
-  const authorizedEmbedUrl = useMemo(() => {
-    const zoomParam = Math.round(zoomLevel * 100);
-    const separator = fileUrl.includes('?') ? '&' : '?';
-    const baseUrl = accessToken ? `${fileUrl}${separator}token=${accessToken}` : fileUrl;
-    return `${baseUrl}#page=${visiblePage}&zoom=${zoomParam}`;
-  }, [fileUrl, accessToken, visiblePage, zoomLevel]);
+  // Pin page if active selection or active citation requires it
+  if (isPdf && pinnedPage && !renderedVirtualItems.some((it) => it.index === pinnedPage - 1)) {
+    const pinnedIndex = pinnedPage - 1;
+    let start = 0;
+    for (let i = 0; i < pinnedIndex; i++) {
+      const r = pageAspectRatiosRef.current.get(i + 1) || documentAspectRatio;
+      start += Math.round(calculatedPageWidth * r) + pageGap;
+    }
+    const r = pageAspectRatiosRef.current.get(pinnedPage) || documentAspectRatio;
+    const size = Math.round(calculatedPageWidth * r);
+    renderedVirtualItems.push({
+      index: pinnedIndex,
+      start,
+      size,
+      key: `pinned-${pinnedPage}`,
+      end: start + size,
+      lane: 0,
+    } as any);
+    renderedVirtualItems.sort((a, b) => a.index - b.index);
+  }
 
   return (
     <div className="flex-1 min-h-0 flex flex-col h-full overflow-hidden bg-[#F4F0E5] relative w-full">
@@ -712,7 +1018,7 @@ function DocumentReaderComponent({
         </div>
       ) : (
         /* Standard Reader Secondary Toolbar (Desktop; Mobile uses unified 2-row header) */
-        <div className="hidden md:flex min-h-12 py-1 bg-[#FAF8F4] border-b border-[#1B3428]/15 px-3 sm:px-4 md:px-6 items-center justify-between shrink-0 select-none z-20 shadow-2xs relative gap-2 sm:gap-4">
+        <div className="hidden md:flex min-h-12 py-1 bg-[#FAF8F4] border-b border-[#1B3428]/10 px-3 sm:px-4 md:px-6 items-center justify-between shrink-0 select-none z-20 shadow-2xs relative gap-2 sm:gap-4">
           {/* Left: Document Identity / Title */}
           <div className="flex items-center gap-2 min-w-0 shrink">
             <div className="w-6 h-6 rounded-md bg-[#E8722C]/10 text-[#E8722C] flex items-center justify-center shrink-0 border border-[#E8722C]/20">
@@ -869,16 +1175,19 @@ function DocumentReaderComponent({
       )}
 
       {/* 2. FLOATING CONTEXTUAL SELECTION TOOLBAR ("Copy", "Ask AI", "Practice") */}
-      {selectedText && selectionCoords && (
+      {mounted && selectedText && selectionCoords && createPortal(
         <div
           id="selection-toolbar"
           style={{
             position: 'fixed',
             left: `${selectionCoords.x}px`,
             top: `${selectionCoords.y}px`,
-            transform: 'translate(-50%, -100%)',
+            transform:
+              selectionCoords.placement === 'below'
+                ? 'translate(-50%, 0)'
+                : 'translate(-50%, -100%)',
           }}
-          className="z-50 animate-in fade-in zoom-in-95 duration-150 flex items-center gap-1.5 p-1 rounded-full bg-[#14261D] border border-[#FAF8F4]/20 shadow-[0_4px_0_0_#0D1B14] select-none"
+          className="z-50 animate-in fade-in zoom-in-95 duration-150 flex items-center gap-1.5 p-1 rounded-full bg-[#14261D] border border-[#FAF8F4]/20 shadow-[0_4px_16px_rgba(0,0,0,0.35)] select-none"
         >
           {/* Copy Button */}
           <button
@@ -907,7 +1216,7 @@ function DocumentReaderComponent({
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => {
-              onExplainParagraph(selectedText, visiblePage);
+              onExplainParagraph(selectedText, selectedPageRef.current || visiblePage);
               clearSelection();
             }}
             className="py-1 px-3 rounded-full bg-[#E8722C] text-white font-display font-bold text-xs hover:-translate-y-0.5 active:translate-y-0.5 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
@@ -924,7 +1233,7 @@ function DocumentReaderComponent({
               type="button"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => {
-                onPracticeSelection(visiblePage);
+                onPracticeSelection(selectedPageRef.current || visiblePage);
                 clearSelection();
               }}
               className="py-1 px-3 rounded-full bg-[#1B3428] text-white font-display font-bold text-xs hover:-translate-y-0.5 active:translate-y-0.5 transition-all flex items-center gap-1.5 cursor-pointer"
@@ -935,14 +1244,36 @@ function DocumentReaderComponent({
               <span className="hidden sm:inline">Practice</span>
             </button>
           )}
-        </div>
+
+          {/* Flashcard from Selection Button */}
+          {onCreateCardSelection && (
+            <button
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => {
+                onCreateCardSelection(selectedText, selectedPageRef.current || visiblePage);
+                clearSelection();
+              }}
+              className="py-1 px-3 rounded-full bg-[#1B3428] text-white font-display font-bold text-xs hover:-translate-y-0.5 active:translate-y-0.5 transition-all flex items-center gap-1.5 cursor-pointer"
+              title="Create flashcard from selection"
+              aria-label="Create flashcard from selection"
+            >
+              <Layers className="w-3.5 h-3.5 text-[#E8722C]" />
+              <span className="hidden sm:inline">Card</span>
+            </button>
+          )}
+        </div>,
+        document.body
       )}
 
-      {/* 3. MAIN CONTINUOUS CANVAS STAGE OR BROWSER EMBED */}
+      {/* 3. MAIN NATIVE READING STAGE */}
       <div
         id="pdf-scroll-container"
         ref={scrollContainerRef}
         onScroll={handleScroll}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onClick={handleContainerClick}
         className="flex-1 w-full h-full overflow-y-auto overscroll-contain overflow-x-auto relative"
       >
         {/* Persistent Selection Highlight Rectangles */}
@@ -960,24 +1291,91 @@ function DocumentReaderComponent({
             }}
           />
         ))}
+
         {isPdf ? (
-          /* BROWSER EMBEDDED PDF VIEWER (Standardized Reading Engine) */
-          <div className="w-full h-full p-2 sm:p-4 md:p-6 flex flex-col items-center">
-            <div
-              className={`w-full h-full ${
-                isFocusMode ? 'max-w-5xl mx-auto' : 'max-w-6xl'
-              } rounded-[16px] border-[2px] border-[#1B3428] shadow-[0_4px_0_0_#1B3428] bg-white overflow-hidden flex flex-col min-h-[500px]`}
-            >
-              <iframe
-                id="pdf-embed-frame"
-                src={authorizedEmbedUrl}
-                className="w-full flex-1 border-0 h-full"
-                title={doc?.title || 'Original Textbook PDF Viewer'}
-              />
-            </div>
+          /* NATIVE VIRTUALIZED PDF.JS READER */
+          <div
+            className={`w-full flex flex-col items-center py-2 sm:py-6 px-1 sm:px-4 mx-auto ${
+              isFocusMode ? 'max-w-5xl mx-auto' : 'max-w-6xl mx-auto'
+            }`}
+          >
+            {lifecycle === 'FETCHING' && (
+              <div className="p-16 text-center bg-[#FAF8F4] rounded-[24px] border-[2px] border-[#1B3428]/20 shadow-[0_4px_0_0_#1B3428]/10 my-8">
+                <Loader2 className="w-8 h-8 animate-spin text-[#E8722C] mx-auto mb-3" />
+                <p className="font-display font-bold text-sm text-[#14261D]">
+                  Loading document pages...
+                </p>
+              </div>
+            )}
+
+            {lifecycle === 'ERROR' && (
+              <div className="p-8 text-center bg-red-50 text-red-700 rounded-2xl border border-red-200 my-8 max-w-md">
+                <AlertCircle className="w-6 h-6 mx-auto mb-2 text-red-600" />
+                <p className="font-display font-bold text-sm mb-1">Failed to load PDF</p>
+                <p className="text-xs mb-4">{pdfError || 'Network or decoding error'}</p>
+                <button
+                  type="button"
+                  onClick={handleRetryLoad}
+                  className="px-4 py-1.5 rounded-full bg-[#1B3428] text-white font-display font-bold text-xs inline-flex items-center gap-1.5"
+                >
+                  <RotateCw className="w-3.5 h-3.5" />
+                  <span>Retry</span>
+                </button>
+              </div>
+            )}
+
+            {pdfDoc && (
+              <div
+                style={{
+                  height: `${virtualizer.getTotalSize()}px`,
+                  width: '100%',
+                  position: 'relative',
+                }}
+              >
+                {renderedVirtualItems.map((virtualRow) => {
+                  const pageNum = virtualRow.index + 1;
+                  const isCurrentCitation = citationPage === pageNum;
+                  return (
+                    <div
+                      key={`virtual-row-${pageNum}`}
+                      data-index={virtualRow.index}
+                      ref={virtualizer.measureElement}
+                      className="w-full flex justify-center"
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        transform: `translateY(${virtualRow.start}px)`,
+                      }}
+                    >
+                      <NativeVirtualPdfPage
+                        key={`page-comp-${pageNum}`}
+                        pdfDoc={pdfDoc}
+                        pageNumber={pageNum}
+                        pageWidth={calculatedPageWidth}
+                        defaultRatio={documentAspectRatio}
+                        isActiveCitation={isCurrentCitation}
+                        onDimensionsDetected={handleDimensionsDetected}
+                        isPinned={pinnedPage === pageNum}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
+        ) : isDocx ? (
+          /* NATIVE DOCX WORD DOCUMENT VIEWER */
+          <NativeDocxViewer
+            fileUrl={fileUrl}
+            accessToken={accessToken}
+            zoomLevel={zoomLevel}
+          />
         ) : (
-          /* NON-PDF EXTRACTED TEXT READING VIEW (Fully Selectable) */
+          /* NON-PDF EXTRACTED TEXT NOTES VIEW (Fully Selectable) */
           <div className="w-full min-h-full flex flex-col items-center py-8 px-4 select-text">
             <div
               style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'top center' }}
