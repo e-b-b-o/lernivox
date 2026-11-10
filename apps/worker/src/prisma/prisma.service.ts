@@ -12,6 +12,9 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
       this.logger.log('Prisma connected to PostgreSQL successfully');
     } catch (err) {
       this.logger.error('Failed to connect to PostgreSQL via Prisma', err);
+      if (process.env.NODE_ENV !== 'test') {
+        throw err;
+      }
     }
   }
 

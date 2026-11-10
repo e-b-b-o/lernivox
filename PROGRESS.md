@@ -87,47 +87,44 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 
 ## 6. Current Task Record
 
-- **Task**: Restore Freemium Pricing (999 Birr/mo), Polish Marketing CTA & Footer, and Implement Accessible Auth Validation with Custom Error UI
+- **Task**: Fix Render Free Production Database Migrations on API Startup, Add Programmatic Migration Runner, and Enforce Fail-Fast Schema Verification
 - **Status**: **Complete**
 - **Objective**:
-  1. *Restore Freemium Pricing Display*:
-     - Restored the visible plan name "Freemium" and displayed price exactly to "999 Birr per month".
-     - Removed the unintended "0 Birr" / "during preview" and "Free preview" badge.
-     - Preserved existing card styling, features, and benefits without altering runtime billing entitlements.
-  2. *Improve CTA / Callout Section*:
-     - Headline: "Your next book is ready to be understood."
-     - Description: "Bring your books or notes. Read, ask questions, and learn at your own pace."
-     - Buttons: "Get started" linking to `/register` and "Upload a book or notes" linking to `#how-it-works`.
-     - Micro indicator: "Private book storage. Instant setup."
-  3. *Improve Footer Copy*:
-     - Concise brand description: "Bring your books and notes. Read, ask your AI tutor questions, and understand more as you learn."
-     - Updated attribution to "Turn textbooks into real understanding".
-     - Preserved all navigation links, social links, logo, and responsive styling.
-  4. *Frontend Authentication Validation & Custom Error UI*:
-     - Implemented accessible field-level validation on blur and submit for both `/login` and `/register`.
-     - Email: required, standard regex validation, accepts personal email domains (Gmail, Outlook, Yahoo, etc.), trims whitespace, clear inline errors ("Enter your email address.", "Enter a valid email address.").
-     - Password: required on login ("Enter your password."); min 8 characters on registration ("Password is required.", "Your password must be at least 8 characters.").
-     - Confirm Password: required, matching check ("Confirm your password.", "Passwords do not match.").
-     - `noValidate` on form elements, `aria-invalid`, `aria-describedby`, error border styling, auto-focusing first invalid element on submit.
-     - Mapped auth-wide error messages: 401 invalid credentials, 409 conflict with link to login, 500 server error, network errors.
-  5. *Google Coming Soon & Refresh Token 401 Investigation*:
-     - Verified Google Coming Soon modal intercepts auth clicks without `/api/v1/auth/google` network calls.
-     - Investigated `POST /api/v1/auth/refresh` 401 in Render logs: confirmed expected behavior when unauthenticated visitors visit without existing cookies; confirmed zero retry loops or infinite refresh storms.
+  1. *Programmatic & Reliable Database Migration Execution*:
+     - Created `packages/database/src/migrate.ts` exporting `runDatabaseMigrations()` and callable directly via `node dist/migrate.js`.
+     - Automatically resolves Prisma schema and Prisma CLI entry point across monorepo directories and containerized deployments.
+     - Replaced brittle `import * as dotenv from 'dotenv'` in `packages/database/prisma.config.ts` with Node 20+ native `process.loadEnvFile` and safe error boundary for containerized environments where `process.env` is injected directly.
+     - Added `"db:migrate": "node dist/migrate.js"` in `packages/database/package.json` and updated root `package.json` `"db:migrate"`.
+  2. *API Startup Migration Automation*:
+     - In `apps/api/src/main.ts`, integrated `runDatabaseMigrations()` directly before `NestFactory.create(AppModule)`.
+     - Regardless of whether Render executes `pnpm db:migrate && pnpm --filter @lernivox/api start`, `pnpm start`, or directly `node dist/main.js`, database migrations are always checked and deployed before the API initializes.
+     - If migrations fail, the API logs the fatal error and exits with code 1 immediately.
+  3. *Enforce Fail-Fast Schema Verification*:
+     - In `apps/api/src/common/prisma/prisma.service.ts`, transformed the previous non-blocking warning (`DATABASE SCHEMA WARNING`) into an active fail-fast check: if table `public.users` does not exist after connection, it logs a fatal error and throws an exception, preventing NestJS from binding to port 10000 or reporting healthy on unmigrated databases.
+     - Enforced fail-fast PostgreSQL connection check in both API and Worker Prisma services.
+  4. *Render Free Web Service Compatibility*:
+     - Render Free ignores paid `preDeployCommand`. The solution guarantees migrations run at container startup before the HTTP listener opens, with zero external service dependencies and zero paid Render features required.
 - **Files Created/Modified**:
-  - `apps/web/app/(marketing)/page.tsx` (modified)
-  - `apps/web/components/marketing/Footer.tsx` (modified)
-  - `apps/web/app/(auth)/login/page.tsx` (modified)
-  - `apps/web/app/(auth)/register/page.tsx` (modified)
-  - `apps/web/test/loading-and-404-experience.test.ts` (modified)
+  - `packages/database/src/migrate.ts` (created) — Dedicated programmatic migration runner and standalone CLI script.
+  - `packages/database/test/migrate.test.ts` (created) — Automated test suite verifying schema detection, migration assets, and fast failure on connection failure.
+  - `packages/database/prisma.config.ts` (modified) — Fixed missing `dotenv` module error by using native `process.loadEnvFile`.
+  - `packages/database/src/index.ts` (modified) — Exported `runDatabaseMigrations` and `MigrationLogger`.
+  - `packages/database/package.json` (modified) — Added `"db:migrate": "node dist/migrate.js"`.
+  - `apps/api/src/main.ts` (modified) — Automated pre-bootstrap migration execution.
+  - `apps/api/src/common/prisma/prisma.service.ts` (modified) — Enforced fail-fast `public.users` existence validation.
+  - `apps/worker/src/prisma/prisma.service.ts` (modified) — Enforced fail-fast connection handling.
+  - `package.json` (modified) — Updated root `"db:migrate"`.
   - `PROGRESS.md` (modified)
 - **Verification**:
-  - `pnpm --filter @lernivox/web test`: All 41 tests passing across 4 test suites.
+  - `node --test --experimental-strip-types packages/database/test/migrate.test.ts`: 3/3 tests passing.
   - `pnpm --filter @lernivox/api test`: All 175 tests passing across 14 test suites.
-  - `pnpm type-check`: 11/11 tasks passing with 0 TypeScript errors across the entire monorepo.
-  - `pnpm --filter @lernivox/web build`: Production build succeeded (`next build`), compiling 17/17 routes.
-  - Process & Port Audit: `ss -tulpn` verified clean (0 lingering processes, 0 open ports).
+  - `pnpm --filter @lernivox/worker test`: All 21 tests passing across 5 test suites.
+  - `pnpm --filter @lernivox/web test`: All 41 tests passing across 4 test suites.
+  - `pnpm type-check`: 11/11 tasks passing with 0 TypeScript errors across all 9 packages.
+  - `pnpm build`: Full monorepo build succeeded across all 7 build targets (including 17 Next.js routes).
+  - Port & Process Audit: `ss -tulpn` verified clean (0 lingering processes).
 - **Known Issues / Blockers**: None.
-- **Next Recommended Action**: Execute live production deployment on Render and Vercel, confirming automated migration deployment via `render.yaml` (`startCommand: pnpm db:migrate && pnpm --filter @lernivox/api start`).
+- **Next Recommended Action**: Trigger a fresh Render deploy for `lernivox-api`. The migrations will apply automatically on container start, create `public.users` and all remaining tables, verify schema, and start serving traffic cleanly.
      - Removed `Free Student Plan • Instant Setup` badge pill from marketing CTA banner.
   7. *Verification & Tests*:
      - All 36 `@lernivox/web` tests passing.

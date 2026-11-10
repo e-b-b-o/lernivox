@@ -3,11 +3,30 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
+import { runDatabaseMigrations } from '@lernivox/database';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const logger = new Logger('LernivoxApi');
+
+  // Automatic production migration execution
+  // Ensures all pending Prisma migrations are deployed before NestJS initializes and binds ports.
+  if (process.env.NODE_ENV !== 'test' && process.env.SKIP_DB_MIGRATIONS !== 'true') {
+    logger.log('Initiating database migration check before server bootstrap...');
+    try {
+      await runDatabaseMigrations({
+        log: (msg) => logger.log(`[Migration] ${msg}`),
+        warn: (msg) => logger.warn(`[Migration] ${msg}`),
+        error: (msg) => logger.error(`[Migration] ${msg}`),
+      });
+      logger.log('Database migration step completed successfully.');
+    } catch (migrationErr) {
+      logger.error('FATAL: Database migration failed during API startup. Halting bootstrap.', migrationErr);
+      process.exit(1);
+    }
+  }
+
   const app = await NestFactory.create(AppModule);
 
   // Cookie Parser Middleware

@@ -15,12 +15,20 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
         "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'users');",
       );
       if (!check?.[0]?.exists) {
-        this.logger.warn(
-          'DATABASE SCHEMA WARNING: The table "public.users" does not exist in the connected database. Run "pnpm db:migrate" to apply migrations.',
-        );
+        const errorMsg =
+          'FATAL: The table "public.users" does not exist in the connected database. Pending database migrations have not been applied. Run "pnpm db:migrate" or verify startup migration execution.';
+        this.logger.error(errorMsg);
+        if (process.env.NODE_ENV !== 'test') {
+          throw new Error(errorMsg);
+        }
+      } else {
+        this.logger.log('Database schema verified: table "public.users" exists.');
       }
     } catch (err) {
       this.logger.error('Failed to connect to PostgreSQL via Prisma', err);
+      if (process.env.NODE_ENV !== 'test') {
+        throw err;
+      }
     }
   }
 

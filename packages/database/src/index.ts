@@ -4,6 +4,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 export * from '@prisma/client';
 export * from './vector.js';
 export * from './backfill.js';
+export * from './migrate.js';
 
 declare global {
   // eslint-disable-next-line no-var

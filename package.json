@@ -11,7 +11,7 @@
     "test": "turbo run test",
     "postinstall": "pnpm db:generate",
     "db:generate": "pnpm --filter @lernivox/database db:generate",
-    "db:migrate": "pnpm --filter @lernivox/database exec prisma migrate deploy",
+    "db:migrate": "pnpm --filter @lernivox/database db:migrate",
     "infra:up": "docker compose -f infra/docker/docker-compose.yml up -d",
     "infra:down": "docker compose -f infra/docker/docker-compose.yml down",
     "infra:logs": "docker compose -f infra/docker/docker-compose.yml logs -f"
