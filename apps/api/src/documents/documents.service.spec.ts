@@ -81,7 +81,7 @@ describe('DocumentsService', () => {
 
     mockConfig = {
       get: (jest.fn() as any).mockImplementation((key: any, defaultVal: any) => {
-        if (key === 'MAX_UPLOAD_SIZE_BYTES') return 25 * 1024 * 1024;
+        if (key === 'MAX_UPLOAD_SIZE_BYTES') return 1048576; // 1 MiB limit
         return defaultVal;
       }),
     };
@@ -149,15 +149,105 @@ describe('DocumentsService', () => {
       await expect(service.uploadFile(mockUser, mockFile)).rejects.toThrow(BadRequestException);
     });
 
-    it('rejects oversized files beyond MAX_UPLOAD_SIZE_BYTES', async () => {
-      const mockFile = {
-        originalname: 'huge.pdf',
+    it('accepts file of exactly 1,048,576 bytes (1 MiB maximum)', async () => {
+      const validPdfBuffer = Buffer.concat([
+        Buffer.from('%PDF-1.4 header and content'),
+        Buffer.alloc(1048576 - 27, 0x20),
+      ]);
+      const exactFile = {
+        originalname: 'exact_1mb.pdf',
         mimetype: 'application/pdf',
-        size: 30 * 1024 * 1024,
-        buffer: Buffer.alloc(10),
+        size: 1048576,
+        buffer: validPdfBuffer,
       } as Express.Multer.File;
 
-      await expect(service.uploadFile(mockUser, mockFile)).rejects.toThrow(BadRequestException);
+      mockPrisma.document.create.mockResolvedValueOnce({
+        id: 'doc-exact-1',
+        title: 'exact_1mb',
+        fileName: 'exact_1mb.pdf',
+        mimeType: 'application/pdf',
+        sizeBytes: 1048576,
+        status: 'UPLOADED',
+        storageProvider: 'LOCAL',
+        storagePath: 'documents/user-1/doc-exact-1_exact_1mb.pdf',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      const res = await service.uploadFile(mockUser, exactFile);
+      expect(res.id).toBe('doc-exact-1');
+    });
+
+    it('rejects oversized files of 1,048,577 bytes (1 byte over 1 MiB limit)', async () => {
+      const mockFile = {
+        originalname: 'oversize.pdf',
+        mimetype: 'application/pdf',
+        size: 1048577,
+        buffer: Buffer.from('%PDF-1.4 over limit'),
+      } as Express.Multer.File;
+
+      await expect(service.uploadFile(mockUser, mockFile)).rejects.toThrow(
+        /This file is larger than the 1 MB upload limit/,
+      );
+    });
+
+    it('rejects files with disguised extensions and invalid magic bytes', async () => {
+      // Named .pdf but contains arbitrary non-PDF bytes
+      const fakePdf = {
+        originalname: 'trojan.pdf',
+        mimetype: 'application/pdf',
+        size: 500,
+        buffer: Buffer.from('NOT_A_PDF_FILE_HEADER'),
+      } as Express.Multer.File;
+
+      await expect(service.uploadFile(mockUser, fakePdf)).rejects.toThrow(BadRequestException);
+    });
+
+    it('rejects docx files without PK zip header signature', async () => {
+      const fakeDocx = {
+        originalname: 'notes.docx',
+        mimetype: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        size: 500,
+        buffer: Buffer.from('RAW_CORRUPT_DATA'),
+      } as Express.Multer.File;
+
+      await expect(service.uploadFile(mockUser, fakeDocx)).rejects.toThrow(BadRequestException);
+    });
+
+    it('accepts valid docx files starting with PK signature', async () => {
+      const validDocx = {
+        originalname: 'syllabus.docx',
+        mimetype: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        size: 500,
+        buffer: Buffer.from([0x50, 0x4b, 0x03, 0x04, 0x00, 0x01]),
+      } as Express.Multer.File;
+
+      mockPrisma.document.create.mockResolvedValueOnce({
+        id: 'doc-docx-1',
+        title: 'syllabus',
+        fileName: 'syllabus.docx',
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        sizeBytes: 500,
+        status: 'UPLOADED',
+        storageProvider: 'LOCAL',
+        storagePath: 'documents/user-1/doc-docx-1_syllabus.docx',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      const res = await service.uploadFile(mockUser, validDocx);
+      expect(res.id).toBe('doc-docx-1');
+    });
+
+    it('rejects txt files containing binary null bytes', async () => {
+      const binaryTxt = {
+        originalname: 'readme.txt',
+        mimetype: 'text/plain',
+        size: 100,
+        buffer: Buffer.from([0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x00, 0x77, 0x6f, 0x72, 0x6c, 0x64]),
+      } as Express.Multer.File;
+
+      await expect(service.uploadFile(mockUser, binaryTxt)).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -193,6 +283,17 @@ describe('DocumentsService', () => {
           content: '   \n\t  ',
         }),
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it('rejects pasted text exceeding 1,048,576 bytes in UTF-8 encoding', async () => {
+      // 1,048,577 bytes of text
+      const oversizedText = 'a'.repeat(1048577);
+      await expect(
+        service.createFromText(mockUser, {
+          title: 'Oversized Note',
+          content: oversizedText,
+        }),
+      ).rejects.toThrow(/This text content is larger than the 1 MB upload limit/);
     });
   });
 
@@ -261,6 +362,54 @@ describe('DocumentsService', () => {
       mockPrisma.document.findUnique.mockResolvedValue(null);
 
       await expect(service.getDocumentById('user-1', 'nonexistent')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('getDocumentStatus', () => {
+    it('returns processing status, stage, progress and unit metrics', async () => {
+      mockPrisma.document.findUnique.mockResolvedValue({
+        id: 'doc-status-1',
+        ownerId: 'user-1',
+        title: 'Biology Chapter 1',
+        status: 'EMBEDDING',
+        processingProgress: 75,
+        processingStage: 'EMBEDDING',
+        processingMessage: 'Generating embeddings (30/40 batches)...',
+        completedUnits: 30,
+        totalUnits: 40,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      const status = await service.getDocumentStatus('user-1', 'doc-status-1');
+      expect(status.documentId).toBe('doc-status-1');
+      expect(status.status).toBe('EMBEDDING');
+      expect(status.progress).toBe(75);
+      expect(status.stage).toBe('EMBEDDING');
+      expect(status.completedUnits).toBe(30);
+      expect(status.totalUnits).toBe(40);
+      expect(status.isComplete).toBe(false);
+      expect(status.isFailed).toBe(false);
+    });
+
+    it('returns isComplete=true when document status is READY', async () => {
+      mockPrisma.document.findUnique.mockResolvedValue({
+        id: 'doc-ready-1',
+        ownerId: 'user-1',
+        title: 'Biology Chapter 1',
+        status: 'READY',
+        processingProgress: 100,
+        processingStage: 'READY',
+        completedUnits: 40,
+        totalUnits: 40,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      const status = await service.getDocumentStatus('user-1', 'doc-ready-1');
+      expect(status.progress).toBe(100);
+      expect(status.isComplete).toBe(true);
+      expect(status.isFailed).toBe(false);
     });
   });
 

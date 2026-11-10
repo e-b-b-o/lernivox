@@ -23,6 +23,7 @@ describe('DocumentsController', () => {
       getUserDocuments: jest.fn<any>(),
       getDocumentById: jest.fn<any>(),
       getDocumentChunks: jest.fn<any>(),
+      getDocumentStatus: jest.fn<any>(),
       deleteDocument: jest.fn<any>(),
     };
 
@@ -75,6 +76,25 @@ describe('DocumentsController', () => {
     const result = await controller.getChunks(mockUser, 'doc-1');
     expect(result).toEqual([{ id: 'chunk-1' }]);
     expect(mockService.getDocumentChunks).toHaveBeenCalledWith('user-1', 'doc-1');
+  });
+
+  it('getStatus delegates to service with userId and docId', async () => {
+    mockService.getDocumentStatus.mockResolvedValue({
+      documentId: 'doc-1',
+      status: 'EMBEDDING',
+      progress: 60,
+      stage: 'EMBEDDING',
+      message: 'Generating embeddings',
+      completedUnits: 6,
+      totalUnits: 10,
+      isComplete: false,
+      isFailed: false,
+    });
+
+    const result = await controller.getStatus(mockUser, 'doc-1');
+    expect(result.progress).toEqual(60);
+    expect(result.stage).toEqual('EMBEDDING');
+    expect(mockService.getDocumentStatus).toHaveBeenCalledWith('user-1', 'doc-1');
   });
 
   it('deleteDocument delegates to service', async () => {

@@ -1,6 +1,8 @@
 import {
   BadRequestException,
   ForbiddenException,
+  HttpException,
+  HttpStatus,
   Inject,
   Injectable,
   Logger,
@@ -23,6 +25,7 @@ import {
   DocumentReaderContentDto,
   DocumentReaderPageDto,
   DocumentReadingProgressDto,
+  DocumentStatusDto,
   QueueName,
   UpdateReadingProgressDto,
   UserDto,
@@ -61,7 +64,7 @@ export class DocumentsService {
   ) {
     this.maxUploadSizeBytes = this.configService.get<number>(
       'MAX_UPLOAD_SIZE_BYTES',
-      26214400, // 25 MB default
+      1048576, // 1 MiB default (1,048,576 bytes)
     );
   }
 
@@ -80,6 +83,11 @@ export class DocumentsService {
     errorMessage: string | null;
     pageCount: number | null;
     totalTokens: number | null;
+    processingProgress?: number | null;
+    processingStage?: string | null;
+    processingMessage?: string | null;
+    completedUnits?: number | null;
+    totalUnits?: number | null;
     processingStartedAt: Date | null;
     processingCompletedAt: Date | null;
     createdAt: Date;
@@ -100,11 +108,73 @@ export class DocumentsService {
       errorMessage: doc.errorMessage,
       pageCount: doc.pageCount,
       totalTokens: doc.totalTokens,
+      processingProgress: doc.processingProgress ?? null,
+      processingStage: doc.processingStage ?? null,
+      processingMessage: doc.processingMessage ?? null,
+      completedUnits: doc.completedUnits ?? null,
+      totalUnits: doc.totalUnits ?? null,
       processingStartedAt: doc.processingStartedAt?.toISOString() ?? null,
       processingCompletedAt: doc.processingCompletedAt?.toISOString() ?? null,
       createdAt: doc.createdAt?.toISOString?.() ?? new Date().toISOString(),
       updatedAt: doc.updatedAt?.toISOString?.() ?? new Date().toISOString(),
     };
+  }
+
+  private validateFileSignature(file: Express.Multer.File, ext: string): void {
+    const buffer = file.buffer;
+    if (!buffer || buffer.length === 0) {
+      throw new BadRequestException('A non-empty file must be provided.');
+    }
+
+    if (ext === '.pdf') {
+      // PDF documents must start with %PDF- (0x25, 0x50, 0x44, 0x46, 0x2D)
+      const header = buffer.subarray(0, 5).toString('ascii');
+      if (!header.startsWith('%PDF-')) {
+        throw new BadRequestException(
+          'Invalid file content: File extension is .pdf but binary content does not match PDF signature (%PDF-).',
+        );
+      }
+    } else if (ext === '.docx') {
+      // DOCX documents are OpenXML zip packages starting with PK\x03\x04
+      if (
+        buffer.length < 4 ||
+        buffer[0] !== 0x50 ||
+        buffer[1] !== 0x4b ||
+        buffer[2] !== 0x03 ||
+        buffer[3] !== 0x04
+      ) {
+        throw new BadRequestException(
+          'Invalid file content: File extension is .docx but binary content does not match DOCX/ZIP signature.',
+        );
+      }
+    } else if (ext === '.doc') {
+      // Legacy .doc files start with OLE2 header (0xD0 0xCF 0x11 0xE0) or PK if docx
+      const isOle =
+        buffer.length >= 4 &&
+        buffer[0] === 0xd0 &&
+        buffer[1] === 0xcf &&
+        buffer[2] === 0x11 &&
+        buffer[3] === 0xe0;
+      const isZip =
+        buffer.length >= 4 &&
+        buffer[0] === 0x50 &&
+        buffer[1] === 0x4b &&
+        buffer[2] === 0x03 &&
+        buffer[3] === 0x04;
+      if (!isOle && !isZip) {
+        throw new BadRequestException(
+          'Invalid file content: File extension is .doc but binary content does not match Word document format.',
+        );
+      }
+    } else if (ext === '.txt') {
+      // Plain text files must not contain binary null bytes (0x00) in initial inspection window
+      const sample = buffer.subarray(0, Math.min(buffer.length, 4096));
+      if (sample.includes(0x00)) {
+        throw new BadRequestException(
+          'Invalid file content: File extension is .txt but content contains binary null bytes.',
+        );
+      }
+    }
   }
 
   async uploadFile(
@@ -118,21 +188,23 @@ export class DocumentsService {
     }
 
     if (file.size > this.maxUploadSizeBytes) {
-      const mbLimit = (this.maxUploadSizeBytes / (1024 * 1024)).toFixed(0);
       throw new BadRequestException(
-        `File exceeds maximum permitted size of ${mbLimit} MB.`,
+        'This file is larger than the 1 MB upload limit. Choose a smaller file.',
       );
     }
 
     const ext = path.extname(file.originalname).toLowerCase();
-    const isMimeAllowed = ALLOWED_MIME_TYPES.has(file.mimetype);
+    const baseMime = ((file.mimetype || '').split(';')[0] ?? '').trim().toLowerCase();
+    const isMimeAllowed = ALLOWED_MIME_TYPES.has(baseMime);
     const isExtAllowed = ALLOWED_EXTENSIONS.has(ext);
 
-    if (!isMimeAllowed && !isExtAllowed) {
+    if (!isMimeAllowed || !isExtAllowed) {
       throw new BadRequestException(
         `Unsupported file type (${file.mimetype || ext}). Supported formats: PDF, DOCX, TXT.`,
       );
     }
+
+    this.validateFileSignature(file, ext);
 
     const docId = crypto.randomUUID();
     const sanitizedBase = path
@@ -224,7 +296,9 @@ export class DocumentsService {
 
     const buffer = Buffer.from(trimmedContent, 'utf-8');
     if (buffer.length > this.maxUploadSizeBytes) {
-      throw new BadRequestException('Pasted text content exceeds size limits.');
+      throw new BadRequestException(
+        'This text content is larger than the 1 MB upload limit. Choose a smaller text.',
+      );
     }
 
     const docId = crypto.randomUUID();
@@ -311,6 +385,24 @@ export class DocumentsService {
   async getDocumentById(userId: string, documentId: string): Promise<DocumentDto> {
     const { document } = await this.workspacesService.verifyDocumentAccess(userId, documentId);
     return this.sanitizeDocument(document);
+  }
+
+  async getDocumentStatus(userId: string, documentId: string): Promise<DocumentStatusDto> {
+    const { document } = await this.workspacesService.verifyDocumentAccess(userId, documentId);
+    const isComplete = document.status === 'READY';
+    const isFailed = document.status === 'FAILED';
+    return {
+      documentId: document.id,
+      status: document.status as DocumentStatusDto['status'],
+      progress: document.processingProgress ?? (isComplete ? 100 : 0),
+      stage: document.processingStage ?? (isComplete ? 'READY' : document.status),
+      message: document.processingMessage ?? (isComplete ? 'Processing complete.' : ''),
+      completedUnits: document.completedUnits ?? null,
+      totalUnits: document.totalUnits ?? null,
+      isComplete,
+      isFailed,
+      errorCode: document.errorCode ?? null,
+    };
   }
 
   async getDocumentChunks(
@@ -407,14 +499,32 @@ export class DocumentsService {
     const fileName = document.fileName || `${document.title}.pdf`;
 
     if (rangeHeader && rangeHeader.startsWith('bytes=')) {
-      const parts = rangeHeader.replace(/bytes=/, '').split('-');
-      const start = parseInt(parts[0] || '0', 10);
-      const end = parts[1] ? parseInt(parts[1], 10) : totalSize - 1;
+      const rangeSpec = rangeHeader.replace(/bytes=/, '').trim();
+      let start: number;
+      let end: number;
 
-      if (start >= totalSize || end >= totalSize || start > end) {
+      if (rangeSpec.startsWith('-')) {
+        // Suffix range: bytes=-500 (the last 500 bytes of the file)
+        const suffixLength = parseInt(rangeSpec.substring(1), 10);
+        if (isNaN(suffixLength) || suffixLength <= 0) {
+          throw new BadRequestException('Requested range not satisfiable');
+        }
+        start = Math.max(0, totalSize - suffixLength);
+        end = totalSize - 1;
+      } else {
+        const parts = rangeSpec.split('-');
+        start = parseInt(parts[0] ?? '0', 10);
+        end =
+          parts[1] && parts[1].trim().length > 0
+            ? parseInt(parts[1], 10)
+            : totalSize - 1;
+      }
+
+      if (isNaN(start) || isNaN(end) || start < 0 || start >= totalSize || start > end) {
         throw new BadRequestException('Requested range not satisfiable');
       }
 
+      end = Math.min(end, totalSize - 1);
       const chunkSize = end - start + 1;
       const stream = await this.storageService.download(document.storagePath, { start, end });
 

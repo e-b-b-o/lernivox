@@ -57,6 +57,21 @@ export class DocumentResponseDto implements DocumentDto {
   @ApiPropertyOptional({ example: 12500, nullable: true })
   totalTokens!: number | null;
 
+  @ApiPropertyOptional({ example: 45, nullable: true })
+  processingProgress?: number | null;
+
+  @ApiPropertyOptional({ example: 'EMBEDDING', nullable: true })
+  processingStage?: string | null;
+
+  @ApiPropertyOptional({ example: 'Generating vector embeddings (18/40 batches)...', nullable: true })
+  processingMessage?: string | null;
+
+  @ApiPropertyOptional({ example: 18, nullable: true })
+  completedUnits?: number | null;
+
+  @ApiPropertyOptional({ example: 40, nullable: true })
+  totalUnits?: number | null;
+
   @ApiPropertyOptional({ example: '2026-10-29T00:00:00.000Z', nullable: true })
   processingStartedAt!: string | null;
 

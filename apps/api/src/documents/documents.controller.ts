@@ -32,6 +32,7 @@ import type {
   DocumentOutlineDto,
   DocumentReaderContentDto,
   DocumentReadingProgressDto,
+  DocumentStatusDto,
   UserDto,
 } from '@lernivox/contracts';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -56,9 +57,15 @@ export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
 
   @Post('upload')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: {
+        fileSize: 1048576, // 1 MiB (1,048,576 bytes) hard limit
+      },
+    }),
+  )
   @ApiConsumes('multipart/form-data')
-  @ApiOperation({ summary: 'Upload textbook or course material for asynchronous ingestion' })
+  @ApiOperation({ summary: 'Upload textbook or course material for asynchronous ingestion (Max 1 MB)' })
   @ApiBody({
     schema: {
       type: 'object',
@@ -66,7 +73,7 @@ export class DocumentsController {
         file: {
           type: 'string',
           format: 'binary',
-          description: 'Document file (PDF, DOCX, TXT up to 25MB)',
+          description: 'Document file (PDF, DOCX, TXT up to 1 MB)',
         },
         title: {
           type: 'string',
@@ -141,6 +148,22 @@ export class DocumentsController {
     @Param('id') id: string,
   ): Promise<DocumentResponseDto> {
     return this.documentsService.getDocumentById(user.id, id);
+  }
+
+  @Get(':id/status')
+  @ApiOperation({ summary: 'Get live document processing and ingestion status' })
+  @ApiParam({ name: 'id', description: 'Document UUID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Live ingestion status and progress.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden (no access)' })
+  @ApiResponse({ status: 404, description: 'Document not found' })
+  async getStatus(
+    @CurrentUser() user: UserDto,
+    @Param('id') id: string,
+  ): Promise<DocumentStatusDto> {
+    return this.documentsService.getDocumentStatus(user.id, id);
   }
 
   @Get(':id/chunks')
