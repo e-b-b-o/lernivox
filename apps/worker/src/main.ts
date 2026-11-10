@@ -1,15 +1,27 @@
 import { Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { WorkerModule } from './worker.module';
+import { WorkerHttpService } from './server/worker-http.service';
 
 async function bootstrap() {
   const logger = new Logger('LernivoxWorker');
-  logger.log('Starting Lernivox background worker...');
+  logger.log('Starting Lernivox background worker with HTTP control server...');
 
   const app = await NestFactory.createApplicationContext(WorkerModule);
   app.enableShutdownHooks();
 
-  logger.log('Lernivox background worker is running. Waiting for jobs...');
+  const configService = app.get(ConfigService);
+  const port = Number(configService.get<string | number>('PORT', 4001));
+
+  // Ensure WorkerHttpService starts listening on 0.0.0.0:PORT
+  const httpService = app.get(WorkerHttpService);
+  await httpService.startServer();
+
+  logger.log('Lernivox background worker is running.');
+  logger.log(`Render Free Web Service HTTP control interface listening on 0.0.0.0:${port}`);
+  logger.log('Endpoints: GET /healthz, GET /readyz, POST /internal/wake');
+  logger.log('Waiting for BullMQ jobs...');
 }
 
 void bootstrap();

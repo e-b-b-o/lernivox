@@ -7,6 +7,8 @@ import { AiOrchestrationProcessor } from './processors/ai-orchestration.processo
 import { QuizGenerationProcessor } from './processors/quiz-generation.processor';
 import { FlashcardGenerationProcessor } from './processors/flashcard-generation.processor';
 import { WorkerHealthService } from './health/worker-health.service';
+import { WorkerHttpService } from './server/worker-http.service';
+import { buildRedisConnectionOptions } from './config/redis.config';
 import { PrismaModule } from './prisma/prisma.module';
 import { StorageModule } from './storage/storage.module';
 
@@ -19,13 +21,7 @@ import { StorageModule } from './storage/storage.module';
     BullModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
-        connection: {
-          host: configService.get<string>('REDIS_HOST', 'localhost'),
-          port: configService.get<number>('REDIS_PORT', 6379),
-          lazyConnect: true,
-          maxRetriesPerRequest: null,
-          enableReadyCheck: false,
-        },
+        connection: buildRedisConnectionOptions(configService),
       }),
       inject: [ConfigService],
     }),
@@ -44,6 +40,8 @@ import { StorageModule } from './storage/storage.module';
     QuizGenerationProcessor,
     FlashcardGenerationProcessor,
     WorkerHealthService,
+    WorkerHttpService,
   ],
+  exports: [WorkerHealthService, WorkerHttpService],
 })
 export class WorkerModule {}
