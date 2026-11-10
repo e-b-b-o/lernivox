@@ -107,6 +107,10 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     return this.client.workspaceDiscussionMessage;
   }
 
+  get workspaceDiscussionReadCursor(): PrismaClient['workspaceDiscussionReadCursor'] {
+    return this.client.workspaceDiscussionReadCursor;
+  }
+
   get sharedConversationSnapshot(): PrismaClient['sharedConversationSnapshot'] {
     return this.client.sharedConversationSnapshot;
   }
@@ -121,6 +125,14 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
 
   get userFlashcardReview(): PrismaClient['userFlashcardReview'] {
     return this.client.userFlashcardReview;
+  }
+
+  get studyPlan(): PrismaClient['studyPlan'] {
+    return this.client.studyPlan;
+  }
+
+  get studyScheduleItem(): PrismaClient['studyScheduleItem'] {
+    return this.client.studyScheduleItem;
   }
 
   get $transaction(): PrismaClient['$transaction'] {

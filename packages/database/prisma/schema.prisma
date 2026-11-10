@@ -183,6 +183,7 @@ model User {
   sharedConversationSnapshots SharedConversationSnapshot[]  @relation("UserSharedConversations")
   createdFlashcardDecks       FlashcardDeck[]               @relation("UserCreatedFlashcardDecks")
   flashcardReviews            UserFlashcardReview[]         @relation("UserFlashcardReviews")
+  discussionReadCursors       WorkspaceDiscussionReadCursor[] @relation("UserDiscussionReadCursors")
 
   @@map("users")
 }
@@ -263,9 +264,11 @@ model Workspace {
   conversations       Conversation[]
   invitations         WorkspaceInvitation[]
   discussions         WorkspaceDiscussionMessage[]
+  discussionReadCursors WorkspaceDiscussionReadCursor[]
   sharedConversations SharedConversationSnapshot[]
   quizzes             Quiz[]
   flashcardDecks      FlashcardDeck[]
+  studyPlans          StudyPlan[]
   createdAt           DateTime                     @default(now())
   updatedAt           DateTime                     @updatedAt
 
@@ -300,6 +303,7 @@ model WorkspaceInvitation {
   acceptedById String?
   acceptedBy   User?         @relation("AcceptedWorkspaceInvitations", fields: [acceptedById], references: [id], onDelete: SetNull)
   revokedAt    DateTime?
+  declinedAt   DateTime?
   createdById  String
   createdBy    User          @relation("CreatedWorkspaceInvitations", fields: [createdById], references: [id], onDelete: Cascade)
   createdAt    DateTime      @default(now())
@@ -325,6 +329,22 @@ model WorkspaceDiscussionMessage {
   @@index([workspaceId, createdAt])
   @@index([userId])
   @@map("workspace_discussion_messages")
+}
+
+model WorkspaceDiscussionReadCursor {
+  id                String    @id @default(uuid())
+  workspaceId       String
+  workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId            String
+  user              User      @relation("UserDiscussionReadCursors", fields: [userId], references: [id], onDelete: Cascade)
+  lastReadMessageId String?
+  lastReadAt        DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([workspaceId, userId])
+  @@index([workspaceId])
+  @@index([userId])
+  @@map("workspace_discussion_read_cursors")
 }
 
 model SharedConversationSnapshot {
@@ -444,6 +464,11 @@ model Document {
   errorMessage          String?
   pageCount             Int?
   totalTokens           Int?
+  processingProgress    Int?               @default(0)
+  processingStage       String?
+  processingMessage     String?
+  completedUnits        Int?
+  totalUnits            Int?
   processingStartedAt   DateTime?
   processingCompletedAt DateTime?
   createdAt             DateTime           @default(now())
@@ -462,6 +487,7 @@ model Document {
   studyGroupResources StudyGroupResource[]
   readingProgress     DocumentReadingProgress[]
   bookmarks           DocumentBookmark[]
+  studyPlans          StudyPlan[]
 
   @@index([ownerId])
   @@index([workspaceId])
@@ -834,38 +860,60 @@ model StudentProgress {
 // -------------------------------------------------------------
 
 model StudyPlan {
-  id             String              @id @default(uuid())
-  userId         String
-  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  courseId       String?
-  course         Course?             @relation(fields: [courseId], references: [id], onDelete: SetNull)
-  title          String
-  targetExamDate DateTime?
-  isActive       Boolean             @default(true)
-  scheduleItems  StudyScheduleItem[]
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
+  id                     String              @id @default(uuid())
+  userId                 String
+  user                   User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId               String?
+  course                 Course?             @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  workspaceId            String?
+  workspace              Workspace?          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  documentId             String?
+  document               Document?           @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  title                  String
+  goal                   String?
+  preferences            Json?
+  lifecycleStatus        String              @default("ACTIVE")
+  adaptationHistory      Json?
+  estimatedDurationWeeks Int?
+  offerDismissed         Boolean             @default(false)
+  targetExamDate         DateTime?
+  isActive               Boolean             @default(true)
+  scheduleItems          StudyScheduleItem[]
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
 
   @@index([userId])
   @@index([courseId])
+  @@index([workspaceId])
+  @@index([documentId])
+  @@index([userId, workspaceId])
   @@map("study_plans")
 }
 
 model StudyScheduleItem {
-  id            String           @id @default(uuid())
-  studyPlanId   String
-  studyPlan     StudyPlan        @relation(fields: [studyPlanId], references: [id], onDelete: Cascade)
-  scheduledDate DateTime
-  title         String
-  description   String?
-  sectionId     String?
-  section       DocumentSection? @relation(fields: [sectionId], references: [id], onDelete: SetNull)
-  topicKey      String?
-  isCompleted   Boolean          @default(false)
-  completedAt   DateTime?
-  createdAt     DateTime         @default(now())
+  id               String           @id @default(uuid())
+  studyPlanId      String
+  studyPlan        StudyPlan        @relation(fields: [studyPlanId], references: [id], onDelete: Cascade)
+  sessionNumber    Int              @default(1)
+  orderIndex       Int              @default(0)
+  scheduledDate    DateTime
+  title            String
+  description      String?
+  status           String           @default("NOT_STARTED")
+  activities       Json?
+  sourcePageStart  Int?
+  sourcePageEnd    Int?
+  sourceChapter    String?
+  estimatedMinutes Int              @default(30)
+  sectionId        String?
+  section          DocumentSection? @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+  topicKey         String?
+  isCompleted      Boolean          @default(false)
+  completedAt      DateTime?
+  createdAt        DateTime         @default(now())
 
   @@index([studyPlanId])
+  @@index([studyPlanId, orderIndex])
   @@map("study_schedule_items")
 }
 
