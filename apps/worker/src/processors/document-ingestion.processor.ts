@@ -5,6 +5,7 @@ import { Job } from 'bullmq';
 import { Readable } from 'stream';
 import {
   DocumentIngestionJobPayload,
+  DocumentProcessingStatus,
   JobExecutionResult,
   QueueName,
 } from '@lernivox/contracts';
@@ -34,6 +35,59 @@ export class DocumentIngestionProcessor extends WorkerHost {
     super();
   }
 
+  private async updateDocumentProgress(
+    documentId: string,
+    job: Job<DocumentIngestionJobPayload, JobExecutionResult>,
+    data: {
+      status: DocumentProcessingStatus;
+      progress: number;
+      stage: string;
+      message: string;
+      completedUnits?: number | null;
+      totalUnits?: number | null;
+      pageCount?: number | null;
+      totalTokens?: number | null;
+      errorCode?: string | null;
+      errorMessage?: string | null;
+    },
+  ): Promise<void> {
+    try {
+      if (typeof job?.updateProgress === 'function') {
+        await job.updateProgress({
+          progress: data.progress,
+          stage: data.stage,
+          message: data.message,
+          completedUnits: data.completedUnits,
+          totalUnits: data.totalUnits,
+        });
+      }
+    } catch {
+      // ignore job progress failure
+    }
+
+    try {
+      await this.prisma.document.update({
+        where: { id: documentId },
+        data: {
+          status: data.status,
+          processingProgress: data.progress,
+          processingStage: data.stage,
+          processingMessage: data.message,
+          completedUnits: data.completedUnits ?? null,
+          totalUnits: data.totalUnits ?? null,
+          ...(data.pageCount !== undefined ? { pageCount: data.pageCount } : {}),
+          ...(data.totalTokens !== undefined ? { totalTokens: data.totalTokens } : {}),
+          ...(data.errorCode !== undefined ? { errorCode: data.errorCode } : {}),
+          ...(data.errorMessage !== undefined ? { errorMessage: data.errorMessage } : {}),
+          ...(data.status === 'PROCESSING' ? { processingStartedAt: new Date() } : {}),
+          ...(data.status === 'READY' ? { processingCompletedAt: new Date() } : {}),
+        },
+      });
+    } catch (err) {
+      this.logger.warn(`Failed to persist document progress for ${documentId}: ${(err as Error).message}`);
+    }
+  }
+
   async process(
     job: Job<DocumentIngestionJobPayload, JobExecutionResult>,
   ): Promise<JobExecutionResult> {
@@ -42,15 +96,12 @@ export class DocumentIngestionProcessor extends WorkerHost {
     this.logger.log(`[Job ${job.id}] Starting ingestion for document: ${documentId}`);
 
     try {
-      // 1. Mark status as PROCESSING
-      await this.prisma.document.update({
-        where: { id: documentId },
-        data: {
-          status: 'PROCESSING',
-          processingStartedAt: new Date(),
-          errorCode: null,
-          errorMessage: null,
-        },
+      // 1. Mark status as PROCESSING / QUEUED (5%)
+      await this.updateDocumentProgress(documentId, job, {
+        status: 'PROCESSING',
+        progress: 5,
+        stage: 'QUEUED',
+        message: 'Queued for processing',
       });
 
       // 2. Download from storage
@@ -58,10 +109,12 @@ export class DocumentIngestionProcessor extends WorkerHost {
       const fileStream = await this.storage.download(storagePath);
       const fileBuffer = await streamToBuffer(fileStream);
 
-      // 3. Mark status as EXTRACTING
-      await this.prisma.document.update({
-        where: { id: documentId },
-        data: { status: 'EXTRACTING' },
+      // 3. Mark status as EXTRACTING (15%)
+      await this.updateDocumentProgress(documentId, job, {
+        status: 'EXTRACTING',
+        progress: 15,
+        stage: 'EXTRACTING',
+        message: 'Extracting document text',
       });
 
       let rawText = '';
@@ -96,10 +149,23 @@ export class DocumentIngestionProcessor extends WorkerHost {
         throw new Error('No readable text found in document');
       }
 
-      // 4. Mark status as CHUNKING
-      await this.prisma.document.update({
-        where: { id: documentId },
-        data: { status: 'CHUNKING' },
+      // Extraction complete (25%)
+      await this.updateDocumentProgress(documentId, job, {
+        status: 'EXTRACTING',
+        progress: 25,
+        stage: 'EXTRACTING',
+        message: pageCount ? `Extracted ${pageCount} pages` : 'Document text extracted',
+        completedUnits: pageCount ?? 1,
+        totalUnits: pageCount ?? 1,
+        pageCount,
+      });
+
+      // 4. Mark status as CHUNKING (30%)
+      await this.updateDocumentProgress(documentId, job, {
+        status: 'CHUNKING',
+        progress: 30,
+        stage: 'CHUNKING',
+        message: 'Organizing extracted text',
       });
 
       // Check if existing chunks already exist in DB to allow resuming embedding
@@ -147,14 +213,18 @@ export class DocumentIngestionProcessor extends WorkerHost {
         chunks = generatedChunks;
       }
 
+      // Chunks generated (35%)
+      await this.updateDocumentProgress(documentId, job, {
+        status: 'CHUNKING',
+        progress: 35,
+        stage: 'CHUNKING',
+        message: `Organized into ${chunks.length} sections`,
+        completedUnits: chunks.length,
+        totalUnits: chunks.length,
+      });
+
       // Persist chunks
       const totalTokens = chunks.reduce((sum, c) => sum + (c.tokenCount ?? c.metadata?.tokenCount ?? 0), 0);
-
-      // 5. Mark status as EMBEDDING
-      await this.prisma.document.update({
-        where: { id: documentId },
-        data: { status: 'EMBEDDING' },
-      });
 
       // Resolve AI Provider
       const aiProvider = this.getAiProvider();
@@ -178,47 +248,82 @@ export class DocumentIngestionProcessor extends WorkerHost {
         `[Job ${job.id}] Total chunks: ${chunks.length}, already embedded: ${embeddedChunkIds.size}, remaining to embed: ${chunksToEmbed.length}`,
       );
 
-      // Batch embeddings generation (up to 10 at a time)
+      // 5. Embedding Stage (35% -> 90%)
       const batchSize = 10;
-      for (let i = 0; i < chunksToEmbed.length; i += batchSize) {
-        const batch = chunksToEmbed.slice(i, i + batchSize);
-        const batchTexts = batch.map((c) => c.content);
-        const embeddingResults = await aiProvider.generateEmbeddings(batchTexts);
+      const totalBatches = Math.max(1, Math.ceil(chunksToEmbed.length / batchSize));
 
-        for (let j = 0; j < batch.length; j++) {
-          const chunkItem = batch[j];
-          const embItem = embeddingResults[j];
+      if (chunksToEmbed.length === 0) {
+        await this.updateDocumentProgress(documentId, job, {
+          status: 'EMBEDDING',
+          progress: 90,
+          stage: 'EMBEDDING',
+          message: 'Vector embeddings verified',
+          completedUnits: totalBatches,
+          totalUnits: totalBatches,
+        });
+      } else {
+        for (let i = 0; i < chunksToEmbed.length; i += batchSize) {
+          const batchIndex = Math.floor(i / batchSize);
+          const batch = chunksToEmbed.slice(i, i + batchSize);
+          const batchTexts = batch.map((c) => c.content);
+          const embeddingResults = await aiProvider.generateEmbeddings(batchTexts);
 
-          if (!chunkItem || !embItem) continue;
+          for (let j = 0; j < batch.length; j++) {
+            const chunkItem = batch[j];
+            const embItem = embeddingResults[j];
 
-          // Verify dimension is 768
-          if (embItem.embedding.length !== 768) {
-            throw new Error(
-              `Embedding dimension mismatch: expected 768, got ${embItem.embedding.length}`,
+            if (!chunkItem || !embItem) continue;
+
+            // Verify dimension is 768
+            if (embItem.embedding.length !== 768) {
+              throw new Error(
+                `Embedding dimension mismatch: expected 768, got ${embItem.embedding.length}`,
+              );
+            }
+
+            // Persist to document_chunks and chunk_embeddings via pgvector
+            await storeChunkVector(
+              this.prisma.client,
+              chunkItem.id,
+              embItem.embedding,
+              embItem.model,
             );
           }
 
-          // Persist to document_chunks and chunk_embeddings via pgvector
-          await storeChunkVector(
-            this.prisma.client,
-            chunkItem.id,
-            embItem.embedding,
-            embItem.model,
-          );
+          // Monotonic progress update per batch completed (35% -> 90%)
+          const currentBatchNum = batchIndex + 1;
+          const progress = 35 + Math.round((currentBatchNum / totalBatches) * 55);
+          await this.updateDocumentProgress(documentId, job, {
+            status: 'EMBEDDING',
+            progress: Math.min(progress, 90),
+            stage: 'EMBEDDING',
+            message: 'Generating vector embeddings',
+            completedUnits: currentBatchNum,
+            totalUnits: totalBatches,
+          });
         }
       }
 
-      // 6. Mark status as READY
-      await this.prisma.document.update({
-        where: { id: documentId },
-        data: {
-          status: 'READY',
-          pageCount,
-          totalTokens,
-          processingCompletedAt: new Date(),
-          errorCode: null,
-          errorMessage: null,
-        },
+      // 6. Indexing stage (95%)
+      await this.updateDocumentProgress(documentId, job, {
+        status: 'PROCESSING',
+        progress: 95,
+        stage: 'INDEXING',
+        message: 'Organizing sections and topics',
+        completedUnits: chunks.length,
+        totalUnits: chunks.length,
+      });
+
+      // 7. Mark status as READY (100%)
+      await this.updateDocumentProgress(documentId, job, {
+        status: 'READY',
+        progress: 100,
+        stage: 'READY',
+        message: 'Ready for Study',
+        pageCount,
+        totalTokens,
+        completedUnits: chunks.length,
+        totalUnits: chunks.length,
       });
 
       const durationMs = Date.now() - startTime;
@@ -238,18 +343,26 @@ export class DocumentIngestionProcessor extends WorkerHost {
       };
     } catch (error) {
       const durationMs = Date.now() - startTime;
-      const errorMessage = (error as Error).message || 'Document processing failed';
-      this.logger.error(`[Job ${job.id}] Ingestion failed for document ${documentId}: ${errorMessage}`);
+      const rawError = (error as Error).message || 'Document processing failed';
+      this.logger.error(`[Job ${job.id}] Ingestion failed for document ${documentId}: ${rawError}`);
 
-      // Update document record with failure info
-      await this.prisma.document.update({
-        where: { id: documentId },
-        data: {
-          status: 'FAILED',
-          errorCode: 'PROCESSING_ERROR',
-          errorMessage: errorMessage.substring(0, 500),
-          processingCompletedAt: new Date(),
-        },
+      // User-friendly sanitized failure message (never expose raw stack traces)
+      let safeMessage = 'Document processing failed. Please verify the file and try again.';
+      if (rawError.includes('No readable text')) {
+        safeMessage = 'No readable text found in document. Please upload a document with readable text.';
+      } else if (rawError.includes('credentials') || rawError.includes('quota') || rawError.includes('429')) {
+        safeMessage = 'AI processing service is temporarily busy. Please retry in a few moments.';
+      } else if (rawError.includes('dimension') || rawError.includes('corrupted')) {
+        safeMessage = 'Document structure could not be processed. Please try re-saving the file.';
+      }
+
+      await this.updateDocumentProgress(documentId, job, {
+        status: 'FAILED',
+        progress: 0,
+        stage: 'FAILED',
+        message: safeMessage,
+        errorCode: 'PROCESSING_ERROR',
+        errorMessage: safeMessage,
       });
 
       throw error;

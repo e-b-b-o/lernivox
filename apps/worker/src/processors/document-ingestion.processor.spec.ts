@@ -70,19 +70,19 @@ describe('DocumentIngestionProcessor', () => {
     expect(mockPrisma.document.update).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { id: 'doc-123' },
-        data: { status: 'EXTRACTING' },
+        data: expect.objectContaining({ status: 'EXTRACTING' }),
       }),
     );
     expect(mockPrisma.document.update).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { id: 'doc-123' },
-        data: { status: 'CHUNKING' },
+        data: expect.objectContaining({ status: 'CHUNKING' }),
       }),
     );
     expect(mockPrisma.document.update).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { id: 'doc-123' },
-        data: { status: 'EMBEDDING' },
+        data: expect.objectContaining({ status: 'EMBEDDING' }),
       }),
     );
     expect(mockPrisma.document.update).toHaveBeenCalledWith(
