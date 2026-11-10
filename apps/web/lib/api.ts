@@ -9,6 +9,7 @@ import type {
   DocumentOutlineDto,
   DocumentReaderContentDto,
   DocumentReadingProgressDto,
+  DocumentStatusDto,
   DocumentUploadResponseDto,
   LoginRequestDto,
   LogoutResponseDto,
@@ -53,29 +54,128 @@ import type {
   CreateDiscussionMessageDto,
   DiscussionMessageDto,
   DiscussionMessagesListResponseDto,
+  WorkspaceDiscussionUnreadDto,
+  MarkDiscussionReadResponseDto,
   CreateSharedConversationDto,
   SharedConversationSnapshotDto,
   SharedConversationsListResponseDto,
+  LearningPlanDto,
+  StudySessionDto,
+  PlanOfferDto,
+  LearningPlanPreviewDto,
+  CreatePlanPreviewDto,
+  AcceptPlanDto,
+  UpdateSessionDto,
+  AdaptPlanDto,
+  UpdatePlanLifecycleDto,
 } from '@lernivox/contracts';
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
 export class ApiError extends Error {
-  constructor(
-    public readonly statusCode: number,
-    message: string,
-    public readonly details?: unknown,
-  ) {
+  readonly statusCode: number;
+  readonly details?: unknown;
+
+  constructor(statusCode: number, message: string, details?: unknown) {
     super(message);
     this.name = 'ApiError';
+    this.statusCode = statusCode;
+    this.details = details;
   }
+}
+
+type TokenRefreshedCallback = (token: string, user?: UserDto) => void;
+type SessionExpiredCallback = () => void;
+
+const tokenRefreshedListeners = new Set<TokenRefreshedCallback>();
+const sessionExpiredListeners = new Set<SessionExpiredCallback>();
+
+export function onTokenRefreshed(cb: TokenRefreshedCallback): () => void {
+  tokenRefreshedListeners.add(cb);
+  return () => {
+    tokenRefreshedListeners.delete(cb);
+  };
+}
+
+export function onSessionExpired(cb: SessionExpiredCallback): () => void {
+  sessionExpiredListeners.add(cb);
+  return () => {
+    sessionExpiredListeners.delete(cb);
+  };
+}
+
+function notifyTokenRefreshed(token: string, user?: UserDto) {
+  for (const listener of tokenRefreshedListeners) {
+    try {
+      listener(token, user);
+    } catch (e) {
+      console.error('Error in onTokenRefreshed listener', e);
+    }
+  }
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(
+      new CustomEvent('auth:token-refreshed', { detail: { accessToken: token, user } }),
+    );
+  }
+}
+
+function notifySessionExpired() {
+  for (const listener of sessionExpiredListeners) {
+    try {
+      listener();
+    } catch (e) {
+      console.error('Error in onSessionExpired listener', e);
+    }
+  }
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('auth:session-expired'));
+  }
+}
+
+let refreshPromise: Promise<string | null> | null = null;
+
+export async function silentRefreshToken(): Promise<string | null> {
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include',
+        });
+        if (!res.ok) {
+          return null;
+        }
+        const data = (await res.json()) as AuthResponseDto;
+        const newToken = data.accessToken || null;
+        if (newToken) {
+          notifyTokenRefreshed(newToken, data.user);
+        }
+        return newToken;
+      } catch {
+        return null;
+      } finally {
+        refreshPromise = null;
+      }
+    })();
+  }
+  return refreshPromise;
+}
+
+function isAuthEndpoint(endpoint: string): boolean {
+  return (
+    endpoint.startsWith('/auth/login') ||
+    endpoint.startsWith('/auth/register') ||
+    endpoint.startsWith('/auth/refresh') ||
+    endpoint.startsWith('/auth/logout')
+  );
 }
 
 async function request<T>(
   endpoint: string,
   options: RequestInit = {},
   accessToken?: string | null,
+  isRetry = false,
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
 
@@ -106,26 +206,64 @@ async function request<T>(
     );
   }
 
+  // Handle 401 Unauthorized: silent refresh and single-flight retry for protected endpoints
+  if (response.status === 401 && !isRetry && !isAuthEndpoint(endpoint)) {
+    const newToken = await silentRefreshToken();
+    if (newToken) {
+      // Retry once with the refreshed access token, preserving body and method
+      return request<T>(endpoint, options, newToken, true);
+    }
+    // Refresh failed or revoked: notify subscribers that session expired
+    notifySessionExpired();
+    throw new ApiError(401, 'Your session has expired. Please sign in again.');
+  }
+
+  if (response.status === 204) {
+    return null as T;
+  }
+
+  const rawText = await response.text();
+  const trimmed = rawText.trim();
+
   if (!response.ok) {
     let errorMessage = `HTTP error ${response.status}`;
     let details: unknown;
 
-    try {
-      const errorJson = await response.json();
-      details = errorJson;
-      if (Array.isArray(errorJson.message)) {
-        errorMessage = errorJson.message.join(', ');
-      } else if (typeof errorJson.message === 'string') {
-        errorMessage = errorJson.message;
+    if (trimmed.length > 0) {
+      try {
+        const errorJson = JSON.parse(trimmed);
+        details = errorJson;
+        const rawMsg =
+          errorJson.error?.message ||
+          errorJson.message ||
+          (typeof errorJson.error === 'string' ? errorJson.error : null);
+
+        if (Array.isArray(rawMsg)) {
+          errorMessage = rawMsg.join(', ');
+        } else if (typeof rawMsg === 'string') {
+          errorMessage = rawMsg;
+        }
+      } catch {
+        errorMessage = trimmed;
       }
-    } catch {
-      // response wasn't JSON
     }
 
     throw new ApiError(response.status, errorMessage, details);
   }
 
-  return response.json();
+  if (trimmed.length === 0) {
+    return null as T;
+  }
+
+  try {
+    return JSON.parse(trimmed) as T;
+  } catch (err) {
+    throw new ApiError(
+      response.status,
+      `Failed to parse server response as JSON: ${err instanceof Error ? err.message : String(err)}`,
+      trimmed,
+    );
+  }
 }
 
 export const api = {
@@ -165,6 +303,9 @@ export const api = {
       title?: string,
       workspaceType?: 'PERSONAL' | 'GROUP',
     ): Promise<DocumentUploadResponseDto> => {
+      if (file.size > 1048576) {
+        throw new Error('This file is larger than the 1 MB upload limit. Choose a smaller file.');
+      }
       const formData = new FormData();
       formData.append('file', file);
       if (title) formData.append('title', title);
@@ -176,18 +317,29 @@ export const api = {
       );
     },
 
-    createFromText: (data: CreatePastedTextDto, token: string): Promise<DocumentUploadResponseDto> =>
-      request<DocumentUploadResponseDto>(
+    createFromText: (data: CreatePastedTextDto, token: string): Promise<DocumentUploadResponseDto> => {
+      const byteLen =
+        typeof window !== 'undefined'
+          ? new TextEncoder().encode(data.content || '').length
+          : Buffer.byteLength(data.content || '', 'utf8');
+      if (byteLen > 1048576) {
+        throw new Error('This text content is larger than the 1 MB upload limit. Choose a smaller text.');
+      }
+      return request<DocumentUploadResponseDto>(
         '/documents/text',
         { method: 'POST', body: JSON.stringify(data) },
         token,
-      ),
+      );
+    },
 
     list: (token: string): Promise<DocumentDto[]> =>
       request<DocumentDto[]>('/documents', { method: 'GET' }, token),
 
     getById: (id: string, token: string): Promise<DocumentDto> =>
       request<DocumentDto>(`/documents/${id}`, { method: 'GET' }, token),
+
+    getStatus: (id: string, token: string): Promise<DocumentStatusDto> =>
+      request<DocumentStatusDto>(`/documents/${id}/status`, { method: 'GET' }, token),
 
     getChunks: (id: string, token: string): Promise<DocumentChunkDto[]> =>
       request<DocumentChunkDto[]>(`/documents/${id}/chunks`, { method: 'GET' }, token),
@@ -348,6 +500,26 @@ export const api = {
         token,
       ),
 
+    acceptPendingInvite: (
+      id: string,
+      accessToken: string,
+    ): Promise<AcceptInvitationResponseDto> =>
+      request<AcceptInvitationResponseDto>(
+        `/invitations/pending/${id}/accept`,
+        { method: 'POST' },
+        accessToken,
+      ),
+
+    declinePendingInvite: (
+      id: string,
+      accessToken: string,
+    ): Promise<{ success: boolean; message: string }> =>
+      request<{ success: boolean; message: string }>(
+        `/invitations/pending/${id}/decline`,
+        { method: 'POST' },
+        accessToken,
+      ),
+
     getDiscussions: (
       workspaceId: string,
       token: string,
@@ -373,6 +545,30 @@ export const api = {
       request<DiscussionMessageDto>(
         `/workspaces/${workspaceId}/discussions`,
         { method: 'POST', body: JSON.stringify(data) },
+        token,
+      ),
+
+    getUnreadDiscussionCount: (
+      workspaceId: string,
+      token: string,
+    ): Promise<WorkspaceDiscussionUnreadDto> =>
+      request<WorkspaceDiscussionUnreadDto>(
+        `/workspaces/${workspaceId}/discussions/unread`,
+        { method: 'GET' },
+        token,
+      ),
+
+    markDiscussionAsRead: (
+      workspaceId: string,
+      token: string,
+      lastReadMessageId?: string,
+    ): Promise<MarkDiscussionReadResponseDto> =>
+      request<MarkDiscussionReadResponseDto>(
+        `/workspaces/${workspaceId}/discussions/read`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ lastReadMessageId }),
+        },
         token,
       ),
 
@@ -429,6 +625,26 @@ export const api = {
     ): Promise<AcceptInvitationResponseDto> =>
       request<AcceptInvitationResponseDto>(
         `/invitations/${token}/accept`,
+        { method: 'POST' },
+        accessToken,
+      ),
+
+    acceptPending: (
+      id: string,
+      accessToken: string,
+    ): Promise<AcceptInvitationResponseDto> =>
+      request<AcceptInvitationResponseDto>(
+        `/invitations/pending/${id}/accept`,
+        { method: 'POST' },
+        accessToken,
+      ),
+
+    declinePending: (
+      id: string,
+      accessToken: string,
+    ): Promise<{ success: boolean; message: string }> =>
+      request<{ success: boolean; message: string }>(
+        `/invitations/pending/${id}/decline`,
         { method: 'POST' },
         accessToken,
       ),
@@ -663,6 +879,92 @@ export const api = {
       request<{ success: boolean }>(
         `/flashcards/decks/${deckId}`,
         { method: 'DELETE' },
+        token,
+      ),
+  },
+
+  learningPlans: {
+    getOffer: (workspaceId: string, token: string): Promise<PlanOfferDto> =>
+      request<PlanOfferDto>(
+        `/workspaces/${workspaceId}/learning-plan/offer`,
+        { method: 'GET' },
+        token,
+      ),
+
+    dismissOffer: (workspaceId: string, token: string): Promise<{ success: boolean }> =>
+      request<{ success: boolean }>(
+        `/workspaces/${workspaceId}/learning-plan/offer/dismiss`,
+        { method: 'POST' },
+        token,
+      ),
+
+    generatePreview: (
+      workspaceId: string,
+      data: CreatePlanPreviewDto,
+      token: string,
+    ): Promise<LearningPlanPreviewDto> =>
+      request<LearningPlanPreviewDto>(
+        `/workspaces/${workspaceId}/learning-plan/preview`,
+        { method: 'POST', body: JSON.stringify(data) },
+        token,
+      ),
+
+    createPlan: (
+      workspaceId: string,
+      data: AcceptPlanDto,
+      token: string,
+    ): Promise<LearningPlanDto> =>
+      request<LearningPlanDto>(
+        `/workspaces/${workspaceId}/learning-plan`,
+        { method: 'POST', body: JSON.stringify(data) },
+        token,
+      ),
+
+    getActivePlan: (workspaceId: string, token: string): Promise<LearningPlanDto | null> =>
+      request<LearningPlanDto | null>(
+        `/workspaces/${workspaceId}/learning-plan`,
+        { method: 'GET' },
+        token,
+      ),
+
+    getNextSession: (workspaceId: string, token: string): Promise<StudySessionDto | null> =>
+      request<StudySessionDto | null>(
+        `/workspaces/${workspaceId}/learning-plan/next-session`,
+        { method: 'GET' },
+        token,
+      ),
+
+    updateSession: (
+      workspaceId: string,
+      sessionId: string,
+      data: UpdateSessionDto,
+      token: string,
+    ): Promise<LearningPlanDto> =>
+      request<LearningPlanDto>(
+        `/workspaces/${workspaceId}/learning-plan/sessions/${sessionId}`,
+        { method: 'PATCH', body: JSON.stringify(data) },
+        token,
+      ),
+
+    adaptPlan: (
+      workspaceId: string,
+      data: AdaptPlanDto = {},
+      token: string,
+    ): Promise<LearningPlanDto> =>
+      request<LearningPlanDto>(
+        `/workspaces/${workspaceId}/learning-plan/adapt`,
+        { method: 'POST', body: JSON.stringify(data) },
+        token,
+      ),
+
+    updateLifecycle: (
+      workspaceId: string,
+      data: UpdatePlanLifecycleDto,
+      token: string,
+    ): Promise<LearningPlanDto> =>
+      request<LearningPlanDto>(
+        `/workspaces/${workspaceId}/learning-plan/lifecycle`,
+        { method: 'PATCH', body: JSON.stringify(data) },
         token,
       ),
   },

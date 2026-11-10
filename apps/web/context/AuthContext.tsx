@@ -8,7 +8,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { api, ApiError } from '../lib/api';
+import { api, ApiError, onTokenRefreshed, onSessionExpired } from '../lib/api';
 import type {
   LoginRequestDto,
   RegisterRequestDto,
@@ -52,6 +52,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     void refreshSession();
   }, [refreshSession]);
+
+  // Synchronize state when centralized API client performs silent token refresh or detects session expiry
+  useEffect(() => {
+    const unsubRefreshed = onTokenRefreshed((newToken, newUser) => {
+      setAccessToken(newToken);
+      if (newUser) {
+        setUser(newUser);
+      }
+    });
+
+    const unsubExpired = onSessionExpired(() => {
+      setUser(null);
+      setAccessToken(null);
+    });
+
+    return () => {
+      unsubRefreshed();
+      unsubExpired();
+    };
+  }, []);
 
   const login = useCallback(
     async (data: LoginRequestDto) => {
