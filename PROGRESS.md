@@ -81,50 +81,253 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 | **Phase 1** | **Book-Centered Core Foundation** | **Complete** | 1:1 Workspace domain model, idempotent backfill, access control, one-way conversion invariant, "My Books" launcher, canonical `/dashboard/workspaces/[workspaceId]` route, compatibility redirects, 100% data preservation verified. |
 | **Phase 2** | **Personal-to-Group Conversion and Collaboration** | **Complete** | Convert Personal to Group UI, invitations, membership management, group roles, shared group discussions, private conversation sharing. |
 | **Phase 3** | **Workspace Learning Experience** | **Complete** | Chapter- and range-grounded quizzes, attempts & failed question history, flashcard generation & SM-2 review, individual progress tracking, BrightPath workspace UI integration. |
-| **Phase 4** | **Optional AI Learning Plans** | Planned | AI-assisted structured study sequences, adaptive recommendations based on quiz performance. |
+| **Phase 4** | **Optional AI Learning Plans & Production Hardening** | **Complete** | Structured, grounded study plans, contextual tutor offer in chat, session stepper & activity tracking, evidence-based schedule adaptation, pause/resume lifecycle, 100% student privacy, OWASP ASVS 5.0 security hardening, bundle optimization (101 kB shared JS), and complete production readiness runbooks. |
 
 ---
 
 ## 6. Current Task Record
 
-- **Task**: Final Workspace Responsive Corrections (Embed Viewer Standardization, Mutually Exclusive Sidebars, Clean Two-Row Header)
+- **Task**: Group Collaboration Improvements, Responsive Public Navigation & Complete Product Language Refactor
 - **Status**: **Complete**
 - **Objective**:
-  1. Standardize the document reader on the existing working Embed viewer, remove the mode toggle completely, and preserve native page navigation (`< Page 1 / 10 >`) and zoom controls (`[-] [100%] [+]`), bookmark toggle, and Focus mode.
-  2. Fix workspace panel collisions using a coordinated, mutually exclusive drawer state below 1280px: off-canvas overlay drawers below 1024px with `z-40` backdrop and `z-50` drawer sheet; single-docked sidebar between 1024px and 1279px with $\ge 620\text{px}$ canvas floor; 3-panel docking $\ge 1280\text{px}$; deterministic window resize conflict resolution.
-  3. Remove the duplicate document title from Row 1 top workspace header (`TutorHeader.tsx`), establishing a clean two-row hierarchy where Row 1 owns global navigation and Row 2 owns document reading controls and single authoritative document title display.
+  Implement 4 connected improvements across collaboration, public navigation, and brand language:
+  1. *Feature A — Group Workspace Unread Message Notification Badge on Navbar Pill*: Display unread discussion message count as a terracotta `#E8722C` badge on both desktop `TutorHeader` pill and mobile Row 2 Group button with persistent read-cursor architecture per user and per workspace (`WorkspaceDiscussionReadCursor`), automated marking as read upon viewing discussions, background polling, and full backend authorization.
+  2. *Feature B — Professional Auto-Expanding Group Discussion Composer*: In `GroupDiscussionPane.tsx`, replace single-line `<input>` with auto-expanding multiline `<textarea>` reusing AI tutor composer interaction patterns (min-height 38px, max-height 140px with internal scrolling, resets height on send, Enter sends, Shift+Enter adds newline, IME composition guard, page anchoring preserved, draft preserved on network error).
+  3. *Feature C — Direct Dashboard Shortcut in Public Mobile/Tablet Navigation*: In `Navbar.tsx`, on screens `< 1024px` (`< lg`), display dedicated tactile Dashboard icon button (`w-9 h-9 rounded-full bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/20`) with `BookOpen` icon immediately to the left of the hamburger button for authenticated users, preserving clean desktop layout at `>= 1024px`.
+  4. *Feature D — Complete User-Facing Language & Product Positioning Refactor*: Align all user-facing website copy with current actual product: "Lernivox helps people understand books and other learning materials. Users bring their material, read it, ask questions, explore ideas, and learn at their own pace with an AI tutor." Eliminate technical developer jargon ("768-dim", "vector embeddings", "BullMQ/Redis", "Ingestion" -> "Preparing your material"), represent diverse reading genres (literature, fiction novels, history, science, programming, mathematics, lecture notes), and reflect true capabilities (1 MB file size limit, shared group reading and discussions instead of nonexistent "Quiz Battles").
 
 - **Work Completed**:
-  - **Standardized Embed PDF Reader Engine (`DocumentReader.tsx`)**:
-    - Removed `viewMode` toggle and canvas continuous renderer from the active reading path.
-    - Standardized PDF documents directly on the browser native Embed viewer iframe (`<iframe id="pdf-embed-frame" src={authorizedEmbedUrl} ... />`).
-    - Formatted `authorizedEmbedUrl` dynamically with page and zoom open parameters: `${baseUrl}#page=${visiblePage}&zoom=${Math.round(zoomLevel * 100)}`.
-    - Unconditionally preserved page navigation stepper (`ChevronLeft`, jump input, `ChevronRight`), zoom controls (`ZoomOut`, `100%`, `ZoomIn`), bookmark toggle, and Focus mode button in the secondary toolbar.
-    - Preserved extracted selectable text view with zoom scaling for non-PDF documents (DOCX, TXT notes).
-  - **Mutually Exclusive Coordinated Sidebars below 1280px (`page.tsx`)**:
-    - Below 1024px: Outline and Companion sidebars operate as off-canvas overlay drawers with `fixed inset-0 z-40 bg-black/30 backdrop-blur-2xs` scrim and `z-50` drawers, never deducting reader canvas width (reader remains 100% width).
-    - Between 1024px and 1279px: enforced mutually exclusive single-sidebar docking. Toggling Outline automatically collapses Copilot (`setCopilotOpen(false)`); opening any companion study mode or AI Tutor automatically collapses Outline (`setOutlineOpen(false)`). Guarded docked aside with `(!isBelow1280 || !outlineOpen)` and docked outline with `(!isBelow1280 || !copilotOpen)`, guaranteeing reader canvas maintains its usable $\ge 620\text{px}$ floor.
-    - $\ge 1280\text{px}$: 3-panel layout preserved (Outline docked left, Copilot docked right, reader centered).
-    - Deterministic resize resolution: shrinking below 1280px automatically collapses one sidebar, and shrinking below 1024px converts sidebars to overlay drawers without crushing reader.
-  - **Clean Two-Row Header Hierarchy (`TutorHeader.tsx`, `DocumentReader.tsx`)**:
-    - Removed `{doc?.title && ...}` from Zone 1 of `TutorHeader.tsx`. Zone 1 contains strictly: Lernivox Brand Mark, vertical divider, and `[📑 Outline]` toggle button.
-    - Preserved single authoritative document title display in Row 2 secondary toolbar (`DocumentReader.tsx`) with file icon and responsive truncation (`max-w-[130px] lg:max-w-[200px] xl:max-w-[300px]`).
-  - **Automated Verification**:
-    - Updated Invariant Test 10 in `apps/web/test/workspace-architecture.test.ts` to assert Row 1 does not contain document title.
-    - 16/16 web invariant tests passing (100% success).
-    - 11/11 package type-check tasks passing across the monorepo (`pnpm type-check`).
-    - Next.js 15 production build succeeded compiling all 17 static and dynamic routes.
+  - **Feature A — Group Workspace Unread Notification Badge**:
+    - Added `model WorkspaceDiscussionReadCursor` to `schema.prisma` with `workspaceId`, `userId`, `lastReadMessageId`, `lastReadAt`, `updatedAt`, `@@unique([workspaceId, userId])`, and relations on `User` and `Workspace`. Applied additive migration `20261109170000_add_workspace_discussion_read_cursors`.
+    - Added `WorkspaceDiscussionUnreadDto`, `MarkDiscussionReadDto`, `MarkDiscussionReadResponseDto` contracts to `@lernivox/contracts`.
+    - Added getters in `PrismaService` (`apps/api/src/common/prisma/prisma.service.ts`).
+    - Implemented `getUnreadDiscussionCount` and `markDiscussionAsRead` in `workspaces.service.ts` with strict membership verification. Updated `createDiscussionMessage` to update author's read cursor. Updated `getWorkspaceById` to compute `unreadDiscussionCount` for `GROUP` workspaces.
+    - Added controller endpoints `GET :id/discussions/unread` and `POST :id/discussions/read` in `workspaces.controller.ts`.
+    - Added unit test suite in `workspaces.service.spec.ts` testing unread counts, Personal workspace handling (returns 0), and cursor upserts.
+    - Added API client methods `getUnreadDiscussionCount` and `markDiscussionAsRead` in `apps/web/lib/api.ts`.
+    - In `TutorHeader.tsx`, attached terracotta `#E8722C` badge (`absolute -top-1.5 -right-1.5 min-w-5 h-5 px-1 bg-[#E8722C] text-white text-[10px] font-mono font-bold rounded-full border-2 border-[#FAF8F4] flex items-center justify-center shadow-xs`) to the collaborator pill button with updated title and `aria-label`. Attached badge to mobile Row 2 Group button in `page.tsx`. Added 6s polling hook and automatic mark-as-read triggers in `page.tsx` and `RightWorkspacePanel.tsx`.
+  - **Feature B — Auto-Expanding Group Discussion Composer (`GroupDiscussionPane.tsx`)**:
+    - Replaced single-line `<input>` with auto-expanding multiline `<textarea>` inside container `rounded-[20px] bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/25 focus-within:border-[#E8722C] p-3`.
+    - Dynamic auto-expansion: min-height 38px, max-height 140px, auto-scroll when exceeding 140px, resets height upon send.
+    - Key handling: Enter sends, Shift+Enter adds newline, IME composition guard (`(e.nativeEvent as any)?.isComposing || e.keyCode === 229`).
+    - Preserved `Anchor to p. X` checkbox and added `Shift + Enter for new line` helper text.
+    - Send lifecycle: prevents duplicate submission, preserves draft text in `inputText` if API throws, and clears text only on server confirmation.
+  - **Feature C — Direct Dashboard Shortcut in Public Navigation (`Navbar.tsx`)**:
+    - Preserved desktop Explore dropdown (768px-1100px) and inline links (1101px+).
+    - On screens `< 1024px` (`< lg`), rendered tactile `w-9 h-9 rounded-full bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/20 flex items-center justify-center text-[#14261D] hover:text-[#E8722C] hover:border-[#E8722C] shadow-2xs` with `BookOpen` icon immediately to the left of the hamburger button for authenticated users (`aria-label="Go to Dashboard"`).
+    - Rendered compact `Sign In` text link for unauthenticated users below 1024px.
+    - Updated mobile/tablet full-screen navigation drawer from `md:hidden` to `lg:hidden`.
+  - **Feature D — Complete User-Facing Language & Product Positioning Refactor**:
+    - Marketing Homepage (`page.tsx`):
+      - Headline: "Understand every book, one question at a time."
+      - Subheadline: "Bring your books, articles, or notes. Read at your own pace, ask questions whenever something is unclear, and explore ideas with your personal AI tutor."
+      - Replaced exclusive "Stewart Calculus" examples with diverse reading materials: World History, Literature, and Computer Science.
+      - Removed developer AI jargon: eliminated "768-dimensional vectors", "vector embeddings", "BullMQ/Redis/pgvector".
+      - Corrected capabilities: replaced all "25 MB" claims with 1 MB limit (PDF, DOCX, TXT); replaced "Group Quiz Battles" with "Shared Group Discussions".
+      - Updated photo captions to "Books, Notes & Articles • Grounded".
+    - Hero Upload (`HeroUpload.tsx`):
+      - Updated simulated samples to diverse reading genres with realistic file sizes under 1 MB: Literature PDF (680 KB), Neuroscience PDF (740 KB), Macroeconomics DOCX (580 KB), World History DOCX (540 KB).
+      - Replaced "768-dim Vectors • Verified Grounding" with "Grounded Citations • Verifiable Pages".
+    - Footer (`Footer.tsx`):
+      - Updated newsletter subtext to "Reading guides, learning tips, and product release updates."
+      - Updated links to "My Books & Notes".
+    - Bookshelf (`BookCard.tsx`):
+      - Replaced technical "Ingesting" labels with user-friendly "Preparing" and "Preparing your material...".
+      - Replaced "Ingestion Failed" with "Preparation Failed" and friendly guidance.
+    - Dashboard (`page.tsx`):
+      - Updated button status text from "Ingesting..." to "Preparing...".
+    - Authored comprehensive architectural unit test 25 in `workspace-architecture.test.ts`.
+
+- **Files Created/Modified**:
+  - `packages/database/prisma/schema.prisma` — Added `model WorkspaceDiscussionReadCursor`.
+  - `packages/database/prisma/migrations/20261109170000_add_workspace_discussion_read_cursors/migration.sql` — Additive schema migration.
+  - `packages/contracts/src/workspaces.ts` — Exported `WorkspaceDiscussionUnreadDto`, `MarkDiscussionReadDto`, `MarkDiscussionReadResponseDto`, updated `WorkspaceDto` and `WorkspaceListItemDto`.
+  - `apps/api/src/common/prisma/prisma.service.ts` — Added getter for `workspaceDiscussionReadCursor`.
+  - `apps/api/src/workspaces/dto/collaboration.dto.ts` — Added Swagger request/response DTOs for discussion unread/read endpoints.
+  - `apps/api/src/workspaces/workspaces.service.ts` — Implemented `getUnreadDiscussionCount` and `markDiscussionAsRead`, author cursor updates, and `unreadDiscussionCount` in `getWorkspaceById`.
+  - `apps/api/src/workspaces/workspaces.controller.ts` — Added `GET :id/discussions/unread` and `POST :id/discussions/read`.
+  - `apps/api/src/workspaces/workspaces.service.spec.ts` — Unit tests for unread discussion calculations and cursor updates.
+  - `apps/web/lib/api.ts` — Added `getUnreadDiscussionCount` and `markDiscussionAsRead` API client helpers.
+  - `apps/web/components/workspace/TutorHeader.tsx` — Added terracotta unread badge on collaborator pill.
+  - `apps/web/components/workspace/RightWorkspacePanel.tsx` — Added discussion tab unread badge and automated mark-as-read on view.
+  - `apps/web/components/workspace/GroupDiscussionPane.tsx` — Rebuilt composer as auto-expanding multiline textarea with IME guard.
+  - `apps/web/components/marketing/Navbar.tsx` — Added compact `BookOpen` Dashboard button below 1024px.
+  - `apps/web/components/marketing/HeroUpload.tsx` — Diversified sample materials, file sizes under 1 MB, removed 768-dim jargon.
+  - `apps/web/components/marketing/Footer.tsx` — Refactored newsletter copy and workspace navigation links.
+  - `apps/web/components/workspace/BookCard.tsx` — Refactored ingestion status strings to friendly preparation terminology.
+  - `apps/web/app/(marketing)/page.tsx` — Complete user-facing language refactor across headline, subheadline, FAQs, readiness mockup, group cards, and pricing.
+  - `apps/web/app/(workspace)/dashboard/page.tsx` — Updated upload button label.
+  - `apps/web/app/(workspace)/dashboard/workspaces/[workspaceId]/page.tsx` — Unread count state management, 6s polling, Row 2 badge, and panel wiring.
+  - `apps/web/test/workspace-architecture.test.ts` — Added Test 25 verifying unread badges, composer, responsive shortcut, and language refactor.
+  - `PROGRESS.md` — Updated task record, roadmap, and update history.
+
+- **Verification Results**:
+  - `pnpm --filter @lernivox/contracts build`: Succeeded.
+  - `pnpm --filter @lernivox/database build`: Succeeded.
+  - `pnpm --filter @lernivox/ai-core test`: 25/25 tests passing across 5 suites.
+  - `pnpm --filter @lernivox/api test`: 164/164 tests passing across 13 suites.
+  - `pnpm --filter @lernivox/worker test`: 11/11 tests passing across 4 suites.
+  - `pnpm --filter @lernivox/web test`: 29/29 tests passing across 2 suites (including new Test 25).
+  - `pnpm type-check`: 11/11 package tasks passing with 0 errors (`turbo run type-check`).
+  - `pnpm --filter @lernivox/web build`: 17/17 routes compiled cleanly (`next build`).
+  - `Port & Process Hygiene`: `ss -tulpn` verified zero leaked processes or lingering ports.
+
+---
+
+## 7. Next Recommended Action
+
+Deploy to staging/production environment following [`docs/OPERATIONS_RUNBOOK.md`](./docs/OPERATIONS_RUNBOOK.md) and conduct browser verification of real-time group discussions and mobile navigation on physical devices.
+
+- **Work Completed**:
+  - **Cross-Site UI & API Stabilization**:
+    - *Defect 1 (PDF.js Measuring Canvas)*: Added global CSS rule hiding `canvas.hiddenCanvasElement, .hiddenCanvasElement` (`display: none !important; width: 0 !important; height: 0 !important; visibility: hidden !important; pointer-events: none !important`), eliminating the rogue 300x150 black box.
+    - *Defect 2 & 3 (Mobile Reader Spacing & Distraction-Free Navigation)*: In `DocumentReader.tsx`, added pointer movement threshold (>8px) to distinguish scrolling from intentional tapping; ignored clicks on interactive controls and text selections; reduced mobile reader padding from `py-6 px-2` to `py-2 px-1`. In `page.tsx`, fixed auto-hide condition to permit `'read'` and `'ai-tutor'` view modes, removed `<main onClick>` capturing taps, and enabled tap-to-toggle navigation.
+    - *Defect 4 (Study Plan Activation Whitelist Validation)*: In `apps/api/src/learning-plans/dto/learning-plans.dto.ts`, added `class-validator` decorators (`@IsDefined()`, `@IsObject()`, `@IsArray()`, `@IsString({ each: true })`) to `preferences`, `sessions`, `rangeScope`, and `focusTopics`, eliminating NestJS whitelist errors.
+    - *Defect 5 (API Client Empty Body & 204 Handling)*: In `apps/web/lib/api.ts`, updated `request<T>` to handle 204 No Content and empty string bodies cleanly (`return null as T`), safely parse JSON, and throw descriptive `ApiError` for malformed non-JSON data.
+    - *Defect 6 (Recommended Next Actions Responsive Layout)*: In `apps/web/components/workspace/WorkspaceProgressView.tsx`, converted cards into a responsive container-aware grid (`isCompactSidecar ? 'grid grid-cols-1 gap-4' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6'`) preventing horizontal crowding in the companion sidecar.
+    - *Defect 7 (Modal Stacking Context)*: In `apps/web/components/workspace/GenerateLearningPlanModal.tsx`, portaled modal directly to `document.body` via `createPortal`, added client `mounted` check, background scroll lock (`overflow: hidden`), `Escape` key listener, and `z-50` backdrop covering the sticky header.
+    - *Defect 8 (Quiz Button Plus Sign)*: Verified single plus sign (`<Plus className="w-3.5 h-3.5 text-white" /><span>Create New Quiz</span>`).
+  - **Security Remediation & Threat Hardening**:
+    - *Risk 1 (BOLA in Flashcard Reviews)*: In `apps/api/src/flashcards/flashcards.service.ts`, updated `reviewCard` to authorize access via workspace membership (`deck: { workspace: { OR: [{ ownerId: userId }, { members: { some: { userId } } }] } }`), allowing group members to review shared deck cards while keeping SM-2 review progress strictly isolated per `userId` in `UserFlashcardReview(userId_cardId)`.
+    - *Risk 2 (Hostile File Upload & Magic-Byte Validation)*: In `apps/api/src/documents/documents.service.ts`, implemented `validateFileSignature` checking true binary signatures: `%PDF-` (`0x25 0x50 0x44 0x46`) for PDF, `PK\x03\x04` (`0x50 0x4B 0x03 0x04`) for DOCX, OLE2 for `.doc`, and null-byte scanning on the initial 4KB for `.txt`.
+    - *Risk 3 (CORS Wildcard Reflection with Credentials)*: In `apps/api/src/main.ts`, updated CORS logic: if `CORS_ORIGIN === '*'`, wildcard reflection is completely disabled in production (`corsOrigin = false`), and restricted to localhost in development.
+    - *Risk 4 (API Rate Limiting)*: In `apps/api/src/app.module.ts`, registered `ThrottlerModule.forRoot([{ ttl: 60000, limit: 120 }])` with global `APP_GUARD: ThrottlerGuard`, enforcing 120 req/min per IP to protect against DoS and LLM quota exhaustion.
+    - *Risk 5 (HTTP Security Headers)*: In `apps/api/src/main.ts`, injected OWASP ASVS 5.0 headers: `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `X-XSS-Protection: 0`, `Referrer-Policy: strict-origin-when-cross-origin`, and `Permissions-Policy`.
+    - *Risk 6 (Production Fallback to Dev JWT Secret)*: In `apps/api/src/config/env.validation.ts`, added strict production validation blocking startup if `JWT_SECRET` is unset, matches the development default, or is shorter than 32 characters.
+    - *Risk 7 (Swagger API Docs in Production)*: In `apps/api/src/main.ts`, wrapped Swagger docs in `ENABLE_SWAGGER` check defaulting to `false` in production.
+  - **Performance Optimization**:
+    - Verified Next.js 15 App Router production bundle: shared First Load JS is only **101 kB**; landing page is **123 kB**; workspace suite is **279 kB** (including PDF.js).
+    - Capped DocumentReader rendering DPR: `Math.min(window.devicePixelRatio || 1, 2)` bounds peak GPU canvas memory on 3x/4x mobile screens.
+    - Cancelled in-flight PDF.js render tasks and wiped text layers cleanly during fast scrolling and zooming.
+  - **Operational Deliverables Created**:
+    - `docs/PRODUCTION_READINESS.md` — Complete production readiness assessment, acceptance scorecard, and GO verdict.
+    - `docs/SECURITY_REVIEW.md` — OWASP ASVS 5.0 threat model, vulnerability audit, AI prompt injection isolation, and data privacy report.
+    - `docs/PERFORMANCE_REPORT.md` — Bundle footprint breakdown, virtualization analysis, backend/worker throughput, and database index benchmarks.
+    - `docs/OPERATIONS_RUNBOOK.md` — Topology, deployment instructions, Terminus health probes (`/api/v1/health`), Redis monitoring, backup/recovery, and incident runbooks.
+
+- **Files Created/Modified**:
+  - `apps/api/src/app.module.ts` — Added `ThrottlerModule` and global `ThrottlerGuard`.
+  - `apps/api/src/main.ts` — Added security headers middleware, safe CORS origin handling, and conditional Swagger.
+  - `apps/api/src/config/env.validation.ts` — Added production `JWT_SECRET` security checks.
+  - `apps/api/src/config/env.validation.spec.ts` — Unit tests for environment variable validation.
+  - `apps/api/src/documents/documents.service.ts` — Added `validateFileSignature` with binary magic-byte checks.
+  - `apps/api/src/documents/documents.service.spec.ts` — Added 4 tests for magic-byte upload validation.
+  - `apps/api/src/flashcards/flashcards.service.ts` — Fixed BOLA in `reviewCard` to permit group workspace reviews while isolating user progress.
+  - `apps/api/src/flashcards/flashcards.service.spec.ts` — Added 2 unit tests for group review authorization and non-member rejection.
+  - `apps/api/src/learning-plans/dto/learning-plans.dto.ts` — Added `class-validator` decorators to DTOs.
+  - `apps/web/lib/api.ts` — Safe parsing for 204 No Content, empty bodies, and malformed JSON.
+  - `apps/web/styles/globals.css` — Added rule hiding PDF.js `.hiddenCanvasElement`.
+  - `apps/web/components/workspace/GenerateLearningPlanModal.tsx` — Portaled with `createPortal`, `z-50` backdrop, scroll locking, and Escape key listener.
+  - `apps/web/components/workspace/WorkspaceProgressView.tsx` — Responsive stacked grid for Recommended Next Actions in narrow companion sidecars.
+  - `apps/web/components/workspace/DocumentReader.tsx` — Touch drag tracking, interactive element click bypass, and compact mobile padding.
+  - `apps/web/app/(workspace)/dashboard/workspaces/[workspaceId]/page.tsx` — Fixed auto-hide condition, removed `<main onClick>`, added intentional tap toggle.
+  - `docs/PRODUCTION_READINESS.md` — Phase 4 Production Readiness Assessment & Acceptance Report.
+  - `docs/SECURITY_REVIEW.md` — Security Review & Threat Assessment (ASVS 5.0, OWASP Top 10).
+  - `docs/PERFORMANCE_REPORT.md` — Performance Optimization & Baseline Report.
+  - `docs/OPERATIONS_RUNBOOK.md` — Production Operations Runbook.
+  - `PROGRESS.md` — Updated task record, roadmap, and update history.
+
+- **Verification Results**:
+  - `pnpm --filter @lernivox/ai-core test`: 25/25 tests passing across 5 suites.
+  - `pnpm --filter @lernivox/api test`: 154/154 tests passing across 13 suites.
+  - `pnpm --filter @lernivox/worker test`: 11/11 tests passing across 4 suites.
+  - `pnpm --filter @lernivox/web test`: 23/23 architecture invariant tests passing.
+  - `pnpm type-check`: 11/11 package tasks passing across the monorepo with 0 errors.
+  - `pnpm --filter @lernivox/web build`: 17/17 routes compiled cleanly (`next build`).
+  - `Database & Data Preservation`: 3 READY documents, 1,429 chunks/embeddings 100% preserved.
+  - `Port & Process Hygiene`: `ss -tulpn` verified zero leaked processes or lingering ports.
+
+- **Processes and Ports**:
+  - Inspected listening ports with `ss -tulpn`: only local execution socket; zero leaked test processes.
+  - All temporary test processes terminated cleanly.
+
+- **Known Issues / Blockers**: None.
+
+- **Next Recommended Action**:
+  - Deploy Lernivox to production infrastructure following `docs/OPERATIONS_RUNBOOK.md` and monitor health via `/api/v1/health`.
+
+- **Files Created/Modified**:
+  - `packages/database/prisma/schema.prisma` — Added `StudyPlan` and `StudyScheduleItem` relations and columns.
+  - `packages/database/prisma/migrations/20261109120000_add_learning_plans_fields/migration.sql` — Additive schema migration.
+  - `packages/contracts/src/learning-plan.ts` — Shared DTOs for offers, previews, sessions, adaptation, and lifecycle.
+  - `packages/contracts/src/index.ts` — Exported learning-plan contracts.
+  - `packages/ai-core/src/types/plan.types.ts` — Types for plan generator and adaptive engine.
+  - `packages/ai-core/src/primitives/plan-generator.ts` — Core plan generation and schedule adaptation primitives.
+  - `packages/ai-core/test/plan-generator.test.ts` — 5 unit tests for generation and adaptation.
+  - `packages/ai-core/src/index.ts` — Exported plan types and primitives.
+  - `apps/api/src/common/prisma/prisma.service.ts` — Added `studyPlan` and `studyScheduleItem` accessors.
+  - `apps/api/src/learning-plans/dto/learning-plans.dto.ts` — Request DTOs with validation decorators.
+  - `apps/api/src/learning-plans/learning-plans.service.ts` — Service logic for offers, previews, acceptance, updates, adaptation.
+  - `apps/api/src/learning-plans/learning-plans.controller.ts` — Controller with 8 authenticated endpoints.
+  - `apps/api/src/learning-plans/learning-plans.module.ts` — NestJS module importing PrismaModule and WorkspacesModule.
+  - `apps/api/src/learning-plans/learning-plans.service.spec.ts` — 9 unit tests for all service methods.
+  - `apps/api/src/app.module.ts` — Registered `LearningPlansModule`.
+  - `apps/web/lib/api.ts` — Added `api.learningPlans` client endpoints.
+  - `apps/web/components/workspace/LearningPlanOfferBanner.tsx` — Contextual study plan suggestion in AI chat.
+  - `apps/web/components/workspace/GenerateLearningPlanModal.tsx` — Grounded preview and customization wizard.
+  - `apps/web/components/workspace/WorkspaceLearningPlanView.tsx` — Active plan view, Next Session Spotlight, activity checklist, stepper, pause/resume.
+  - `apps/web/components/workspace/TutorHeader.tsx` — Added 5th study mode: `Study Plan` (`Read | Quizzes | Flashcards | Study Plan | My Progress`).
+  - `apps/web/components/workspace/CopilotSidecar.tsx` — Integrated `LearningPlanOfferBanner`.
+  - `apps/web/components/workspace/RightWorkspacePanel.tsx` — Forwarded offer props to `CopilotSidecar`.
+  - `apps/web/app/(workspace)/dashboard/workspaces/[workspaceId]/page.tsx` — Integrated plan view across Desktop, Tablet, and Mobile drawers; added 2.5s inactivity timer.
+  - `apps/web/components/workspace/WorkspaceQuizzesView.tsx` — Removed duplicate plus sign on Create New Quiz.
+  - `apps/web/components/workspace/WorkspaceProgressView.tsx` — Added breathing room to Recommended Next Actions.
+  - `apps/web/test/workspace-architecture.test.ts` — Updated Invariant 1 and added Invariant 23.
+  - `PROGRESS.md` — Updated progress log, task status, and roadmap.
+
+- **Verification Results**:
+  - `pnpm --filter @lernivox/ai-core test`: 25/25 tests passing across 5 suites.
+  - `pnpm --filter @lernivox/api test`: 144/144 tests passing across 12 suites.
+  - `pnpm --filter @lernivox/web test`: 23/23 architecture invariant tests passing.
+  - `pnpm type-check`: 11/11 package tasks passing across the monorepo with 0 errors.
+  - `pnpm --filter @lernivox/web build`: 17/17 routes compiled cleanly (`next build`).
+  - `Database audit`: 3 READY documents, 1,429 chunks/embeddings 100% preserved.
+  - `ss -tulpn`: Clean, zero orphaned processes.
+
+- **Processes and Ports**:
+  - Inspected listening ports with `ss -tulpn`: only local execution socket; zero leaked test processes.
+  - All temporary test processes terminated cleanly.
+
+- **Known Issues / Blockers**: None.
+
+- **Next Recommended Action**:
+  - Perform real end-to-end browser user testing and prepare for production deployment / user feedback.
+      - Terracotta selection highlight (`rgba(232, 114, 44, 0.28) !important;`).
+      - Render task cancellation on unmount, page replacement, or zoom changes.
+      - Verified citation badge ("Verified Citation Passage") with terracotta ring when navigating from AI citations.
+      - Page indicator stamp (`p. ${pageNumber}`).
+  - **Native Word DOCX Reader (`NativeDocxViewer`)**:
+    - Built native DOCX reader using `docx-preview` (`renderAsync`).
+    - Authenticated binary download via `fetch(authorizedUrl)` with bearer token.
+    - Renders Word pages with crisp borders, page drop-shadows, tables, typography, and page breaks on the `#F4F0E5` reading canvas.
+    - Supports zoom scaling smoothly.
+    - Full native text selection with copy, Ask AI, and Practice integration.
+  - **Text Selection Isolation & Pinned Page Protection**:
+    - Added `pinnedPage` state in `DocumentReader`: when a student selects text or opens the selection menu, the active page is explicitly pinned into `renderedVirtualItems`, guaranteeing the virtualizer never recycles or unmounts the page while selection is active.
+    - Portaled floating selection toolbar to `document.body` via `createPortal`, avoiding clipping by scroll containers and preventing stacking-context issues.
+    - Clamped toolbar coordinates within viewport boundaries with directional above/below placement.
+    - Added `onMouseDown={(e) => e.preventDefault()}` on all action buttons, preventing focus transfer from collapsing browser text selection.
+    - Stored immutable snapshot of selected text and source page, ensuring `onExplainParagraph` receives exact text and page number.
+  - **Real Document & Performance Verification**:
+    - Verified against real 461-page textbook (`1d80138a-157c..._compress.pdf`): 461 pages detected, 40 outline root chapters extracted, virtualizer mounts $\le 7$ pages simultaneously (98.5%+ pages unmounted out of memory).
+    - Verified against real 10-page document (`AI-Assisted_Software_Development_Workflow.pdf`): 10 pages detected, text layer renders 75 items on Page 1.
+    - All 19 invariant tests passing (`pnpm --filter @lernivox/web test`).
+    - 20/20 AI Core tests passing (`pnpm --filter @lernivox/ai-core test`).
+    - All 11 type-check tasks passing across the monorepo (`pnpm type-check`).
+    - Next.js 15 production build compiled 17/17 routes with 0 errors (`pnpm --filter @lernivox/web build`).
     - Clean port audit confirmed zero orphaned processes (`ss -tulpn`).
 
 - **Files Created / Modified**:
-  - `apps/web/components/workspace/TutorHeader.tsx` (removed duplicate title from Zone 1, keeping only Brand, divider, Outline trigger)
-  - `apps/web/components/workspace/DocumentReader.tsx` (standardized on Embed viewer, removed mode toggle, active zoom controls, authorizedEmbedUrl with page and zoom)
-  - `apps/web/app/(workspace)/dashboard/workspaces/[workspaceId]/page.tsx` (mutually exclusive single-sidebar rule below 1280px in toggleToc, handleViewChange, handleToggleAiTutor; docked guards)
-  - `apps/web/test/workspace-architecture.test.ts` (updated Invariant 10 and 7 assertions)
+  - `apps/web/package.json` (added `@tanstack/react-virtual`, `docx-preview`)
+  - `apps/web/components/workspace/DocumentReader.tsx` (rewrote with native virtualized PDF.js, native DOCX viewer, portaled selection toolbar, pinned page protection, complete embed removal)
+  - `apps/web/styles/globals.css` (added annotationLayer styling, docx-wrapper styling)
+  - `apps/web/test/workspace-architecture.test.ts` (added Invariant Tests 18 and 19)
+  - `pnpm-lock.yaml`
   - `PROGRESS.md`
 
 - **Verification Results**:
-  - `pnpm --filter @lernivox/web test`: 16/16 unit tests passed (100% success).
+  - `pnpm --filter @lernivox/web test`: 19/19 invariant tests passed (100% success).
+  - `pnpm --filter @lernivox/ai-core test`: 20/20 tests passed.
   - `pnpm type-check`: 11/11 package tasks passed with 0 errors across the monorepo.
   - `pnpm --filter @lernivox/web build`: Next.js 15 production build succeeded (all 17 static and dynamic routes compiled).
   - `ss -tulpn`: Port audit confirmed zero orphaned background processes or leaked ports.
@@ -139,7 +342,40 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 
 ## 7. Update History
 
-- **2026-11-04 (Part 8)**: Completed Targeted Workspace Responsive Corrections (Embed Viewer Standardization, Panel Collision Elimination, Header Hierarchy):
+- **2026-11-09**:
+  - Completed Group Collaboration Improvements, Responsive Public Navigation & Complete Product Language Refactor:
+    - Feature A (Group Workspace Unread Message Notification Badge): Added `model WorkspaceDiscussionReadCursor` to Prisma schema (`workspaceId, userId, lastReadMessageId, lastReadAt`) with migration `20261109170000_add_workspace_discussion_read_cursors`. Implemented `getUnreadDiscussionCount` and `markDiscussionAsRead` in `workspaces.service.ts` with member authorization, cursor upserts, and automatic cursor advances on message creation. Added endpoints `GET /api/v1/workspaces/:id/discussions/unread` and `POST /api/v1/workspaces/:id/discussions/read`. Attached terracotta `#E8722C` notification badge to desktop `TutorHeader` collaborator pill and mobile Row 2 button. Added 6-second visibility-aware unread polling and automatic mark-as-read triggers on discussion view in `page.tsx` and `RightWorkspacePanel.tsx`.
+    - Feature B (Auto-Expanding Multiline Discussion Composer): In `GroupDiscussionPane.tsx`, upgraded single-line input to an auto-expanding `<textarea>` (min-height 38px, max-height 140px, internal scroll), Enter to send, Shift+Enter for newline, IME composition guard (`isComposing || keyCode === 229`), draft preservation on error, page anchoring (`[ ] Anchor to p. X`), and terracotta send button.
+    - Feature C (Responsive Public Navigation with Compact Dashboard Shortcut): In `Navbar.tsx`, preserved Explore dropdown on tablet and inline links on desktop. On viewports `< 1024px` (`< lg`), added tactile `w-9 h-9 rounded-full bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/20` with `BookOpen` icon immediately to the left of the hamburger button for authenticated users (`aria-label="Go to Dashboard"`), and compact `Sign In` link for unauthenticated users. Updated mobile navigation drawer to `lg:hidden`.
+    - Feature D (Complete User-Facing Language Refactor): Refactored all public and workspace copy to reflect actual capabilities: "Understand every book, one question at a time. Users bring their material, read it, ask questions, explore ideas, and learn at their own pace with an AI tutor." Replaced exclusive calculus examples with diverse reading materials (World History, Literature, Computer Science). Replaced technical jargon ("768-dim", "vector embeddings", "BullMQ/Redis") with plain English. Enforced truthful capabilities (1 MB file limit, shared group discussions instead of nonexistent "Quiz Battles"). Updated bookshelf and dashboard progress labels from "Ingesting" to "Preparing".
+    - Verified all test suites across the monorepo: Web architecture invariants (29/29 passing including new Test 25), AI-core (25/25 passing), Worker (11/11 passing), API (164/164 passing), full monorepo type-check (11/11 package tasks passing with 0 errors), Next.js 15 production build (17/17 routes compiled cleanly), and port/process audit (`ss -tulpn` clean, 0 orphaned processes).
+  - Completed Reader Virtualization Repair, Group Invitations & Final Product UI Polish:
+    - Fixed Mobile PDF Reader Virtualization (Priority 1): Diagnosed `useMemo` on `renderedVirtualItems` in `DocumentReader.tsx` caching initial pages [0, 1, 2] because `virtualizer` object reference is stable across scrolls in React, causing readers to enter an endless beige void on mobile swipe and only reappear on desktop resize. Removed `useMemo` to derive `virtualizer.getVirtualItems()` directly on every frame; replaced manual wrapper `paddingBottom: '24px'` and `estimateSize + 24` with native TanStack Virtual `gap` option (`gap: isMobile ? 12 : 24`); pre-detected natural aspect ratio on `docProxy` load by reading Page 1 viewport (`(await docProxy.getPage(1)).getViewport({ scale: 1 })`), eliminating initial slide (0.5625) vs portrait (1.414) layout flash and offset drift; initialized `containerWidth` with `window.innerWidth`; added resize scroll anchoring to `visiblePageRef.current`; wired `virtualizer.resizeItem(...)` inside `handleDimensionsDetected`.
+    - Implemented Pending Group Workspace Invitations (Priority 2): Added `declinedAt DateTime?` to `model WorkspaceInvitation` in Prisma schema with additive migration `20261109160000_add_invitation_declined_at`. Exported `PendingInvitationDto` and updated `WorkspacesListResponseDto` in `@lernivox/contracts`. Updated `listUserWorkspaces` in `workspaces.service.ts` to query pending invitations addressed to verified user email (`acceptedAt: null, revokedAt: null, declinedAt: null, expiresAt > now()`) where user is not an active member. Implemented atomic `acceptPendingInvitation` and `declinePendingInvitation` methods in `workspaces.service.ts` and exposed endpoints `POST /invitations/pending/:id/accept` and `POST /invitations/pending/:id/decline` in `invitations.controller.ts`. Added API client helpers `acceptPendingInvite` and `declinePendingInvite` in `apps/web/lib/api.ts`. Built prominent "Pending Group Invitations" card section on `/dashboard` with `[ Decline ]` and `[ Accept & Open ]` actions, navigating directly into accepted workspace.
+    - Removed Duplicate Bookshelf Ingestion Progress (Priority 3): In `BookCard.tsx`, eliminated duplicate amber progress bar and percentage inside book cover illustration during `isProcessing`, retaining concise `Ingesting` status badge and format/page count on cover. Kept all rich progress details (percentage, stage title, unit count, and progress bar) exclusively in the dedicated footer below cover.
+    - Updated Favicon & Browser Identity (Priority 4): Replaced generic indigo blue `#4F46E5` SVG in `apps/web/app/icon.svg` with warm terracotta `#E8722C` squircle base, subtle `#B24E12` bottom depth, and warm `#FAF8F4` open-book vector glyph. Configured `themeColor: '#FAF8F4'` in `export const viewport: Viewport` in `apps/web/app/layout.tsx`.
+    - Redesigned Settings Page Information Architecture (Priority 5 & 6): Aligned `apps/web/app/(workspace)/dashboard/settings/page.tsx` with application navbar and dashboard in shared `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8` container. Added "← Back to Dashboard" header link. Rebuilt into responsive master-detail layout: 240px desktop sidebar with active category indicator (`Profile & Account`, `AI Tutor & Learning`, `Schedule & Reviews`), horizontal scrollable tab nav on mobile. Standardized active selection styling across all segmented button groups (`bg-[#14261D] text-[#FAF8F4] font-bold shadow-xs`). Built tactile `h-11` inputs with warm `#FAF8F4` background and `#1B3428]/20` borders. Implemented truthful persistence to `localStorage` (`lernivox_user_preferences`) with sage feedback confirmation.
+    - Verified all test suites across the monorepo: Web architecture invariants (28/28 tests passing), AI Core test suite (25/25 tests passing across 5 suites), Worker test suite (11/11 tests passing across 4 suites), API test suite (161/161 tests passing across 13 suites), full monorepo type-check (`pnpm type-check` 11/11 package tasks passing with 0 errors), Next.js 15 production build (`next build` 17/17 routes compiled cleanly), and clean port hygiene (`ss -tulpn` clean, zero lingering processes). Completed Phase 4 End-to-End Acceptance, Security Hardening & Performance Optimization:
+  - **Cross-Site UI & API Stabilization**: Resolved 8 reported defects across reader canvas measuring box, mobile reader vertical padding & navigation auto-hiding gestures, study plan DTO whitelist validation, API 204/empty body parsing, Recommended Next Actions companion sidecar layout, modal stacking contexts, and quiz button icons.
+  - **OWASP ASVS 5.0 Security Hardening**: Remediated 7 security risks: BOLA in flashcard reviews (authorized via workspace membership while isolating user SM-2 records), binary magic-byte upload validation (`%PDF-`, `PK\x03\x04`, null-byte scanning), safe CORS origin configuration (wildcard reflection refusal), global rate limiting (`ThrottlerModule` 120 req/min), standard security HTTP headers (`X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy`, `Permissions-Policy`), strict production `JWT_SECRET` verification, and conditional Swagger docs.
+  - **Performance Optimization**: Bounded DocumentReader DPR to 2.0x, cancelled in-flight PDF.js render tasks during fast scrolling, optimized Next.js 15 production build (101 kB shared First Load JS, 123 kB landing page, 279 kB workspace suite).
+  - **Production Operational Deliverables**: Authored `docs/PRODUCTION_READINESS.md` (readiness scorecard & GO verdict), `docs/SECURITY_REVIEW.md` (threat model & AI isolation), `docs/PERFORMANCE_REPORT.md` (footprint & throughput), and `docs/OPERATIONS_RUNBOOK.md` (deployment, Terminus probes, backup/recovery, incident playbooks).
+  - **Automated Verification**: 25/25 AI Core tests, 154/154 API tests, 11/11 worker tests, 23/23 web architecture invariant tests, 11/11 package type checks, and 17/17 Next.js routes compiled. 100% database data preservation verified. Zero orphaned processes.
+
+- **2026-11-05 (Part 3)**: Completed Master Implementation of Native Virtualized Document Reader:
+  - Permanently removed browser Embed, Object, and iframe-based document viewing from Lernivox.
+  - Built high-performance native PDF.js document reading engine with `@tanstack/react-virtual` (`useVirtualizer`), rendering separate Hi-DPI Canvas and transparent `TextLayer` with terracotta selection highlights and zero text ghosting.
+  - Built native Word DOCX renderer using `docx-preview` (`renderAsync`), rendering layout-faithful Word document pages, tables, and typography without passing DOCX to PDF.js.
+  - Implemented text selection isolation with `pinnedPage` protection against premature virtualization recycling and portaled floating selection toolbar (`Copy`, `Ask AI`, `Practice`).
+  - Verified on real 461-page textbook (461 pages, 40-item outline, mounting max 5-7 pages in memory) and 10-page document.
+  - Added Invariant Tests 18 and 19 to `apps/web/test/workspace-architecture.test.ts`. Passed 19/19 web tests, 20/20 AI Core tests, 11/11 type-check tasks, and Next.js 15 production build.
+- **2026-11-05 (Part 2)**: Completed Final Mobile Workspace & Dashboard Responsive Repairs:
+  - Replaced duplicate Outline button in mobile Row 2 toolbar with Group Hub collaboration pill (`[👥 count]`) for `GROUP` workspaces and `Convert to Group` action for `PERSONAL` workspaces. Kept Outline exclusively in the mobile bottom dock.
+  - Implemented synchronized directional auto-hide on mobile viewports: header translates `-translate-y-full` and bottom dock translates `translate-y-full`, reclaiming 144px total vertical space (`pt-[88px] pb-14` -> `pt-0 pb-0`). Added touch swipe listeners and suspended auto-hide during modals, citations, text selection, or drawers.
+  - Eliminated Dashboard Add Learning Material modal stacking leak by portaling dialogs directly to `document.body` via React `createPortal` with `z-50` backdrop (`bg-black/50 backdrop-blur-xs`), background scroll locking, and Escape key dismissal.
+  - Upgraded `ManageGroupModal` and `ConvertToGroupModal` with `createPortal` and mobile bottom sheet styling (`rounded-t-[28px]`, tactile drag handle, safe-area inset padding).
+  - Added Invariant Test 17 to `apps/web/test/workspace-architecture.test.ts`. Passed 17/17 invariant tests, 11/11 type-check tasks, and Next.js 15 production build (17/17 routes).
+- **2026-11-05 (Part 1)**: Completed Targeted Workspace Responsive Corrections (Embed Viewer Standardization, Panel Collision Elimination, Header Hierarchy):
   - Standardized document reader on the Embed viewer (`<iframe id="pdf-embed-frame" src={authorizedEmbedUrl} ... />`) with page navigation and zoom query hash (`#page=${visiblePage}&zoom=${Math.round(zoomLevel * 100)}`), removed mode toggle completely, preserved native page stepper (`< Page 1 / 10 >`) and zoom controls (`[-] [100%] [+]`), bookmark ribbon, and Focus mode; retained selectable extracted text view for DOCX/notes.
   - Fixed workspace panel collisions below 1280px via mutually exclusive coordinated sidebar state: opening Outline automatically collapses Copilot and vice versa; below 1024px Outline and Companion render as overlay drawers with `z-40` backdrop scrim and `z-50` drawer leaving reader 100% width; between 1024px and 1279px at most one sidebar is docked maintaining reader floor $\ge 620\text{px}$; wide desktop ($\ge 1280\text{px}$) preserves 3-panel layout; resize handler deterministically resolves window transitions.
   - Removed duplicate document title from Row 1 top workspace header (`TutorHeader.tsx` Zone 1), leaving only Brand, divider, and Outline trigger; preserved single authoritative document title display in Row 2 reader secondary toolbar.
@@ -542,4 +778,58 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
     - Fixed desktop/tablet three-zone header overlap (Screenshots 42, 43, 45): Moved group collaborator pill `[👥 memberCount]` to Zone 3 (accessible across desktop and tablet below 1024px), keeping Zone 1 compact (~72px on tablet) and ensuring Zone 2 segmented tabs stay mathematically centered without overlapping adjacent controls.
     - Completely removed the 48px left TOC icon rail (Screenshots 43 and 45): Replaced collapsed rail rendering with `return null;` in `DocumentOutlinePane.tsx`, reclaiming 48px width directly for the PDF reader canvas. Added a `PanelLeftClose` toggle button in the expanded pane header.
     - Verified with all 12 architectural invariant tests passing in `@lernivox/web`, full monorepo type-check (`pnpm type-check` 11/11 tasks), and production Next.js 15 build (`next build` 17/17 routes).
+- **2026-11-09**:
+  - Completed Group Collaboration Improvements, Responsive Public Navigation & Complete Product Language Refactor:
+    - Feature A (Group Workspace Unread Message Notification Badge): Added `model WorkspaceDiscussionReadCursor` to Prisma schema (`workspaceId, userId, lastReadMessageId, lastReadAt`) with migration `20261109170000_add_workspace_discussion_read_cursors`. Implemented `getUnreadDiscussionCount` and `markDiscussionAsRead` in `workspaces.service.ts` with member authorization, cursor upserts, and automatic cursor advances on message creation. Added endpoints `GET /api/v1/workspaces/:id/discussions/unread` and `POST /api/v1/workspaces/:id/discussions/read`. Attached terracotta `#E8722C` notification badge to desktop `TutorHeader` collaborator pill and mobile Row 2 button. Added 6-second visibility-aware unread polling and automatic mark-as-read triggers on discussion view in `page.tsx` and `RightWorkspacePanel.tsx`.
+    - Feature B (Auto-Expanding Multiline Discussion Composer): In `GroupDiscussionPane.tsx`, upgraded single-line input to an auto-expanding `<textarea>` (min-height 38px, max-height 140px, internal scroll), Enter to send, Shift+Enter for newline, IME composition guard (`isComposing || keyCode === 229`), draft preservation on error, page anchoring (`[ ] Anchor to p. X`), and terracotta send button.
+    - Feature C (Responsive Public Navigation with Compact Dashboard Shortcut): In `Navbar.tsx`, preserved Explore dropdown on tablet and inline links on desktop. On viewports `< 1024px` (`< lg`), added tactile `w-9 h-9 rounded-full bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/20` with `BookOpen` icon immediately to the left of the hamburger button for authenticated users (`aria-label="Go to Dashboard"`), and compact `Sign In` link for unauthenticated users. Updated mobile navigation drawer to `lg:hidden`.
+    - Feature D (Complete User-Facing Language Refactor): Refactored all public and workspace copy to reflect actual capabilities: "Understand every book, one question at a time. Users bring their material, read it, ask questions, explore ideas, and learn at their own pace with an AI tutor." Replaced exclusive calculus examples with diverse reading materials (World History, Literature, Computer Science). Replaced technical jargon ("768-dim", "vector embeddings", "BullMQ/Redis") with plain English. Enforced truthful capabilities (1 MB file limit, shared group discussions instead of nonexistent "Quiz Battles"). Updated bookshelf and dashboard progress labels from "Ingesting" to "Preparing".
+    - Verified all test suites across the monorepo: Web architecture invariants (29/29 passing including new Test 25), AI-core (25/25 passing), Worker (11/11 passing), API (164/164 passing), full monorepo type-check (11/11 package tasks passing with 0 errors), Next.js 15 production build (17/17 routes compiled cleanly), and port/process audit (`ss -tulpn` clean, 0 orphaned processes).
+  - Completed Reader Virtualization Repair, Group Invitations & Final Product UI Polish:
+    - Fixed Mobile PDF Reader Virtualization (Priority 1): Diagnosed `useMemo` on `renderedVirtualItems` in `DocumentReader.tsx` caching initial pages [0, 1, 2] because `virtualizer` object reference is stable across scrolls in React, causing readers to enter an endless beige void on mobile swipe and only reappear on desktop resize. Removed `useMemo` to derive `virtualizer.getVirtualItems()` directly on every frame; replaced manual wrapper `paddingBottom: '24px'` and `estimateSize + 24` with native TanStack Virtual `gap` option (`gap: isMobile ? 12 : 24`); pre-detected natural aspect ratio on `docProxy` load by reading Page 1 viewport (`(await docProxy.getPage(1)).getViewport({ scale: 1 })`), eliminating initial slide (0.5625) vs portrait (1.414) layout flash and offset drift; initialized `containerWidth` with `window.innerWidth`; added resize scroll anchoring to `visiblePageRef.current`; wired `virtualizer.resizeItem(...)` inside `handleDimensionsDetected`.
+    - Implemented Pending Group Workspace Invitations (Priority 2): Added `declinedAt DateTime?` to `model WorkspaceInvitation` in Prisma schema with additive migration `20261109160000_add_invitation_declined_at`. Exported `PendingInvitationDto` and updated `WorkspacesListResponseDto` in `@lernivox/contracts`. Updated `listUserWorkspaces` in `workspaces.service.ts` to query pending invitations addressed to verified user email (`acceptedAt: null, revokedAt: null, declinedAt: null, expiresAt > now()`) where user is not an active member. Implemented atomic `acceptPendingInvitation` and `declinePendingInvitation` methods in `workspaces.service.ts` and exposed endpoints `POST /invitations/pending/:id/accept` and `POST /invitations/pending/:id/decline` in `invitations.controller.ts`. Added API client helpers `acceptPendingInvite` and `declinePendingInvite` in `apps/web/lib/api.ts`. Built prominent "Pending Group Invitations" card section on `/dashboard` with `[ Decline ]` and `[ Accept & Open ]` actions, navigating directly into accepted workspace.
+    - Removed Duplicate Bookshelf Ingestion Progress (Priority 3): In `BookCard.tsx`, eliminated duplicate amber progress bar and percentage inside book cover illustration during `isProcessing`, retaining concise `Ingesting` status badge and format/page count on cover. Kept all rich progress details (percentage, stage title, unit count, and progress bar) exclusively in the dedicated footer below cover.
+    - Updated Favicon & Browser Identity (Priority 4): Replaced generic indigo blue `#4F46E5` SVG in `apps/web/app/icon.svg` with warm terracotta `#E8722C` squircle base, subtle `#B24E12` bottom depth, and warm `#FAF8F4` open-book vector glyph. Configured `themeColor: '#FAF8F4'` in `export const viewport: Viewport` in `apps/web/app/layout.tsx`.
+    - Redesigned Settings Page Information Architecture (Priority 5 & 6): Aligned `apps/web/app/(workspace)/dashboard/settings/page.tsx` with application navbar and dashboard in shared `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8` container. Added "← Back to Dashboard" header link. Rebuilt into responsive master-detail layout: 240px desktop sidebar with active category indicator (`Profile & Account`, `AI Tutor & Learning`, `Schedule & Reviews`), horizontal scrollable tab nav on mobile. Standardized active selection styling across all segmented button groups (`bg-[#14261D] text-[#FAF8F4] font-bold shadow-xs`). Built tactile `h-11` inputs with warm `#FAF8F4` background and `#1B3428]/20` borders. Implemented truthful persistence to `localStorage` (`lernivox_user_preferences`) with sage feedback confirmation.
+    - Verified all test suites across the monorepo: Web architecture invariants (28/28 tests passing), AI Core test suite (25/25 tests passing across 5 suites), Worker test suite (11/11 tests passing across 4 suites), API test suite (161/161 tests passing across 13 suites), full monorepo type-check (`pnpm type-check` 11/11 package tasks passing with 0 errors), Next.js 15 production build (`next build` 17/17 routes compiled cleanly), and clean port hygiene (`ss -tulpn` clean, zero lingering processes).
+  - Completed Cross-Site Stabilization and Professional UI/Architecture Fixes:
+    - Fixed PDF.js measuring canvas rendering as a 300 × 150 layout-block artifact: added global styling rule for `canvas.hiddenCanvasElement, .hiddenCanvasElement` in `apps/web/styles/globals.css` enforcing `display: none !important; position: absolute !important; width: 0 !important; height: 0 !important; visibility: hidden !important; pointer-events: none !important;`.
+    - Fixed API client empty response & 204 parsing crashes: updated `request<T>` in `apps/web/lib/api.ts` to return `null as T` on 204 No Content and empty response bodies (`trimmed.length === 0`), extract structured error JSON or text on HTTP error statuses, safely parse valid JSON, and throw descriptive `ApiError` when non-empty bodies contain malformed non-JSON data (never silently ignoring corrupt responses).
+    - Fixed study plan activation NestJS whitelist validation error: added `class-validator` decorators (`@IsDefined()`, `@IsObject()`, `@IsArray()`, `@IsString({ each: true })`) to `preferences`, `sessions`, `rangeScope`, and `focusTopics` in `apps/api/src/learning-plans/dto/learning-plans.dto.ts`, allowing `ValidationPipe` with `forbidNonWhitelisted: true` to validate study plan acceptance payloads.
+    - Fixed modal layering, containing block bleed-through, and background scrolling: portaled `GenerateLearningPlanModal` directly to `document.body` via `createPortal`, added `mounted` hydration check, added backdrop scrim (`bg-[#14261D]/60 backdrop-blur-xs`) covering the sticky application header (`z-30`), added body scroll locking (`overflow: hidden`), and wired Escape key and backdrop dismissal.
+    - Fixed Recommended Next Actions grid collapsing inside companion sidecar: in `WorkspaceProgressView.tsx`, added container-aware conditional layout (`isCompactSidecar ? 'grid grid-cols-1 gap-4' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6'`), 3rd card span adjustment (`isCompactSidecar ? 'col-span-1' : 'md:col-span-2 lg:col-span-1'`), and compact padding (`p-4 sm:p-5`), preventing horizontal card compression in narrow companion sidecars while preserving spacious multi-column desktop layout.
+    - Fixed mobile reader spacing and distraction-free navigation: updated `isAutoHidingAllowed` in `page.tsx` to support both `'read'` and default `'ai-tutor'` companion view modes, removed indiscriminate `<main onClick>` capturing taps, implemented intentional canvas tap toggle in `DocumentReader.tsx` with drag/swipe detection (>8px pointer delta ignored) and interactive element suppression, and reduced excessive reader container top padding from `py-6 px-2 sm:px-4` to `py-2 sm:py-6 px-1 sm:px-4` to eliminate awkward blank gaps.
+    - Verified single plus sign on Create New Quiz button (`WorkspaceQuizzesView.tsx`).
+    - Verified all test suites across the monorepo: AI-core (25/25 passing across 5 suites), API (144/144 passing across 12 suites), Web architecture invariants (23/23 passing), full monorepo type-check (11/11 package tasks passing with 0 errors), Next.js 15 production build (17/17 routes compiled cleanly), and port/process audit (`ss -tulpn` clean, zero orphaned processes).
+  - Completed Mandatory Pre-Phase-4 UI Polish:
+    - Fixed mobile reader full screen space reclamation with directional auto-hide on upward scroll, downward reveal, and 2.5-second inactivity reveal timer. Cleaned up timer on unmount and respected `motion-reduce:transition-none`.
+    - Removed duplicate `+` sign in `WorkspaceQuizzesView.tsx`, displaying single `<Plus />` icon alongside `Create New Quiz`.
+    - Added generous responsive breathing room in `WorkspaceProgressView.tsx` Recommended Next Actions grid (`gap-5 sm:gap-6`, `p-5 sm:p-6`).
+  - Completed Phase 3B/3C Closure Checks:
+    - Audited active database chunk page metadata: verified all 1,429 chunks across all 3 READY documents (Doc 1: 1 chunk p. 5, Doc 2: 11 chunks pp. 1-10, Doc 3: 1,417 chunks pp. 1-461; unpaginated chunks = 0).
+    - Verified flashcard range integrity across 5 ranges (page 1, middle, near end, invalid out-of-bounds with strict `BadRequestException`).
+  - Completed Phase 4 — Optional, Adaptive AI Learning Plans Master Implementation:
+    - Applied additive non-destructive migration `20261109120000_add_learning_plans_fields` to PostgreSQL.
+    - Defined contracts and DTOs in `packages/contracts/src/learning-plan.ts`.
+    - Implemented `@lernivox/ai-core` plan generator and adaptive engine (`generateLearningPlan`, `adaptLearningPlan`) with unit test suite in `plan-generator.test.ts`.
+    - Implemented NestJS `LearningPlansModule`, `LearningPlansService`, and `LearningPlansController` in `apps/api/src/learning-plans/` with unit test suite in `learning-plans.service.spec.ts`.
+    - Built frontend components: `LearningPlanOfferBanner.tsx`, `GenerateLearningPlanModal.tsx`, `WorkspaceLearningPlanView.tsx`, and updated `TutorHeader.tsx` (with 5 modes: `Read`, `Quizzes`, `Flashcards`, `Study Plan`, `My Progress`).
+    - Integrated across Desktop sidecar, Tablet slide-over, and Mobile drawers in `page.tsx`.
+    - Verified all 23 Web architecture tests (`pnpm --filter @lernivox/web test`), all 144 API tests across 12 suites (`pnpm --filter @lernivox/api test`), all 25 AI-core tests (`pnpm --filter @lernivox/ai-core test`), 11/11 monorepo type-check tasks (`pnpm type-check`), and production build (`next build` 17/17 routes).
+    - Confirmed 100% data preservation and 0 lingering background processes or open ports.
+  - Completed Final UX Polish, Ingestion Visibility, Authentication Reliability & Reader Rendering Fix:
+    - Fixed Blank PDF Pages in Large Documents (Feature G): Diagnosed mid-flight render cancellation & canvas collision caused by `aspectRatio` state in `useEffect` dependency array in `DocumentReader.tsx`. Removed `aspectRatio` from deps (`[pdfDoc, pageNumber, pageWidth, retryCount]`); rewrote RFC 7233 suffix range parser in `documents.service.ts` to return last N bytes (`start = Math.max(0, totalSize - suffixLength), end = totalSize - 1`); added `exposedHeaders` (`Content-Range`, `Accept-Ranges`, `Content-Length`, `Content-Disposition`) to CORS configuration in `main.ts`; added localized "Retry Page" recovery action on canvas render failure.
+    - Enforced 1 MiB Hard Maximum Upload Size (Feature F): Exported `MAX_UPLOAD_SIZE_BYTES = 1048576`, `MAX_UPLOAD_SIZE_LABEL = '1 MB'`, and `UPLOAD_SIZE_ERROR_MESSAGE` in `@lernivox/contracts`. Enforced 1 MiB limit in `env.validation.ts`, NestJS `FileInterceptor` limits in `documents.controller.ts`, backend file & UTF-8 pasted text byte checks in `documents.service.ts` (with boundary unit tests), and client-side defense-in-depth size validation in `api.ts` and `dashboard/page.tsx`.
+    - Real-Time Document Ingestion Visibility (Feature A): Added progress tracking fields (`processingProgress`, `processingStage`, `processingMessage`, `completedUnits`, `totalUnits`) to `Document` model via additive migration `20261109150000_add_ingestion_progress_fields`. Exposed `DocumentStatusDto` and `GET /api/v1/documents/:id/status` endpoint with workspace authorization. Granular progress updates across all BullMQ worker stages (QUEUED 5%, EXTRACTING 15%-25%, CHUNKING 30%-35%, EMBEDDING 35%-90%, INDEXING 95%, READY 100%, FAILED 0%). Replaced static bookshelf spinner in `BookCard.tsx` with tactile progress bar (stage title, percentage, completed unit count; error badge for failures) and added 2-second dashboard polling during active ingestion.
+    - Reliable Silent Access-Token Refresh (Feature C): Centralized in `api.ts` with single-flight shared `refreshPromise` preventing refresh storms for concurrent 401s; retry-once mechanism preserving request URL, method, headers, and replayable bodies (JSON, FormData); exempted auth endpoints from refresh loops; implemented safe session expiration notification (`onSessionExpired`); integrated with `AuthContext.tsx`; authored comprehensive unit test suite `apps/web/test/api-refresh.test.ts` (4 unit tests).
+    - Warm Parchment Navbar Styling (Feature B): Standardized workspace header (`TutorHeader.tsx`), secondary reader toolbar (`DocumentReader.tsx`), and marketing navbar (`Navbar.tsx`) on warm `#FAF8F4` parchment with `#1B3428`/10 border.
+    - Text-Only Outline Button (Feature D): Removed icon (`List`) from Outline toggle button in `TutorHeader.tsx`, displaying clean text-only pill `<span>Outline</span>` while preserving full interactive behavior and accessibility.
+    - Standardized Right-Side Navbar Actions (Feature E): Unified Convert to Group action, Books launcher, and Profile trigger to consistent 36px (`h-9 rounded-full`) action row with consistent borders, background, and typography. Standardized Profile trigger with inner avatar `w-7 h-7 rounded-full bg-[#497E64] text-white text-[11px] font-bold`.
+    - Verified all test suites: contracts (built), AI-core (25/25), API (159/159), Worker (11/11), Web (27/27), full monorepo type-check (11/11 package tasks passing with 0 errors), Next.js 15 production build (`next build` 17/17 routes), clean port hygiene (`ss -tulpn`).
+
+  - Completed Phase 3B Stabilization + Phase 3C Individual Workspace Learning Progress:
+    - Root-cause diagnosed and resolved Flashcard Generation HTTP 400 Blocker: Discovered chunk page numbers in database were set to `1` across all 1,417 chunks of the 461-page textbook. Executed safe non-destructive backfill mapping page headers (`-- X of 461 --`) to true page numbers across all 1,429 chunks in Doc 3 and Doc 2 with 100% data and embedding preservation. Removed silent whole-document fallbacks in `flashcards.service.ts` and `flashcard-generation.processor.ts` to protect source-range bounds, throwing explicit `BadRequestException` when ranges are out of bounds. Updated `apps/web/lib/api.ts` to unwrap nested NestJS exception messages cleanly. Verified live preview returns 5 grounded flashcards with verified chunk IDs in 1.2s.
+    - Repaired Mobile Navigation Auto-Hide & Unified Reader Coordination: Diagnosed parent `page.tsx` attempting DOM query `document.getElementById('pdf-scroll-container')` inside an initial render `useEffect` before `DocumentReader` mounted. Replaced with direct `onScrollDelta` and `onCanvasTap` callback props wired to `#pdf-scroll-container`'s synthetic `onScroll`, `onTouchStart`, `onTouchMove`, and `onClick` handlers. Synchronized mobile top header (`-translate-y-full`), bottom dock (`translate-y-full`), and reading container padding with matching `transition-transform duration-300 ease-in-out`. Enforced auto-hide suppression when modals, drawers, or text selection are active, and immediate restoration on canvas tap or scrolling up.
+    - Completed Phase 3C Individual Workspace Learning Progress: Scoped backend queries in `apps/api/src/workspaces/workspaces.service.ts` to `createdById: userId` for flashcard decks and `userId` for quiz attempts, guaranteeing 100% individual privacy even in shared GROUP workspaces. Enhanced `WorkspaceProgressView.tsx` with actionable evidence-based recommendations, topic understanding matrix with direct page navigation links (`onNavigateToPage`), recent attempt history with honest empty state, and privacy guarantee badge.
+    - Verified all 22 invariant tests in `@lernivox/web`, 135 API tests across 11 suites, 11 worker tests across 4 suites, 20 AI-core tests, full monorepo type-check (`pnpm type-check` 11/11 tasks passing), and Next.js 15 production build (`next build` 17/17 routes). Verified clean port audit with `ss -tulpn`.
 

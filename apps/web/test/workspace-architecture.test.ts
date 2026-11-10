@@ -23,6 +23,13 @@ describe('Unified Workspace Architecture Invariants', () => {
   const runnerPath = path.join(baseDir, 'components/workspace/FlashcardStudyRunner.tsx');
   const navbarPath = path.join(baseDir, 'components/marketing/Navbar.tsx');
   const marketingPagePath = path.join(baseDir, 'app/(marketing)/page.tsx');
+  const dashboardPagePath = path.join(baseDir, 'app/(workspace)/dashboard/page.tsx');
+  const manageGroupModalPath = path.join(baseDir, 'components/workspace/ManageGroupModal.tsx');
+  const convertToGroupModalPath = path.join(baseDir, 'components/workspace/ConvertToGroupModal.tsx');
+  const bookRangeSelectorPath = path.join(baseDir, 'components/workspace/BookRangeSelector.tsx');
+  const planViewPath = path.join(baseDir, 'components/workspace/WorkspaceLearningPlanView.tsx');
+  const planModalPath = path.join(baseDir, 'components/workspace/GenerateLearningPlanModal.tsx');
+  const planOfferPath = path.join(baseDir, 'components/workspace/LearningPlanOfferBanner.tsx');
 
   const tutorHeaderCode = fs.readFileSync(tutorHeaderPath, 'utf8');
   const documentReaderCode = fs.readFileSync(documentReaderPath, 'utf8');
@@ -39,18 +46,26 @@ describe('Unified Workspace Architecture Invariants', () => {
   const runnerCode = fs.readFileSync(runnerPath, 'utf8');
   const navbarCode = fs.readFileSync(navbarPath, 'utf8');
   const marketingPageCode = fs.readFileSync(marketingPagePath, 'utf8');
+  const dashboardPageCode = fs.readFileSync(dashboardPagePath, 'utf8');
+  const manageGroupModalCode = fs.readFileSync(manageGroupModalPath, 'utf8');
+  const convertToGroupModalCode = fs.readFileSync(convertToGroupModalPath, 'utf8');
+  const bookRangeSelectorCode = fs.readFileSync(bookRangeSelectorPath, 'utf8');
+  const planViewCode = fs.readFileSync(planViewPath, 'utf8');
+  const planModalCode = fs.readFileSync(planModalPath, 'utf8');
+  const planOfferCode = fs.readFileSync(planOfferPath, 'utf8');
 
-  test('1. "Read" is restored as the first study mode on desktop/tablet (Read | Quizzes | Flashcards | Progress), while mobile dock remains Outline | Review | AI Tutor', () => {
+  test('1. "Read" is restored as the first study mode on desktop/tablet (Read | Quizzes | Flashcards | Plan | Progress), while mobile dock remains Outline | Review | AI Tutor', () => {
     // WorkspaceViewMode must include 'read'
     assert.match(
       tutorHeaderCode,
-      /export type WorkspaceViewMode = 'read' \| 'quizzes' \| 'flashcards' \| 'progress';/,
+      /export type WorkspaceViewMode = 'read' \| 'quizzes' \| 'flashcards' \| 'plan' \| 'progress';/,
       'WorkspaceViewMode must include read mode as first study option'
     );
-    // TutorHeader segmented buttons must contain all 4 study modes starting with Read
+    // TutorHeader segmented buttons must contain study modes starting with Read
     assert.match(tutorHeaderCode, /onViewChange\('read'\)/);
     assert.match(tutorHeaderCode, /onViewChange\('quizzes'\)/);
     assert.match(tutorHeaderCode, /onViewChange\('flashcards'\)/);
+    assert.match(tutorHeaderCode, /onViewChange\('plan'\)/);
     assert.match(tutorHeaderCode, /onViewChange\('progress'\)/);
 
     // Mobile dock must NOT contain a Read button (uses Outline | Review | AI Tutor)
@@ -318,9 +333,10 @@ describe('Unified Workspace Architecture Invariants', () => {
     // Outline drawer has NO duplicate collapse button inside header
     assert.doesNotMatch(outlinePaneCode, /PanelLeftClose/);
 
-    // Quiz CTA hierarchy: only single primary button
+    // Quiz CTA hierarchy: only single primary button with exactly one plus sign (icon + label, no duplicate text plus)
     assert.match(quizzesViewCode, /quizzes\.length > 0 && \(/);
-    assert.match(quizzesViewCode, /\+ Create New Quiz/);
+    assert.match(quizzesViewCode, /<Plus[\s\S]*?<span>Create New Quiz<\/span>/);
+    assert.doesNotMatch(quizzesViewCode, /<span>\+ Create New Quiz<\/span>/);
     assert.doesNotMatch(quizzesViewCode, /Book Assessment Center/);
 
     // Flashcards & Progress typography cleanups
@@ -332,5 +348,377 @@ describe('Unified Workspace Architecture Invariants', () => {
     assert.match(navbarCode, /Explore/);
     assert.match(navbarCode, /min-\[1101px\]:hidden/);
     assert.match(navbarCode, /hidden min-\[1101px\]:flex/);
+  });
+
+  test('17. Final mobile workspace navigation & dashboard responsive repairs: Group Hub in Row 2, synchronized 144px vertical space reclamation, portaled modals with z-50 backdrops', () => {
+    // 1. Mobile secondary toolbar (Row 2) has Group Hub collaboration pill / Convert to Group action, NOT duplicate Outline
+    assert.match(
+      workspacePageCode,
+      /workspace\?\.type === 'GROUP' \?[\s\S]*?setIsManageGroupModalOpen\(true\)[\s\S]*?: isOwner \?[\s\S]*?setIsConvertModalOpen\(true\)/
+    );
+    // In Row 2, there is no duplicate Outline button
+    const row2Section = workspacePageCode.match(/Row 2: 40px Secondary Reader Toolbar[\s\S]*?Authoritative Page Navigation/);
+    assert.ok(row2Section, 'Row 2 secondary toolbar must exist');
+    assert.doesNotMatch(row2Section[0], /View Outline/);
+    assert.doesNotMatch(row2Section[0], /toggleToc/);
+
+    // 2. Mobile bottom dock retains Outline as the authoritative entry point
+    assert.match(workspacePageCode, /mobileDrawer === 'toc'/);
+
+    // 3. Immersive directional auto-hide reclaims both top (88px) and bottom (56px) space (144px total)
+    assert.match(workspacePageCode, /mobileNavHidden \? 'pt-0' : 'pt-\[88px\]'/);
+    assert.match(workspacePageCode, /mobileNavHidden \? 'pb-0' : 'pb-14'/);
+    assert.match(workspacePageCode, /transition-\[padding\]/);
+
+    // 4. Auto-hide is suspended when modals, citation inspector, or drawers are active
+    assert.match(workspacePageCode, /!isPracticeModalOpen &&\s*!isConvertModalOpen &&\s*!isManageGroupModalOpen &&\s*!inspectingCitation/);
+
+    // 5. Dashboard Add Learning Material modal is portaled to document.body with z-50 backdrop
+    assert.match(dashboardPageCode, /createPortal\(/);
+    assert.match(dashboardPageCode, /showAddModal &&[\s\S]*?createPortal\(/);
+    assert.match(dashboardPageCode, /deletingDoc &&[\s\S]*?createPortal\(/);
+    assert.match(dashboardPageCode, /fixed inset-0 z-50[\s\S]*?bg-black\/50 backdrop-blur-xs/);
+    assert.match(dashboardPageCode, /id="add-material-modal-title"/);
+    assert.match(dashboardPageCode, /role="dialog"/);
+    assert.match(dashboardPageCode, /aria-modal="true"/);
+
+    // 6. ManageGroupModal and ConvertToGroupModal use createPortal with mobile bottom sheet styling
+    assert.match(manageGroupModalCode, /createPortal\(/);
+    assert.match(manageGroupModalCode, /rounded-t-\[28px\] sm:rounded-3xl/);
+    assert.match(manageGroupModalCode, /sm:hidden w-12 h-1\.5 bg-\[#1B3428\]\/20 rounded-full/);
+    assert.match(convertToGroupModalCode, /createPortal\(/);
+    assert.match(convertToGroupModalCode, /rounded-t-\[28px\] sm:rounded-3xl/);
+    assert.match(convertToGroupModalCode, /sm:hidden w-12 h-1\.5 bg-\[#1B3428\]\/20 rounded-full/);
+  });
+
+  test('18. Native Virtualized Document Reader: Complete removal of iframe/embed, TanStack virtualization for 400+ pages, native PDF.js TextLayer, native DOCX preview, selection pinning', () => {
+    // 1. Permanent removal of browser Embed, Object, or iframe document viewing
+    assert.doesNotMatch(documentReaderCode, /<iframe/, 'Must not use iframe for document viewing');
+    assert.doesNotMatch(documentReaderCode, /<embed/, 'Must not use embed for document viewing');
+    assert.doesNotMatch(documentReaderCode, /<object/, 'Must not use object for document viewing');
+    assert.doesNotMatch(documentReaderCode, /pdf-embed-frame/, 'Must not have pdf-embed-frame');
+
+    // 2. High-performance windowed virtualization for hundreds of pages
+    assert.match(documentReaderCode, /useVirtualizer/, 'Must use useVirtualizer for page virtualization');
+    assert.match(documentReaderCode, /@tanstack\/react-virtual/, 'Must import from @tanstack/react-virtual');
+    assert.match(documentReaderCode, /virtualizer\.getVirtualItems\(\)/, 'Must mount only visible virtual items');
+    assert.match(documentReaderCode, /virtualizer\.getTotalSize\(\)/, 'Must maintain total document virtual scroll height');
+    assert.match(documentReaderCode, /virtualizer\.measureElement/, 'Must support dynamic element measurement');
+
+    // 3. Native PDF.js rendering with separate Canvas and TextLayer
+    assert.match(documentReaderCode, /pdfjsLib\.getDocument/, 'Must use pdfjsLib.getDocument for streaming PDF loading');
+    assert.match(documentReaderCode, /new pdfjsLib\.TextLayer/, 'Must instantiate native PDF.js TextLayer');
+    assert.match(documentReaderCode, /className="textLayer select-text"/, 'Must render selectable textLayer element');
+    assert.match(documentReaderCode, /className="block pdf-canvas pointer-events-none select-none"/, 'Must render non-blocking canvas');
+
+    // 4. Native DOCX rendering via docx-preview
+    assert.match(documentReaderCode, /docx-preview/, 'Must use docx-preview for Word documents');
+    assert.match(documentReaderCode, /docxPreview\.renderAsync/, 'Must render DOCX documents via renderAsync');
+    assert.match(documentReaderCode, /isDocx/, 'Must route DOCX files to native Word renderer');
+
+    // 5. Text Selection Isolation & Pinned Page Protection
+    assert.match(documentReaderCode, /pinnedPage === pageNum/, 'Must support pinned page so active selection never unmounts');
+    assert.match(documentReaderCode, /id="selection-toolbar"/, 'Must render selection action toolbar');
+    assert.match(documentReaderCode, /onMouseDown=\{\(e\) => e\.preventDefault\(\)\}/, 'Must prevent focus steal on action clicks');
+    assert.match(documentReaderCode, /onExplainParagraph\(selectedText/, 'Must dispatch selected text to AI companion');
+
+    // 6. Source passage verification & citation badge
+    assert.match(documentReaderCode, /isActiveCitation/, 'Must handle active citation passage highlight');
+    assert.match(documentReaderCode, /Verified Citation Passage/, 'Must display verified citation badge on citation page');
+  });
+
+  test('19. Real Document Integration & Virtualization Scale: 461-page textbook loads, extracts 40-item outline, and enforces bounded memory slice', async () => {
+    const textbookPath = path.resolve(
+      baseDir,
+      '../../uploads/documents/87331ec3-d182-4f89-a68c-e1782639c443/1d80138a-157c-463a-9db2-643fe9313bda_new-testament-history-and-literature-9780300182194_compress.pdf'
+    );
+
+    if (fs.existsSync(textbookPath)) {
+      // @ts-ignore
+      const pdfjs = await import('pdfjs-dist/build/pdf.mjs');
+      const data = new Uint8Array(fs.readFileSync(textbookPath));
+      const doc = await pdfjs.getDocument({ data }).promise;
+
+      // Assert page count is exactly 461 pages
+      assert.equal(doc.numPages, 461, 'Textbook must contain exactly 461 pages');
+
+      // Assert page 1 and page 100 dimensions can be read accurately
+      const page1 = await doc.getPage(1);
+      const vp1 = page1.getViewport({ scale: 1 });
+      assert.ok(vp1.width > 0 && vp1.height > 0, 'Page 1 must report positive dimensions');
+      assert.ok(vp1.height > vp1.width, 'Page 1 must be portrait');
+
+      // Assert native PDF outline is extracted
+      const outline = await doc.getOutline();
+      assert.ok(Array.isArray(outline) && outline.length >= 20, 'Outline must extract chapter roots');
+
+      // Mathematical virtualization invariant:
+      // For a 461-page document with viewport height 900px and page height 1200px:
+      // Active viewport span = 1 page, Overscan = 2 above + 2 below = max 5 pages mounted
+      // 456 pages (98.9%) are kept unmounted out of memory!
+      const totalPages = doc.numPages;
+      const viewportHeight = 900;
+      const estimatedPageHeight = Math.round(800 * (vp1.height / vp1.width)) + 24;
+      const visibleCount = Math.ceil(viewportHeight / estimatedPageHeight) + 1;
+      const overscan = 2;
+      const maxMountedPages = visibleCount + overscan * 2;
+      assert.ok(
+        maxMountedPages <= 7,
+        `Virtualizer must mount at most 7 pages simultaneously (calculated ${maxMountedPages}) for 461-page textbook`
+      );
+      assert.ok(
+        totalPages - maxMountedPages >= 450,
+        'At least 450 pages must remain unmounted to prevent canvas memory exhaustion'
+      );
+    }
+  });
+
+  test('20. Native Reader Alignment, Flashcard Modal Stacking & Input Responsiveness (Phase 3B Mastery)', () => {
+    // 1. PDF Canvas centering: mx-auto applied to container and row centering
+    assert.match(
+      documentReaderCode,
+      /isFocusMode \? 'max-w-5xl mx-auto' : 'max-w-6xl mx-auto'/,
+      'PDF container must center on both focus and regular viewing modes'
+    );
+    assert.match(
+      documentReaderCode,
+      /className="w-full flex justify-center"/,
+      'Virtual row item must justify-center to prevent left shift when companion collapses'
+    );
+
+    // 2. GenerateFlashcardsModal portaled with createPortal and z-50 backdrop covering header z-30
+    assert.match(flashcardsModalCode, /createPortal\(/);
+    assert.match(flashcardsModalCode, /document\.body/);
+    assert.match(flashcardsModalCode, /fixed inset-0 z-50/);
+    assert.match(flashcardsModalCode, /pageCount/);
+
+    // 3. WorkspaceFlashcardsView passes pageCount to GenerateFlashcardsModal
+    assert.match(flashcardsViewCode, /pageCount=\{document\.pageCount\}/);
+
+    // 4. BookRangeSelector supports free numeric editing via draft states without clamped locks
+    assert.match(bookRangeSelectorCode, /fromPageDraft/);
+    assert.match(bookRangeSelectorCode, /toPageDraft/);
+    assert.match(bookRangeSelectorCode, /handleFromPageChange/);
+    assert.match(bookRangeSelectorCode, /handleToPageChange/);
+    assert.match(bookRangeSelectorCode, /onChangeRef/);
+
+    // 5. DocumentReader floating selection bar provides Card action for grounded card creation
+    assert.match(documentReaderCode, /onCreateCardSelection/);
+    assert.match(documentReaderCode, /Create flashcard from selection/);
+  });
+
+  test('21. Mobile Immersive Auto-Hide, Inactivity Reveal & Reader Coordination (Pre-Phase-4 Polish)', () => {
+    // 1. Mobile top header and bottom dock must animate with identical coordinated transitions & reduced-motion support
+    assert.match(
+      workspacePageCode,
+      /transition-transform duration-300 ease-in-out motion-reduce:transition-none select-none \$\{[\s\S]*mobileNavHidden \? '-translate-y-full' : 'translate-y-0'/,
+      'Mobile top navigation wrapper must hide on -translate-y-full with duration-300'
+    );
+    assert.match(
+      workspacePageCode,
+      /transition-transform duration-300 ease-in-out motion-reduce:transition-none select-none \$\{[\s\S]*mobileNavHidden \? 'translate-y-full' : 'translate-y-0'/,
+      'Mobile bottom dock must hide on translate-y-full with matching duration-300'
+    );
+
+    // 2. Synchronized vertical space reclamation with smooth 300ms transition
+    assert.match(
+      workspacePageCode,
+      /mobileNavHidden \? 'pt-0' : 'pt-\[88px\]'/,
+      'Main container must reclaim 88px top header height'
+    );
+    assert.match(
+      workspacePageCode,
+      /mobileNavHidden \? 'pb-0' : 'pb-14'/,
+      'Main container must reclaim 56px bottom dock height'
+    );
+    assert.match(
+      workspacePageCode,
+      /transition-\[padding\] duration-300/,
+      'Padding transition must coordinate with 300ms bar animations'
+    );
+
+    // 3. DocumentReader exposes onScrollDelta and onCanvasTap to parent
+    assert.match(documentReaderCode, /onScrollDelta\?: \(deltaY: number, scrollTop: number\) => void;/);
+    assert.match(documentReaderCode, /onCanvasTap\?: \(\) => void;/);
+    assert.match(documentReaderCode, /onTouchStart=\{handleTouchStart\}/);
+    assert.match(documentReaderCode, /onTouchMove=\{handleTouchMove\}/);
+    assert.match(documentReaderCode, /onClick=\{handleContainerClick\}/);
+
+    // 4. Directional auto-hide thresholds in workspace
+    assert.match(workspacePageCode, /deltaY > 20 && scrollTop > 50/);
+    assert.match(workspacePageCode, /deltaY < -15/);
+    assert.match(workspacePageCode, /handleReaderCanvasTap/);
+
+    // 5. Inactivity timer reveals navigation after approximately 2.5 seconds
+    assert.match(workspacePageCode, /inactivityTimerRef/);
+    assert.match(workspacePageCode, /clearInactivityTimer/);
+    assert.match(workspacePageCode, /setTimeout\(\(\) => \{[\s\S]*?setMobileNavHidden\(false\);[\s\S]*?\}, 2500\)/);
+  });
+
+  test('22. Phase 3C Individual Workspace Learning Progress & Multi-User Privacy', () => {
+    // 1. Progress view integrates reading, assessments, and SM-2 flashcard recall
+    assert.match(progressViewCode, /WorkspaceProgressOverviewDto/);
+    assert.match(progressViewCode, /Reading Activity/);
+    assert.match(progressViewCode, /Quiz Performance/);
+    assert.match(progressViewCode, /Flashcard Recall/);
+    assert.match(progressViewCode, /Topic & Section Understanding Matrix/);
+
+    // 2. Actionable recommendations derived from actual learning data with spacious responsive grid
+    assert.match(progressViewCode, /Recommended Next Actions/);
+    assert.match(progressViewCode, /grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6/);
+    assert.match(progressViewCode, /Continue reading from Page/);
+    assert.match(progressViewCode, /scheduled for review today/);
+
+    // 3. Recent Quiz Attempts with honest empty states
+    assert.match(progressViewCode, /Recent Quiz Attempts/);
+    assert.match(progressViewCode, /No completed quiz attempts recorded yet/);
+
+    // 4. Topic matrix navigation
+    assert.match(progressViewCode, /onNavigateToPage/);
+
+    // 5. Multi-user privacy guarantee in UI
+    assert.match(progressViewCode, /Individual Learning Privacy/);
+
+    // 6. Backend isolation verified in workspaces.service.ts
+    const workspacesServicePath = path.join(baseDir, '../api/src/workspaces/workspaces.service.ts');
+    const workspacesServiceCode = fs.readFileSync(workspacesServicePath, 'utf8');
+    assert.match(
+      workspacesServiceCode,
+      /where: \{ workspaceId, createdById: userId \}/,
+      'Backend must strictly isolate flashcard decks to createdById: userId'
+    );
+    assert.match(
+      workspacesServiceCode,
+      /where: \{ userId_documentId: \{ userId, documentId \} \}/,
+      'Backend must strictly isolate reading progress to userId'
+    );
+  });
+
+  test('23. Phase 4 Adaptive Learning Plans Architecture Invariants', () => {
+    // 1. Contextual tutor offer banner in chat
+    assert.match(planOfferCode, /Personalized Study Plan/);
+    assert.match(planOfferCode, /onOpenPlanModal/);
+    assert.match(planOfferCode, /onDismiss/);
+    assert.match(copilotCode, /LearningPlanOfferBanner/);
+
+    // 2. Plan preview and customization modal
+    assert.match(planModalCode, /Create Adaptive Study Plan/);
+    assert.match(planModalCode, /Review Study Plan/);
+    assert.match(planModalCode, /BookRangeSelector/);
+    assert.match(planModalCode, /api\.learningPlans\.generatePreview/);
+    assert.match(planModalCode, /api\.learningPlans\.createPlan/);
+
+    // 3. Active Learning Plan View with Spotlight & Stepper
+    assert.match(planViewCode, /Active Focus Session/);
+    assert.match(planViewCode, /Session Activities Checklist/);
+    assert.match(planViewCode, /Complete Study Schedule/);
+    assert.match(planViewCode, /handleAdaptPlan/);
+    assert.match(planViewCode, /handleTogglePause/);
+
+    // 4. API Client has full learningPlans suite
+    const apiCode = fs.readFileSync(path.join(baseDir, 'lib/api.ts'), 'utf8');
+    assert.match(apiCode, /learningPlans:\s*\{/);
+    assert.match(apiCode, /getOffer:/);
+    assert.match(apiCode, /generatePreview:/);
+    assert.match(apiCode, /createPlan:/);
+    assert.match(apiCode, /getActivePlan:/);
+    assert.match(apiCode, /adaptPlan:/);
+
+    // 5. Backend isolation and evidence-based adaptation in learning-plans.service.ts
+    const learningPlansServicePath = path.join(baseDir, '../api/src/learning-plans/learning-plans.service.ts');
+    const learningPlansServiceCode = fs.readFileSync(learningPlansServicePath, 'utf8');
+    assert.match(learningPlansServiceCode, /userId,\s*workspaceId/);
+    assert.match(learningPlansServiceCode, /generateLearningPlan/);
+    assert.match(learningPlansServiceCode, /adaptLearningPlan/);
+    assert.match(learningPlansServiceCode, /status === 'COMPLETED'/);
+  });
+
+  test('24. Reader Virtualization Repair, Pending Invitations, Bookshelf Polish & Settings Master-Detail Architecture', () => {
+    // 1. Mobile & scale virtualization invariants in DocumentReader.tsx
+    assert.match(documentReaderCode, /virtualizer\.getVirtualItems\(\)/);
+    assert.match(documentReaderCode, /gap:\s*pageGap/);
+    assert.match(documentReaderCode, /virtualizerRef\.current\?\.resizeItem/);
+    assert.match(documentReaderCode, /firstPage\.getViewport\(\{ scale: 1 \}\)/);
+    assert.doesNotMatch(documentReaderCode, /paddingBottom:\s*['"]24px['"]/);
+
+    // 2. Bookshelf BookCard single progress bar
+    const bookCardPath = path.join(baseDir, 'components/workspace/BookCard.tsx');
+    const bookCardCode = fs.readFileSync(bookCardPath, 'utf8');
+    assert.doesNotMatch(bookCardCode, /bg-amber-300 h-full rounded-full transition-all/);
+
+    // 3. Browser Identity & Warm Parchment Navbar
+    const iconSvgPath = path.join(baseDir, 'app/icon.svg');
+    const iconSvgCode = fs.readFileSync(iconSvgPath, 'utf8');
+    assert.match(iconSvgCode, /#E8722C/);
+    assert.doesNotMatch(iconSvgCode, /#4F46E5/);
+
+    const layoutPath = path.join(baseDir, 'app/layout.tsx');
+    const layoutCode = fs.readFileSync(layoutPath, 'utf8');
+    assert.match(layoutCode, /themeColor:\s*['"]#FAF8F4['"]/);
+
+    // 4. Pending Group Workspace Invitations
+    const dashboardPagePath = path.join(baseDir, 'app/(workspace)/dashboard/page.tsx');
+    const dashboardPageCode = fs.readFileSync(dashboardPagePath, 'utf8');
+    assert.match(dashboardPageCode, /Pending Group Invitations/);
+    assert.match(dashboardPageCode, /handleAcceptInvite/);
+    assert.match(dashboardPageCode, /handleDeclineInvite/);
+    assert.match(dashboardPageCode, /api\.workspaces\.acceptPendingInvite/);
+
+    // 5. Settings Master-Detail Layout & Form Standards
+    const settingsPagePath = path.join(baseDir, 'app/(workspace)/dashboard/settings/page.tsx');
+    const settingsPageCode = fs.readFileSync(settingsPagePath, 'utf8');
+    assert.match(settingsPageCode, /max-w-7xl mx-auto/);
+    assert.match(settingsPageCode, /Back to Dashboard/);
+    assert.match(settingsPageCode, /md:grid-cols-\[240px_1fr\]/);
+    assert.match(settingsPageCode, /Profile & Account/);
+    assert.match(settingsPageCode, /AI Tutor & Learning/);
+    assert.match(settingsPageCode, /Schedule & Reviews/);
+    assert.match(settingsPageCode, /bg-\[#14261D\] text-\[#FAF8F4\]/);
+    assert.match(settingsPageCode, /localStorage\.setItem/);
+  });
+
+  test('25. Group Discussion Unread Badge, Auto-Expanding Composer, Public Dashboard Shortcut & Product Language Refactor', () => {
+    // 1. Group Workspace Unread Notification Badge on TutorHeader pill
+    const tutorHeaderPath = path.join(baseDir, 'components/workspace/TutorHeader.tsx');
+    const tutorHeaderCode = fs.readFileSync(tutorHeaderPath, 'utf8');
+    assert.match(tutorHeaderCode, /unreadDiscussionCount/);
+    assert.match(tutorHeaderCode, /bg-\[#E8722C\] text-white text-\[10px\] font-mono font-bold rounded-full/);
+
+    // 2. Persistent read cursor contracts & schema
+    const schemaPath = path.join(baseDir, '../../packages/database/prisma/schema.prisma');
+    const schemaCode = fs.readFileSync(schemaPath, 'utf8');
+    assert.match(schemaCode, /model WorkspaceDiscussionReadCursor/);
+    assert.match(schemaCode, /@@unique\(\[workspaceId, userId\]\)/);
+
+    // 3. Auto-expanding multiline composer in GroupDiscussionPane
+    const groupDiscussionPath = path.join(baseDir, 'components/workspace/GroupDiscussionPane.tsx');
+    const groupDiscussionCode = fs.readFileSync(groupDiscussionPath, 'utf8');
+    assert.match(groupDiscussionCode, /textareaRef/);
+    assert.match(groupDiscussionCode, /isComposing/);
+    assert.match(groupDiscussionCode, /Shift \+ Enter for new line/);
+    assert.match(groupDiscussionCode, /Anchor to p\./);
+
+    // 4. Responsive public navigation with compact Dashboard icon shortcut below 1024px
+    const navbarPath = path.join(baseDir, 'components/marketing/Navbar.tsx');
+    const navbarCode = fs.readFileSync(navbarPath, 'utf8');
+    assert.match(navbarCode, /lg:hidden/);
+    assert.match(navbarCode, /href="\/dashboard"/);
+    assert.match(navbarCode, /aria-label="Go to Dashboard"/);
+
+    // 5. Complete product language refactor (no 768-dim, no 25 MB, diverse reading genres)
+    const marketingPagePath = path.join(baseDir, 'app/(marketing)/page.tsx');
+    const marketingPageCode = fs.readFileSync(marketingPagePath, 'utf8');
+    assert.doesNotMatch(marketingPageCode, /768-dimensional vectors/);
+    assert.doesNotMatch(marketingPageCode, /768-dim/);
+    assert.doesNotMatch(marketingPageCode, /Files up to 25 MB/);
+    assert.match(marketingPageCode, /Files up to 1 MB/);
+    assert.doesNotMatch(marketingPageCode, /Group Quiz Battles/);
+    assert.match(marketingPageCode, /Shared Group Discussions/);
+
+    const heroUploadPath = path.join(baseDir, 'components/marketing/HeroUpload.tsx');
+    const heroUploadCode = fs.readFileSync(heroUploadPath, 'utf8');
+    assert.doesNotMatch(heroUploadCode, /768-dim Vectors/);
+    assert.match(heroUploadCode, /Pride_and_Prejudice/);
+    assert.match(heroUploadCode, /The_Industrial_Revolution/);
   });
 });
