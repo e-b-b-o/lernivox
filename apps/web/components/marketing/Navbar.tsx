@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
-import { UserCircle, LogOut, ChevronDown } from 'lucide-react';
+import { UserCircle, LogOut, ChevronDown, BookOpen } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { ProfileMenu } from '../workspace/ProfileMenu';
 
@@ -95,7 +95,7 @@ export function Navbar() {
 
   return (
     <>
-      <header className="w-full bg-[#F4F0E5] py-3 md:py-[20px] h-[72px] md:h-[86px] sticky top-0 z-50 border-none transition-colors">
+      <header className="w-full bg-[#FAF8F4] py-3 md:py-[20px] h-[72px] md:h-[86px] sticky top-0 z-50 border-b border-[#1B3428]/10 transition-colors">
         <div className="max-w-[1440px] h-[46px] px-4 sm:px-6 md:px-8 mx-auto flex items-center justify-center">
           <div className="w-full max-w-[1380px] h-[46px] flex items-center justify-between gap-2 sm:gap-3 lg:gap-6 xl:gap-10">
             
@@ -184,48 +184,78 @@ export function Navbar() {
               </nav>
             </div>
 
-            {/* Zone 3 — Right: Auth Actions & Profile Menu */}
+            {/* Zone 3 — Right: Auth Actions & Mobile/Tablet Trigger */}
             <div className="flex items-center justify-end shrink-0 gap-2 sm:gap-3 lg:gap-4 h-[46px]">
               {isLoading ? (
-                /* Subtle placeholder during session restoration to prevent button flashing */
-                <div className="hidden md:flex items-center gap-3">
-                  <div className="h-[40px] w-32 rounded-full bg-[#1B3428]/10 animate-pulse" />
-                  <div className="h-9 w-9 rounded-full bg-[#1B3428]/10 animate-pulse" />
-                </div>
+                <>
+                  <div className="hidden lg:flex items-center gap-3">
+                    <div className="h-[40px] w-32 rounded-full bg-[#1B3428]/10 animate-pulse" />
+                    <div className="h-9 w-9 rounded-full bg-[#1B3428]/10 animate-pulse" />
+                  </div>
+                  <div className="lg:hidden w-9 h-9 rounded-full bg-[#1B3428]/10 animate-pulse" />
+                </>
               ) : isAuthenticated ? (
-                <div className="hidden md:flex items-center gap-3">
-                  <Link
-                    href="/dashboard"
-                    className="h-[40px] px-5 py-[8px] rounded-[100px] bg-[#1B3428] text-white font-sans text-[14px] font-semibold shadow-[0_3px_0_0_#497E64] hover:-translate-y-[1px] hover:shadow-[0_4px_0_0_#497E64] active:translate-y-[1px] active:shadow-[0_1px_0_0_#497E64] transition-all duration-150 ease-out whitespace-nowrap inline-flex items-center justify-center gap-2 select-none"
-                  >
-                    <span>Go to Dashboard</span>
-                  </Link>
+                <>
+                  {/* Desktop Auth Layout (>= 1024px) */}
+                  <div className="hidden lg:flex items-center gap-3">
+                    <Link
+                      href="/dashboard"
+                      className="h-[40px] px-5 py-[8px] rounded-[100px] bg-[#1B3428] text-white font-sans text-[14px] font-semibold shadow-[0_3px_0_0_#497E64] hover:-translate-y-[1px] hover:shadow-[0_4px_0_0_#497E64] active:translate-y-[1px] active:shadow-[0_1px_0_0_#497E64] transition-all duration-150 ease-out whitespace-nowrap inline-flex items-center justify-center gap-2 select-none"
+                    >
+                      <span>Go to Dashboard</span>
+                    </Link>
 
-                  {/* Compact Profile Menu Trigger & Dropdown */}
-                  <ProfileMenu compact />
-                </div>
+                    {/* Compact Profile Menu Trigger & Dropdown */}
+                    <ProfileMenu compact />
+                  </div>
+
+                  {/* Mobile & Tablet Direct Dashboard Shortcut (< 1024px) */}
+                  <div className="flex lg:hidden items-center gap-2">
+                    <Link
+                      href="/dashboard"
+                      className="w-9 h-9 rounded-full bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/20 flex items-center justify-center text-[#14261D] hover:text-[#E8722C] hover:border-[#E8722C] shadow-2xs active:translate-y-0.5 transition-all cursor-pointer"
+                      title="Go to Dashboard"
+                      aria-label="Go to Dashboard"
+                    >
+                      <BookOpen className="w-4 h-4" />
+                    </Link>
+                  </div>
+                </>
               ) : (
-                <div className="hidden md:flex items-center gap-[18px]">
-                  <Link
-                    href="/login"
-                    className="font-sans text-[15px] font-medium leading-[22.4px] text-[#14261D] hover:text-[#E8722C] transition-colors duration-200 whitespace-nowrap"
-                  >
-                    Sign In
-                  </Link>
-                  <Link
-                    href="/register"
-                    className="h-[42px] px-6 py-[10px] rounded-[100px] bg-[#1B3428] text-white font-sans text-[15px] font-medium leading-[22.4px] shadow-[0_4px_0_0_#497E64] hover:-translate-y-[1px] hover:shadow-[0_5px_0_0_#497E64] active:translate-y-[2px] active:shadow-[0_2px_0_0_#497E64] transition-all duration-150 ease-out whitespace-nowrap inline-flex items-center justify-center select-none"
-                  >
-                    Get started
-                  </Link>
-                </div>
+                <>
+                  {/* Desktop Unauthenticated Layout (>= 1024px) */}
+                  <div className="hidden lg:flex items-center gap-[18px]">
+                    <Link
+                      href="/login"
+                      className="font-sans text-[15px] font-medium leading-[22.4px] text-[#14261D] hover:text-[#E8722C] transition-colors duration-200 whitespace-nowrap"
+                    >
+                      Sign In
+                    </Link>
+                    <Link
+                      href="/register"
+                      className="h-[42px] px-6 py-[10px] rounded-[100px] bg-[#1B3428] text-white font-sans text-[15px] font-medium leading-[22.4px] shadow-[0_4px_0_0_#497E64] hover:-translate-y-[1px] hover:shadow-[0_5px_0_0_#497E64] active:translate-y-[2px] active:shadow-[0_2px_0_0_#497E64] transition-all duration-150 ease-out whitespace-nowrap inline-flex items-center justify-center select-none"
+                    >
+                      Get started
+                    </Link>
+                  </div>
+
+                  {/* Mobile & Tablet Sign In Link (< 1024px) */}
+                  <div className="flex lg:hidden items-center gap-2">
+                    <Link
+                      href="/login"
+                      className="font-sans text-xs font-semibold px-2 py-1 text-[#14261D] hover:text-[#E8722C] transition-colors"
+                    >
+                      Sign In
+                    </Link>
+                  </div>
+                </>
               )}
 
-              {/* Mobile Animated Hamburger Button */}
+              {/* Mobile Animated Hamburger Button (< 1024px) */}
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden relative w-10 h-10 rounded-full border border-[#1B3428]/15 bg-white/90 flex items-center justify-center text-[#14261D] hover:bg-white hover:text-[#E8722C] transition-all focus:outline-none shadow-sm"
+                className="lg:hidden relative w-10 h-10 rounded-full border border-[#1B3428]/15 bg-white/90 flex items-center justify-center text-[#14261D] hover:bg-white hover:text-[#E8722C] transition-all focus:outline-none shadow-sm"
                 aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
                 aria-expanded={mobileMenuOpen}
               >
@@ -253,9 +283,9 @@ export function Navbar() {
         </div>
       </header>
 
-      {/* Full-Screen Bi-Directional Mobile Navigation Drawer */}
+      {/* Full-Screen Bi-Directional Mobile/Tablet Navigation Drawer */}
       <div
-        className={`fixed inset-0 z-50 w-full h-[100dvh] bg-[#FAF8F4] flex flex-col px-6 pt-5 pb-8 overflow-y-auto select-none transition-all duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] md:hidden ${
+        className={`fixed inset-0 z-50 w-full h-[100dvh] bg-[#FAF8F4] flex flex-col px-6 pt-5 pb-8 overflow-y-auto select-none transition-all duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] lg:hidden ${
           mobileMenuOpen
             ? 'opacity-100 translate-y-0 pointer-events-auto visible'
             : 'opacity-0 -translate-y-4 pointer-events-none invisible'

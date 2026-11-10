@@ -1,8 +1,7 @@
 # Lernivox — Visual Reference & Design System
 
 ## 1. Primary Design Reference
-- **Reference URL**: [BrightPath (Framer)](https://brightpath-wbs.framer.website/)
-- **Nature of Inspection**: Verified directly via live DOM / CSS token inspection.
+- Since most things are implemented use other pages that are already implemented as reference 
 - **Design Philosophy**: Warm academic elegance, high readability, subtle contrasting borders, rounded card elevations, and human-centered educational aesthetics.
 
 ---

@@ -25,23 +25,23 @@ export default function MarketingPage() {
   const faqs = [
     {
       q: 'What document formats does Lernivox support?',
-      a: 'Lernivox natively accepts PDF documents, Microsoft Word files (.docx), plain text files (.txt), and direct pasted study notes. Files up to 25 MB are supported in this phase.',
+      a: 'Lernivox natively accepts PDF documents, Microsoft Word files (.docx), plain text files (.txt), and direct pasted text. Files up to 1 MB are supported in this release.',
     },
     {
-      q: 'How does Lernivox guarantee zero hallucinations in explanations?',
-      a: 'Unlike generic conversational AI, Lernivox strictly grounds its responses in your uploaded textbook. Documents are chunked and embedded into 768-dimensional vectors. When you ask a question, the AI retrieves verbatim passages and synthesizes an answer using only the verified source material, citing exact chapter and page numbers.',
+      q: 'How does Lernivox make sure answers are grounded in what I am reading?',
+      a: 'Unlike generic conversational AI, Lernivox strictly grounds its answers in your uploaded material. When you ask a question, the AI tutor retrieves relevant passages from your book or notes and explains them clearly, citing exact page numbers and chapter references so you can verify everything for yourself.',
     },
     {
-      q: 'Is my textbook content and student data private?',
-      a: 'Yes, absolutely. Uploaded files are isolated within your private user workspace using secure storage adapters. Your private learning materials are never indexed publicly, never shared with other students without your explicit consent, and never used to train public AI models.',
+      q: 'Is my reading material and personal data private?',
+      a: 'Yes, absolutely. Uploaded books, articles, and notes remain isolated in your personal workspace. Your private materials and conversations are never shared with others without your permission and are never used to train public AI models.',
     },
     {
-      q: 'How does background document processing work?',
-      a: 'When you upload a file, our NestJS backend validates the MIME type and size, stores the file securely, and enqueues a background job via BullMQ and Redis. Our dedicated worker processes the document in clear stages: text extraction, semantic chunking, 768-dim vector embedding, and pgvector persistence. This keeps the web interface fast and non-blocking.',
+      q: 'How does Lernivox prepare my material for reading?',
+      a: 'When you upload a file, Lernivox securely stores it and prepares it for guided reading in clear stages: reading the text, organizing chapters and sections, and indexing topics. This background process ensures the reader is fast, responsive, and ready for you to ask questions.',
     },
     {
-      q: 'Can I upload scanned PDFs or handwritten notes?',
-      a: 'In this phase, Lernivox processes digital documents with selectable text. Scanned photo PDFs without an embedded text layer and handwritten notes will be supported in a future update through specialized OCR pipelines.',
+      q: 'What kinds of books and materials can I learn from?',
+      a: 'You can bring any material with selectable text: literature, fiction novels, history books, science texts, programming guides, mathematics, or your own lecture notes. If it has text you want to understand, Lernivox helps you read it and learn from it.',
     },
   ];
 
@@ -58,8 +58,8 @@ export default function MarketingPage() {
           {/* Main Headline */}
           <ScrollReveal id="hero-headline" delay={0.1}>
             <h1 className="font-display font-extrabold text-[32px] xs:text-[38px] sm:text-5xl md:text-7xl lg:text-8xl xl:text-[103px] leading-[1.08] tracking-tight text-[#14261D] max-w-6xl mx-auto text-center mb-6">
-              Turn your textbooks <br className="hidden md:block" />
-              into real{' '}
+              Understand every book, <br className="hidden md:block" />
+              one question at a{' '}
               <span 
                 className="relative inline-block text-[#497E64] ml-1 sm:ml-1.5 select-none"
                 style={{
@@ -68,7 +68,7 @@ export default function MarketingPage() {
                   display: 'inline-block'
                 }}
               >
-                understanding.
+                time.
 
                 {/* Responsive SVG Doodle Underline */}
                 <svg
@@ -99,7 +99,7 @@ export default function MarketingPage() {
           {/* Subheadline */}
           <ScrollReveal id="hero-subheadline" delay={0.2}>
             <p className="font-sans font-normal text-base sm:text-lg md:text-xl text-[#14261D]/80 max-w-2xl mx-auto text-center leading-relaxed mt-4 sm:mt-6 mb-8">
-              Upload your notes, slides, or books. Lernivox turns them into clear explanations and practice questions grounded in your course.
+              Bring your books, articles, or notes. Read at your own pace, ask questions whenever something is unclear, and explore ideas with your personal AI tutor.
             </p>
           </ScrollReveal>
 
@@ -118,21 +118,21 @@ export default function MarketingPage() {
                 }}
                 className="w-full sm:w-auto h-[50px] sm:h-[54px] px-6 sm:px-[30px] py-[14px] sm:py-[16px] rounded-[100px] bg-[#E8722C] text-white font-sans text-sm sm:text-[16px] font-medium leading-[22.4px] shadow-[0_4px_0_0_#B26E45] hover:-translate-y-[1px] hover:shadow-[0_5px_0_0_#B26E45] active:translate-y-[2px] active:shadow-[0_2px_0_0_#B26E45] transition-all duration-150 inline-flex items-center justify-center select-none text-center"
               >
-                Upload Course Material
+                Upload a Book or Notes
               </a>
               <a
-                href="#sample-lesson"
+                href="#features"
                 onClick={(e) => {
                   e.preventDefault();
-                  const el = document.getElementById('sample-lesson');
+                  const el = document.getElementById('features');
                   if (el) {
                     el.scrollIntoView({ behavior: 'smooth' });
-                    window.history.pushState(null, '', '#sample-lesson');
+                    window.history.pushState(null, '', '#features');
                   }
                 }}
                 className="w-full sm:w-auto h-[50px] sm:h-[54px] px-6 sm:px-[30px] py-[14px] sm:py-[16px] rounded-[100px] bg-[#F4F0E5] text-[#14261D] font-sans text-sm sm:text-[16px] font-medium leading-[22.4px] border border-[#1B3428] shadow-[0_4px_0_0_#1B3428] hover:-translate-y-[1px] hover:shadow-[0_5px_0_0_#1B3428] active:translate-y-[2px] active:shadow-[0_2px_0_0_#1B3428] transition-all duration-150 inline-flex items-center justify-center select-none text-center"
               >
-                Explore Sample Lesson
+                Explore Features
               </a>
             </div>
           </ScrollReveal>
@@ -173,7 +173,7 @@ export default function MarketingPage() {
               {/* Subtle caption tag */}
               <div className="absolute inset-x-0 bottom-0 p-2 sm:p-4 bg-gradient-to-t from-[#14261D]/80 via-[#14261D]/20 to-transparent flex items-end justify-center">
                 <span className="rounded-full bg-white/90 backdrop-blur-sm px-2.5 py-1 sm:px-4 sm:py-1.5 text-[10px] sm:text-xs font-bold text-[#14261D] shadow-sm select-none truncate max-w-full">
-                  Stewart Calculus • Grounded
+                  Books, Notes & Articles • Grounded
                 </span>
               </div>
             </div>
@@ -492,19 +492,19 @@ export default function MarketingPage() {
                 <div className="flex items-center justify-between border-b border-[#EAE4D3] pb-5 sm:pb-6 mb-6 sm:mb-8">
                   <div>
                     <h3 className="font-display text-lg sm:text-xl font-bold text-[#14261D]">
-                      Stewart Calculus — Exam Readiness
+                      World History & Literature — Reading Progress
                     </h3>
-                    <p className="text-xs sm:text-sm text-[#14261D]/60 mt-0.5">4 of 6 chapters indexed</p>
+                    <p className="text-xs sm:text-sm text-[#14261D]/60 mt-0.5">4 of 6 sections reviewed</p>
                   </div>
                   <span className="rounded-full bg-emerald-100 px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-bold text-[#497E64]">
-                    78% Ready
+                    78% Understood
                   </span>
                 </div>
 
                 <div className="space-y-5 sm:space-y-6">
                   <div>
                     <div className="flex justify-between text-xs sm:text-sm font-semibold text-[#14261D] mb-1.5 sm:mb-2">
-                      <span>§ 2.1 Limits & Derivatives</span>
+                      <span>§ 1.2 Narrative Voice & Perspective</span>
                       <span className="text-[#497E64] font-bold">100% Mastered</span>
                     </div>
                     <div className="h-3 w-full rounded-full bg-[#FAF8F4] overflow-hidden border border-[#EAE4D3]">
@@ -514,7 +514,7 @@ export default function MarketingPage() {
 
                   <div>
                     <div className="flex justify-between text-xs sm:text-sm font-semibold text-[#14261D] mb-1.5 sm:mb-2">
-                      <span>§ 2.5 The Chain Rule</span>
+                      <span>§ 2.4 Social Change & Urban Expansion</span>
                       <span className="text-[#497E64] font-bold">85% Mastered</span>
                     </div>
                     <div className="h-3 w-full rounded-full bg-[#FAF8F4] overflow-hidden border border-[#EAE4D3]">
@@ -524,7 +524,7 @@ export default function MarketingPage() {
 
                   <div>
                     <div className="flex justify-between text-xs sm:text-sm font-semibold text-[#14261D] mb-1.5 sm:mb-2">
-                      <span>§ 3.1 Implicit Differentiation</span>
+                      <span>§ 3.1 Character Motives & Dilemmas</span>
                       <span className="text-[#E8722C] font-bold">45% In Progress</span>
                     </div>
                     <div className="h-3 w-full rounded-full bg-[#FAF8F4] overflow-hidden border border-[#EAE4D3]">
@@ -534,7 +534,7 @@ export default function MarketingPage() {
 
                   <div>
                     <div className="flex justify-between text-xs sm:text-sm font-semibold text-[#14261D] mb-1.5 sm:mb-2">
-                      <span>§ 3.4 Related Rates</span>
+                      <span>§ 3.4 Key Concepts & Analysis</span>
                       <span className="text-[#14261D]/50 font-medium">Queued for review</span>
                     </div>
                     <div className="h-3 w-full rounded-full bg-[#FAF8F4] overflow-hidden border border-[#EAE4D3]">
@@ -544,7 +544,7 @@ export default function MarketingPage() {
                 </div>
 
                 <div className="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-[#EAE4D3] flex items-center justify-between text-xs sm:text-sm text-[#14261D]/70 font-medium">
-                  <span>Verified Course Coverage • 142 textbook citations</span>
+                  <span>Verified Material Coverage • 142 page citations</span>
                 </div>
               </div>
             </ScrollReveal>
@@ -622,29 +622,29 @@ export default function MarketingPage() {
               </p>
             </div>
 
-            {/* Card 2: Group Quiz Battles */}
+            {/* Card 2: Shared Group Discussions */}
             <div className="bg-white border-[1.5px] border-[#1B3428] rounded-[24px] p-8 shadow-[0_4px_0_0_#1B3428] hover:-translate-y-1 hover:shadow-[0_6px_0_0_#1B3428] transition-all text-left h-full">
               <div className="w-12 h-12 rounded-xl bg-[#E2EBD8] text-[#497E64] flex items-center justify-center mb-6">
                 <GraduationCap className="h-6 w-6" />
               </div>
               <h4 className="font-display text-xl font-bold text-[#14261D] mb-3">
-                Group Quiz Battles
+                Shared Group Discussions
               </h4>
               <p className="font-sans text-base text-[#14261D]/75 leading-relaxed">
-                Challenge your classmates to fast practice rounds before exams to see who really understands the toughest concepts.
+                Discuss complex ideas with group members right on the page, share helpful AI tutor explanations, and keep everyone on the same page.
               </p>
             </div>
 
-            {/* Card 3: Private Study Notes */}
+            {/* Card 3: Private Study Notes & Progress */}
             <div className="bg-white border-[1.5px] border-[#1B3428] rounded-[24px] p-8 shadow-[0_4px_0_0_#1B3428] hover:-translate-y-1 hover:shadow-[0_6px_0_0_#1B3428] transition-all text-left h-full">
               <div className="w-12 h-12 rounded-xl bg-[#FBE8DC] text-[#E8722C] flex items-center justify-center mb-6">
                 <ShieldCheck className="h-6 w-6" />
               </div>
               <h4 className="font-display text-xl font-bold text-[#14261D] mb-3">
-                Private Study Notes
+                Private Notes & Progress
               </h4>
               <p className="font-sans text-base text-[#14261D]/75 leading-relaxed">
-                Your personal notes and incorrect quiz answers stay completely private. Only shared group decks are visible to your study group.
+                Your private tutor conversations, personal reading progress, and individual practice answers stay completely confidential to you.
               </p>
             </div>
           </StaggerContainer>
@@ -727,25 +727,25 @@ export default function MarketingPage() {
                     <div className="w-5 h-5 rounded-full bg-[#497E64] text-white flex items-center justify-center shrink-0 text-xs font-bold">
                       ✓
                     </div>
-                    <span>Upload up to 3 active textbooks or syllabi</span>
+                    <span>Upload books, notes, articles, or lecture files</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full bg-[#497E64] text-white flex items-center justify-center shrink-0 text-xs font-bold">
                       ✓
                     </div>
-                    <span>Files up to 25 MB (PDF, DOCX, TXT)</span>
+                    <span>Files up to 1 MB (PDF, DOCX, TXT)</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full bg-[#497E64] text-white flex items-center justify-center shrink-0 text-xs font-bold">
                       ✓
                     </div>
-                    <span>Standard asynchronous document processing</span>
+                    <span>Fast, secure background preparation</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full bg-[#497E64] text-white flex items-center justify-center shrink-0 text-xs font-bold">
                       ✓
                     </div>
-                    <span>Full citation grounding & chapter practice quizzes</span>
+                    <span>Direct page citations, AI tutor & practice quizzes</span>
                   </li>
                 </ul>
               </div>

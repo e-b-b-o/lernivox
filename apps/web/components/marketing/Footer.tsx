@@ -37,7 +37,7 @@ export function Footer() {
               Stay in the loop.
             </h3>
             <p className="font-sans text-xs sm:text-sm text-[#FAF8F4]/70 leading-relaxed mb-5">
-              Course syllabus guides, citation features, and student release notes.
+              Reading guides, learning tips, and product release updates.
             </p>
 
             {/* Pill-shaped email subscription field with signature Terracotta button */}
@@ -157,7 +157,7 @@ export function Footer() {
                       href="/login"
                       className="block text-[#FAF8F4]/75 hover:text-[#E77130] transition-colors duration-200 py-1"
                     >
-                      Student Portal
+                      Sign In
                     </Link>
                   </li>
                   <li>
@@ -173,7 +173,7 @@ export function Footer() {
                       href="/dashboard"
                       className="block text-[#FAF8F4]/75 hover:text-[#E77130] transition-colors duration-200 py-1"
                     >
-                      Document Library
+                      My Books & Notes
                     </Link>
                   </li>
                   <li>

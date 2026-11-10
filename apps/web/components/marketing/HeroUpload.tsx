@@ -27,11 +27,23 @@ interface SampleMaterial {
 
 const SAMPLE_MATERIALS: SampleMaterial[] = [
   {
+    id: 'literature',
+    label: 'Literature PDF',
+    format: 'PDF',
+    fileName: 'Pride_and_Prejudice_Chapter_Analysis.pdf',
+    fileSize: '680 KB',
+    title: 'Themes of Pride, Class, and Social Perception',
+    summary:
+      'Character dynamics between Elizabeth Bennet and Mr. Darcy, social mobility in Regency England, and irony in Austen’s narrative voice.',
+    chunksCount: 12,
+    topics: ['Social Hierarchy', 'Narrative Irony', 'Character Arc', 'Regency Etiquette'],
+  },
+  {
     id: 'neuroscience',
     label: 'Neuroscience PDF',
     format: 'PDF',
     fileName: 'Introduction_to_Neuroscience_Ch3.pdf',
-    fileSize: '2.4 MB',
+    fileSize: '740 KB',
     title: 'Synaptic Transmission & Neural Signaling',
     summary:
       'Action potential propagation, voltage-gated ion channels, neurotransmitter release kinetics, and dendritic summation.',
@@ -43,7 +55,7 @@ const SAMPLE_MATERIALS: SampleMaterial[] = [
     label: 'Macroeconomics DOCX',
     format: 'DOCX',
     fileName: 'Principles_of_Macroeconomics_Unit2.docx',
-    fileSize: '1.8 MB',
+    fileSize: '580 KB',
     title: 'Fiscal Policy & Aggregate Demand Dynamics',
     summary:
       'Keynesian expenditure multipliers, IS-LM framework equilibria, automatic stabilizers, and central bank open-market operations.',
@@ -51,21 +63,21 @@ const SAMPLE_MATERIALS: SampleMaterial[] = [
     topics: ['Expenditure Multiplier', 'IS-LM Equilibrium', 'Fiscal Deficits', 'Liquidity Preference'],
   },
   {
-    id: 'calculus',
-    label: 'Calculus Notes TXT',
-    format: 'TXT',
-    fileName: 'Calculus_Integration_Techniques.txt',
-    fileSize: '420 KB',
-    title: 'Integration Techniques & Improper Integrals',
+    id: 'history',
+    label: 'World History DOCX',
+    format: 'DOCX',
+    fileName: 'The_Industrial_Revolution_Overview.docx',
+    fileSize: '540 KB',
+    title: 'Technological Change & Urban Society (1760–1840)',
     summary:
-      'Tabular integration by parts, partial fraction decomposition for rational functions, and improper integral convergence tests.',
-    chunksCount: 8,
-    topics: ['Integration by Parts', 'Partial Fractions', 'Trig Substitution', 'Comparison Test'],
+      'Steam power development, factory labor transitions, demographic shifts from rural villages to industrial centers, and early labor movements.',
+    chunksCount: 15,
+    topics: ['Steam Power', 'Urbanization', 'Labor Conditions', 'Economic Growth'],
   },
 ];
 
 export function HeroUpload() {
-  const [activeSampleId, setActiveSampleId] = useState<string>('neuroscience');
+  const [activeSampleId, setActiveSampleId] = useState<string>('literature');
   const [simulationStep, setSimulationStep] = useState<'analyzing' | 'chunking' | 'ready'>('ready');
   const [progressPercent, setProgressPercent] = useState<number>(100);
 
@@ -308,9 +320,9 @@ export function HeroUpload() {
                   {/* Ready Indicator Footer */}
                   <div className="mt-4 pt-3 border-t border-[#1B3428]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2 text-[11px] sm:text-xs font-mono text-[#14261D]/70">
                     <span className="font-bold text-[#497E64]">
-                      ✓ {activeSample.chunksCount} Chunks Indexed & Embedded
+                      ✓ {activeSample.chunksCount} Sections Prepared for Reading
                     </span>
-                    <span className="text-[#14261D]/50">768-dim Vectors • Verified Grounding</span>
+                    <span className="text-[#14261D]/50">Grounded Citations • Verifiable Pages</span>
                   </div>
                 </div>
               </div>
