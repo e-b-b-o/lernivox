@@ -74,7 +74,7 @@ export class EnvironmentVariables {
 
   @IsNumber()
   @IsOptional()
-  MAX_UPLOAD_SIZE_BYTES: number = 26214400; // 25 MB
+  MAX_UPLOAD_SIZE_BYTES: number = 1048576; // 1 MiB (1,048,576 bytes)
 }
 
 export function validate(config: Record<string, unknown>) {
@@ -86,5 +86,18 @@ export function validate(config: Record<string, unknown>) {
   if (errors.length > 0) {
     throw new Error(`Environment validation failed: ${errors.toString()}`);
   }
+
+  if (validatedConfig.NODE_ENV === Environment.Production) {
+    if (
+      !validatedConfig.JWT_SECRET ||
+      validatedConfig.JWT_SECRET === 'lernivox-dev-jwt-secret-minimum-32-chars-long' ||
+      validatedConfig.JWT_SECRET.length < 32
+    ) {
+      throw new Error(
+        'Production security violation: JWT_SECRET must be set to a secure, unpredictable random string at least 32 characters long in production.',
+      );
+    }
+  }
+
   return validatedConfig;
 }

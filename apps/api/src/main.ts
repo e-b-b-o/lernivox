@@ -15,7 +15,21 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT', 4000);
-  const corsOrigin = configService.get<string>('CORS_ORIGIN', '*');
+  const nodeEnv = configService.get<string>('NODE_ENV', 'development');
+  const configuredCors = configService.get<string>('CORS_ORIGIN', 'http://localhost:3000');
+
+  // Security HTTP Headers Middleware (ASVS 5.0 / OWASP compliant)
+  app.use((_req: any, res: any, next: any) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+    res.setHeader('X-XSS-Protection', '0');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader(
+      'Permissions-Policy',
+      'camera=(), microphone=(), geolocation=(), payment=()',
+    );
+    next();
+  });
 
   // Versioned API prefix
   app.setGlobalPrefix('api/v1');
@@ -35,23 +49,45 @@ async function bootstrap() {
     }),
   );
 
-  // CORS
+  // CORS - Explicit origin control; never reflect wildcard when credentials are true
+  let corsOrigin: boolean | string | string[] = configuredCors.split(',').map((o) => o.trim());
+  if (configuredCors === '*') {
+    if (nodeEnv === 'production') {
+      corsOrigin = false;
+      logger.warn('CORS_ORIGIN is wildcard in production. Disabled wildcard reflection for credential security.');
+    } else {
+      corsOrigin = ['http://localhost:3000', 'http://127.0.0.1:3000'];
+    }
+  }
+
   app.enableCors({
-    origin: corsOrigin === '*' ? true : corsOrigin.split(','),
+    origin: corsOrigin,
     credentials: true,
+    exposedHeaders: [
+      'Content-Range',
+      'Accept-Ranges',
+      'Content-Length',
+      'Content-Disposition',
+    ],
   });
 
-  // OpenAPI / Swagger Documentation
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('Lernivox API')
-    .setDescription('Lernivox AI-Powered Study Platform REST API')
-    .setVersion('1.0')
-    .addTag('Health', 'System readiness and diagnostic endpoints')
-    .addBearerAuth()
-    .build();
+  // OpenAPI / Swagger Documentation - Conditionally enabled in non-production or when explicit
+  const enableSwagger =
+    configService.get<string>('ENABLE_SWAGGER', nodeEnv === 'production' ? 'false' : 'true') === 'true';
 
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api/docs', app, document);
+  if (enableSwagger) {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('Lernivox API')
+      .setDescription('Lernivox AI-Powered Study Platform REST API')
+      .setVersion('1.0')
+      .addTag('Health', 'System readiness and diagnostic endpoints')
+      .addBearerAuth()
+      .build();
+
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup('api/docs', app, document);
+    logger.log(`Swagger documentation available at: http://localhost:${port}/api/docs`);
+  }
 
   await app.listen(port);
   logger.log(`Lernivox API is running on: http://localhost:${port}/api/v1`);

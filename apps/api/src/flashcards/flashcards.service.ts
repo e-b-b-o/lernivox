@@ -2,9 +2,11 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
   Optional,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectQueue } from '@nestjs/bullmq';
@@ -217,7 +219,12 @@ export class FlashcardsService {
     }));
 
     if (passages.length === 0) {
-      throw new BadRequestException('No readable text passages found in selected range.');
+      const maxPage = workspace.document?.pageCount
+        ? `pages 1–${workspace.document.pageCount}`
+        : 'the document page count';
+      throw new BadRequestException(
+        `No readable text passages found for the requested range (${scopeSummary}). Please choose a range within ${maxPage} or select Entire Material.`,
+      );
     }
 
     const cardCount = Math.min(Math.max(dto.cardCount || 10, 5), 30);
@@ -231,7 +238,14 @@ export class FlashcardsService {
     });
 
     if (!genResult.success || genResult.cards.length === 0) {
-      throw new BadRequestException(genResult.error || 'Failed to generate flashcards from material.');
+      const errMsg = genResult.error || 'Failed to generate flashcards from material.';
+      this.logger.error(`Flashcard preview generation failed: ${errMsg}`);
+      if (errMsg.includes('quota') || errMsg.includes('429') || errMsg.includes('rate limit')) {
+        throw new ServiceUnavailableException(
+          'The AI generation service is currently experiencing high demand. Please try again in a moment.',
+        );
+      }
+      throw new InternalServerErrorException(errMsg);
     }
 
     return {
@@ -654,7 +668,6 @@ export class FlashcardsService {
       where: {
         id: cardId,
         deck: {
-          createdById: userId, // PRIVACY: only creator can review their cards
           workspace: {
             OR: [{ ownerId: userId }, { members: { some: { userId } } }],
           },

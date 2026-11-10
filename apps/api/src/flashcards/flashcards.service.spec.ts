@@ -64,15 +64,17 @@ describe('FlashcardsService', () => {
       },
       userFlashcardReview: {
         findUnique: (jest.fn() as any).mockResolvedValue(null),
-        upsert: (jest.fn() as any).mockResolvedValue({
-          cardId: 'card-1',
-          userId: 'user-1',
-          repetition: 1,
-          intervalDays: 1,
-          easeFactor: 2.5,
-          nextReviewAt: new Date(Date.now() + 86400000),
-          lastReviewedAt: new Date(),
-        }),
+        upsert: (jest.fn() as any).mockImplementation((args: any) =>
+          Promise.resolve({
+            cardId: args.where.userId_cardId.cardId,
+            userId: args.where.userId_cardId.userId,
+            repetition: 1,
+            intervalDays: 1,
+            easeFactor: 2.5,
+            nextReviewAt: new Date(Date.now() + 86400000),
+            lastReviewedAt: new Date(),
+          }),
+        ),
       },
     };
 
@@ -158,6 +160,31 @@ describe('FlashcardsService', () => {
       expect(result.cardId).toBe('card-1');
       expect(result.rating).toBe(3);
       expect(mockPrisma.userFlashcardReview.upsert).toHaveBeenCalled();
+    });
+
+    it('reviewCard rejects non-members of the workspace with NotFoundException', async () => {
+      mockPrisma.flashcardItem.findFirst.mockResolvedValueOnce(null);
+
+      await expect(service.reviewCard('attacker-user-99', 'card-1', 3)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('reviewCard allows group workspace member to review card created by peer', async () => {
+      mockPrisma.flashcardItem.findFirst.mockResolvedValueOnce({
+        id: 'card-peer-1',
+        deckId: 'deck-peer-1',
+        front: 'Group Question',
+        back: 'Group Answer',
+      });
+
+      const result = await service.reviewCard('member-student-2', 'card-peer-1', 4);
+      expect(result.cardId).toBe('card-peer-1');
+      expect(mockPrisma.userFlashcardReview.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { userId_cardId: { userId: 'member-student-2', cardId: 'card-peer-1' } },
+        }),
+      );
     });
 
     it('generatePreview returns proposed cards WITHOUT saving to database', async () => {
