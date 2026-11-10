@@ -27,8 +27,8 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 |---|---|---|---|
 | **Repository Tooling** | `pnpm workspaces` + `Turborepo` monorepo with Node.js 24 (`.nvmrc`). | [`package.json`](./package.json), [`pnpm-workspace.yaml`](./pnpm-workspace.yaml), [`turbo.json`](./turbo.json), [`.nvmrc`](./.nvmrc) | `pnpm type-check` (11/11 tasks), `pnpm build` (7/7 tasks), `pnpm test` (3/3 tasks) fully passing. |
 | **Frontend Application** | Next.js 15 App Router, React 19, Tailwind CSS, TypeScript in `apps/web`. Full BrightPath 9-section homepage, interactive hero upload module, and document library. | [`apps/web/`](./apps/web/) | Production build verified (`next build` outputs static routes `/`, `/login`, `/register`, `/dashboard`, `/_not-found`, `/auth/callback`). |
-| **Backend API Application** | NestJS 11 modular REST API with Swagger OpenAPI documentation in `apps/api`. Full Auth and Documents modules. | [`apps/api/`](./apps/api/) | All 54 tests passing; `/api/v1/documents` endpoints for upload, pasted text, retrieval, chunks, and deletion. |
-| **Background Worker** | Standalone NestJS worker application with BullMQ processor in `apps/worker`. | [`apps/worker/`](./apps/worker/) | Real PDF (`pdf-parse`), DOCX (`mammoth`), and TXT extraction, semantic chunking (`@lernivox/ai-core`), pgvector embedding persistence, status lifecycle. All 3 unit tests passing. |
+| **Backend API Application** | NestJS 11 modular REST API with Swagger OpenAPI documentation in `apps/api`. Full Auth, Documents, Quizzes, Flashcards, Tutor, Workspaces, and Learning Plans modules. | [`apps/api/`](./apps/api/) | All 171 tests passing; `WorkerWakeService` asynchronous wake triggers on job enqueue; throttled wake on status poll; `0.0.0.0:${PORT}` binding for Render Free Web Services. |
+| **Background Worker** | Standalone NestJS worker application with BullMQ processor and native HTTP control server in `apps/worker`. | [`apps/worker/`](./apps/worker/) | Real PDF (`pdf-parse`), DOCX (`mammoth`), and TXT extraction, semantic chunking (`@lernivox/ai-core`), pgvector embedding persistence, status lifecycle. Native HTTP server on `0.0.0.0:${PORT}` serving `GET /healthz`, `GET /readyz`, and `POST /internal/wake`. All 21 unit tests passing. |
 | **Database & Vector Package** | PostgreSQL 16 + pgvector schema and Prisma ORM 7.x client in `packages/database`. | [`packages/database/`](./packages/database/), [`docs/architecture/data-model.md`](./docs/architecture/data-model.md) | Domain migration applied, pgvector helpers in `src/vector.ts`, deterministic seeder `src/seed.ts`, 10/10 integration tests passing. |
 | **AI Orchestration Package** | Provider-agnostic AI interfaces, text chunker, Gemini REST adapter, and MockAiProvider in `packages/ai-core`. | [`packages/ai-core/`](./packages/ai-core/) | Strict typing, sliding window chunking with semantic overlap, 768-dim vector verification. |
 | **Storage Abstraction Package** | Universal `StorageService` contract with Local and Cloudinary adapters in `packages/storage`. | [`packages/storage/`](./packages/storage/) | Provider-agnostic file persistence layer, shared across API and worker. |
@@ -87,96 +87,86 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 
 ## 6. Current Task Record
 
-- **Task**: Group Collaboration Improvements, Responsive Public Navigation & Complete Product Language Refactor
+- **Task**: Prepare the NestJS API and BullMQ Worker for Render Free Web Services
 - **Status**: **Complete**
 - **Objective**:
-  Implement 4 connected improvements across collaboration, public navigation, and brand language:
-  1. *Feature A — Group Workspace Unread Message Notification Badge on Navbar Pill*: Display unread discussion message count as a terracotta `#E8722C` badge on both desktop `TutorHeader` pill and mobile Row 2 Group button with persistent read-cursor architecture per user and per workspace (`WorkspaceDiscussionReadCursor`), automated marking as read upon viewing discussions, background polling, and full backend authorization.
-  2. *Feature B — Professional Auto-Expanding Group Discussion Composer*: In `GroupDiscussionPane.tsx`, replace single-line `<input>` with auto-expanding multiline `<textarea>` reusing AI tutor composer interaction patterns (min-height 38px, max-height 140px with internal scrolling, resets height on send, Enter sends, Shift+Enter adds newline, IME composition guard, page anchoring preserved, draft preserved on network error).
-  3. *Feature C — Direct Dashboard Shortcut in Public Mobile/Tablet Navigation*: In `Navbar.tsx`, on screens `< 1024px` (`< lg`), display dedicated tactile Dashboard icon button (`w-9 h-9 rounded-full bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/20`) with `BookOpen` icon immediately to the left of the hamburger button for authenticated users, preserving clean desktop layout at `>= 1024px`.
-  4. *Feature D — Complete User-Facing Language & Product Positioning Refactor*: Align all user-facing website copy with current actual product: "Lernivox helps people understand books and other learning materials. Users bring their material, read it, ask questions, explore ideas, and learn at their own pace with an AI tutor." Eliminate technical developer jargon ("768-dim", "vector embeddings", "BullMQ/Redis", "Ingestion" -> "Preparing your material"), represent diverse reading genres (literature, fiction novels, history, science, programming, mathematics, lecture notes), and reflect true capabilities (1 MB file size limit, shared group reading and discussions instead of nonexistent "Quiz Battles").
+  1. *Dual Free Web Service Model*: Prepare the existing NestJS Core API (`apps/api`) and TypeScript BullMQ background worker (`apps/worker`) to deploy strictly as **Render Free Web Services** ($0/month), eliminating any dependency on Render Paid Background Workers ($7/mo min), Northflank, paid compute, or payment cards.
+  2. *Worker HTTP Control & Health Interface*: Implement a lightweight, secure native Node.js HTTP control server inside `apps/worker` listening on `0.0.0.0:${PORT}` that satisfies Render's Web Service ingress check with `GET /healthz` (200 OK), `GET /readyz` (BullMQ/Redis ready check), and `POST /internal/wake` (authenticated wake signal).
+  3. *Asynchronous Non-Blocking Wake Protocol*: Implement `WorkerWakeService` in `apps/api` to asynchronously issue authenticated wake signals upon job enqueue (`DocumentsService`, `QuizzesService`, `FlashcardsService`), coalescing concurrent in-flight wake attempts to prevent wake storms, with exponential backoff and jitter up to 90 seconds for cold-start tolerance.
+  4. *Throttled Status-Poll Recovery*: Wire throttled wake triggers into `DocumentsService.getDocumentStatus()` so frontend status polling safely awakens sleeping workers if an ingestion job is queued or pending.
+  5. *Cloud Infrastructure Invariants & Data Preservation*: Retain external Neon PostgreSQL 16 (`pgvector`), Upstash Redis (TCP/TLS), Cloudinary file storage, and Gemini AI without data loss, table resets, or synthetic keep-alive pingers/cron monitors (which violate Render terms).
+  6. *Deployment Blueprint & Documentation*: Create a production-ready `render.yaml` Blueprint specification and update `docs/DEPLOYMENT_GUIDE.md` with complete Render Free Web Services deployment instructions.
 
 - **Work Completed**:
-  - **Feature A — Group Workspace Unread Notification Badge**:
-    - Added `model WorkspaceDiscussionReadCursor` to `schema.prisma` with `workspaceId`, `userId`, `lastReadMessageId`, `lastReadAt`, `updatedAt`, `@@unique([workspaceId, userId])`, and relations on `User` and `Workspace`. Applied additive migration `20261109170000_add_workspace_discussion_read_cursors`.
-    - Added `WorkspaceDiscussionUnreadDto`, `MarkDiscussionReadDto`, `MarkDiscussionReadResponseDto` contracts to `@lernivox/contracts`.
-    - Added getters in `PrismaService` (`apps/api/src/common/prisma/prisma.service.ts`).
-    - Implemented `getUnreadDiscussionCount` and `markDiscussionAsRead` in `workspaces.service.ts` with strict membership verification. Updated `createDiscussionMessage` to update author's read cursor. Updated `getWorkspaceById` to compute `unreadDiscussionCount` for `GROUP` workspaces.
-    - Added controller endpoints `GET :id/discussions/unread` and `POST :id/discussions/read` in `workspaces.controller.ts`.
-    - Added unit test suite in `workspaces.service.spec.ts` testing unread counts, Personal workspace handling (returns 0), and cursor upserts.
-    - Added API client methods `getUnreadDiscussionCount` and `markDiscussionAsRead` in `apps/web/lib/api.ts`.
-    - In `TutorHeader.tsx`, attached terracotta `#E8722C` badge (`absolute -top-1.5 -right-1.5 min-w-5 h-5 px-1 bg-[#E8722C] text-white text-[10px] font-mono font-bold rounded-full border-2 border-[#FAF8F4] flex items-center justify-center shadow-xs`) to the collaborator pill button with updated title and `aria-label`. Attached badge to mobile Row 2 Group button in `page.tsx`. Added 6s polling hook and automatic mark-as-read triggers in `page.tsx` and `RightWorkspacePanel.tsx`.
-  - **Feature B — Auto-Expanding Group Discussion Composer (`GroupDiscussionPane.tsx`)**:
-    - Replaced single-line `<input>` with auto-expanding multiline `<textarea>` inside container `rounded-[20px] bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/25 focus-within:border-[#E8722C] p-3`.
-    - Dynamic auto-expansion: min-height 38px, max-height 140px, auto-scroll when exceeding 140px, resets height upon send.
-    - Key handling: Enter sends, Shift+Enter adds newline, IME composition guard (`(e.nativeEvent as any)?.isComposing || e.keyCode === 229`).
-    - Preserved `Anchor to p. X` checkbox and added `Shift + Enter for new line` helper text.
-    - Send lifecycle: prevents duplicate submission, preserves draft text in `inputText` if API throws, and clears text only on server confirmation.
-  - **Feature C — Direct Dashboard Shortcut in Public Navigation (`Navbar.tsx`)**:
-    - Preserved desktop Explore dropdown (768px-1100px) and inline links (1101px+).
-    - On screens `< 1024px` (`< lg`), rendered tactile `w-9 h-9 rounded-full bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/20 flex items-center justify-center text-[#14261D] hover:text-[#E8722C] hover:border-[#E8722C] shadow-2xs` with `BookOpen` icon immediately to the left of the hamburger button for authenticated users (`aria-label="Go to Dashboard"`).
-    - Rendered compact `Sign In` text link for unauthenticated users below 1024px.
-    - Updated mobile/tablet full-screen navigation drawer from `md:hidden` to `lg:hidden`.
-  - **Feature D — Complete User-Facing Language & Product Positioning Refactor**:
-    - Marketing Homepage (`page.tsx`):
-      - Headline: "Understand every book, one question at a time."
-      - Subheadline: "Bring your books, articles, or notes. Read at your own pace, ask questions whenever something is unclear, and explore ideas with your personal AI tutor."
-      - Replaced exclusive "Stewart Calculus" examples with diverse reading materials: World History, Literature, and Computer Science.
-      - Removed developer AI jargon: eliminated "768-dimensional vectors", "vector embeddings", "BullMQ/Redis/pgvector".
-      - Corrected capabilities: replaced all "25 MB" claims with 1 MB limit (PDF, DOCX, TXT); replaced "Group Quiz Battles" with "Shared Group Discussions".
-      - Updated photo captions to "Books, Notes & Articles • Grounded".
-    - Hero Upload (`HeroUpload.tsx`):
-      - Updated simulated samples to diverse reading genres with realistic file sizes under 1 MB: Literature PDF (680 KB), Neuroscience PDF (740 KB), Macroeconomics DOCX (580 KB), World History DOCX (540 KB).
-      - Replaced "768-dim Vectors • Verified Grounding" with "Grounded Citations • Verifiable Pages".
-    - Footer (`Footer.tsx`):
-      - Updated newsletter subtext to "Reading guides, learning tips, and product release updates."
-      - Updated links to "My Books & Notes".
-    - Bookshelf (`BookCard.tsx`):
-      - Replaced technical "Ingesting" labels with user-friendly "Preparing" and "Preparing your material...".
-      - Replaced "Ingestion Failed" with "Preparation Failed" and friendly guidance.
-    - Dashboard (`page.tsx`):
-      - Updated button status text from "Ingesting..." to "Preparing...".
-    - Authored comprehensive architectural unit test 25 in `workspace-architecture.test.ts`.
+  - **Worker Native HTTP Control Server (`apps/worker/src/server/worker-http.service.ts`)**:
+    - Implemented lightweight `WorkerHttpService` using Node.js built-in `http` module (`http.createServer`) listening on `0.0.0.0:${PORT}` (default 4001 or assigned by Render) with zero heavy framework overhead and minimal memory consumption (<100 KB).
+    - `GET /healthz`: Automated liveness probe for Render health checker returning HTTP 200 OK `{ status: 'ok', service: 'worker', uptime, timestamp }`.
+    - `GET /readyz`: Readiness probe returning HTTP 200 OK when BullMQ and Redis are initialized, or HTTP 503 Service Unavailable when shutting down.
+    - `POST /internal/wake`: Authenticated wake signal protected by `WORKER_WAKE_SECRET` using timing-safe comparison (`crypto.timingSafeEqual`) against `x-worker-wake-secret` header or Bearer token; rejects invalid/missing secrets with HTTP 401; rejects non-POST with HTTP 405; allows zero arbitrary execution payloads.
+    - Graceful shutdown: Cleanly closes the HTTP server on `SIGTERM`/`SIGINT` via NestJS `OnApplicationShutdown`.
+  - **Worker Health Tracking & Upstash Redis Configuration (`apps/worker`)**:
+    - Updated `WorkerHealthService` with lifecycle state (`ready`, `lastWakeAt`, `wakeCount`, uptime).
+    - Created `buildRedisConnectionOptions` in `apps/worker/src/config/redis.config.ts` supporting `REDIS_URL` (`rediss://...`) or discrete parameters (`REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_TLS`), with `lazyConnect: true`, `maxRetriesPerRequest: null`, and `enableReadyCheck: false`.
+    - Updated `apps/worker/src/main.ts` with explicit `0.0.0.0:${PORT}` listener bootstrap and shutdown hooks.
+    - Authored unit test suite in `apps/worker/src/server/worker-http.service.spec.ts` (10 tests, 100% passing).
+  - **API Asynchronous Wake Client (`apps/api/src/common/worker-wake/worker-wake.service.ts`)**:
+    - Implemented `WorkerWakeService` and registered global `WorkerWakeModule` in `apps/api/src/app.module.ts`.
+    - Non-blocking `wake(reason)` trigger: Fire-and-forget execution that never delays user upload or quiz creation responses.
+    - In-flight request coalescing: Simultaneous job enqueues share a single in-flight wake promise, eliminating wake storms.
+    - Cold-start resilience: Retries with exponential backoff and jitter up to 90 seconds, matching Render's maximum 50–60s container wake latency.
+    - Throttled status-poll recovery: `wakeThrottled(reason, minIntervalMs = 30000)` prevents excessive pings during 2-second client status polls.
+    - Graceful no-op when `WORKER_BASE_URL` is omitted, preserving zero-configuration local development.
+    - Added `buildRedisConnectionOptions` in `apps/api/src/config/redis.config.ts`.
+    - Added optional `REDIS_URL`, `REDIS_PASSWORD`, `REDIS_USERNAME`, `REDIS_TLS`, `WORKER_BASE_URL`, and `WORKER_WAKE_SECRET` to `EnvironmentVariables` in `env.validation.ts`.
+    - Explicitly bound API HTTP server to `0.0.0.0:${port}` in `apps/api/src/main.ts`.
+    - Integrated `workerWakeService.wake()` into `DocumentsService.uploadDocument()`, `DocumentsService.createFromText()`, `QuizzesService.generateQuiz()`, `QuizzesService.retryQuiz()`, and `FlashcardsService.generateDeck()`.
+    - Integrated `workerWakeService.wakeThrottled()` into `DocumentsService.getDocumentStatus()`.
+    - Authored unit test suite in `apps/api/src/common/worker-wake/worker-wake.service.spec.ts` (7 tests, 100% passing).
+  - **Render Infrastructure-as-Code & Deployment Documentation**:
+    - Authored `render.yaml` Blueprint defining two Render Free Web Services (`lernivox-api` and `lernivox-worker`) with exact monorepo build contexts, build commands, start commands, health check paths, and shared secret references (`fromService`).
+    - Updated `docs/DEPLOYMENT_GUIDE.md` with full Render Free Web Services topology, honest limits assessment (15-minute inactivity sleep, 50-90s cold starts, 750 shared instance-hours/month, no synthetic pingers), step-by-step deployment instructions, and post-deployment smoke tests.
 
 - **Files Created/Modified**:
-  - `packages/database/prisma/schema.prisma` — Added `model WorkspaceDiscussionReadCursor`.
-  - `packages/database/prisma/migrations/20261109170000_add_workspace_discussion_read_cursors/migration.sql` — Additive schema migration.
-  - `packages/contracts/src/workspaces.ts` — Exported `WorkspaceDiscussionUnreadDto`, `MarkDiscussionReadDto`, `MarkDiscussionReadResponseDto`, updated `WorkspaceDto` and `WorkspaceListItemDto`.
-  - `apps/api/src/common/prisma/prisma.service.ts` — Added getter for `workspaceDiscussionReadCursor`.
-  - `apps/api/src/workspaces/dto/collaboration.dto.ts` — Added Swagger request/response DTOs for discussion unread/read endpoints.
-  - `apps/api/src/workspaces/workspaces.service.ts` — Implemented `getUnreadDiscussionCount` and `markDiscussionAsRead`, author cursor updates, and `unreadDiscussionCount` in `getWorkspaceById`.
-  - `apps/api/src/workspaces/workspaces.controller.ts` — Added `GET :id/discussions/unread` and `POST :id/discussions/read`.
-  - `apps/api/src/workspaces/workspaces.service.spec.ts` — Unit tests for unread discussion calculations and cursor updates.
-  - `apps/web/lib/api.ts` — Added `getUnreadDiscussionCount` and `markDiscussionAsRead` API client helpers.
-  - `apps/web/components/workspace/TutorHeader.tsx` — Added terracotta unread badge on collaborator pill.
-  - `apps/web/components/workspace/RightWorkspacePanel.tsx` — Added discussion tab unread badge and automated mark-as-read on view.
-  - `apps/web/components/workspace/GroupDiscussionPane.tsx` — Rebuilt composer as auto-expanding multiline textarea with IME guard.
-  - `apps/web/components/marketing/Navbar.tsx` — Added compact `BookOpen` Dashboard button below 1024px.
-  - `apps/web/components/marketing/HeroUpload.tsx` — Diversified sample materials, file sizes under 1 MB, removed 768-dim jargon.
-  - `apps/web/components/marketing/Footer.tsx` — Refactored newsletter copy and workspace navigation links.
-  - `apps/web/components/workspace/BookCard.tsx` — Refactored ingestion status strings to friendly preparation terminology.
-  - `apps/web/app/(marketing)/page.tsx` — Complete user-facing language refactor across headline, subheadline, FAQs, readiness mockup, group cards, and pricing.
-  - `apps/web/app/(workspace)/dashboard/page.tsx` — Updated upload button label.
-  - `apps/web/app/(workspace)/dashboard/workspaces/[workspaceId]/page.tsx` — Unread count state management, 6s polling, Row 2 badge, and panel wiring.
-  - `apps/web/test/workspace-architecture.test.ts` — Added Test 25 verifying unread badges, composer, responsive shortcut, and language refactor.
-  - `PROGRESS.md` — Updated task record, roadmap, and update history.
+  - `apps/worker/src/server/worker-http.service.ts` — Native Node.js HTTP control server (`/healthz`, `/readyz`, `/internal/wake`).
+  - `apps/worker/src/server/worker-http.service.spec.ts` — Unit test suite for Worker HTTP endpoints (10 tests).
+  - `apps/worker/src/health/worker-health.service.ts` — Worker lifecycle and wake tracking.
+  - `apps/worker/src/config/redis.config.ts` — Upstash Redis connection builder for worker.
+  - `apps/worker/src/worker.module.ts` — BullModule connection integration and WorkerHttpService registration.
+  - `apps/worker/src/main.ts` — Explicit 0.0.0.0 port listener bootstrap.
+  - `apps/api/src/common/worker-wake/worker-wake.service.ts` — Asynchronous wake client with coalescing, retries, and throttling.
+  - `apps/api/src/common/worker-wake/worker-wake.service.spec.ts` — Unit test suite for API wake client (7 tests).
+  - `apps/api/src/common/worker-wake/worker-wake.module.ts` — Global NestJS module exporting WorkerWakeService.
+  - `apps/api/src/config/redis.config.ts` — Upstash Redis connection builder for API.
+  - `apps/api/src/config/env.validation.ts` — Added REDIS_URL, WORKER_BASE_URL, WORKER_WAKE_SECRET environment variables.
+  - `apps/api/src/app.module.ts` — Integrated WorkerWakeModule and buildRedisConnectionOptions.
+  - `apps/api/src/main.ts` — Explicit 0.0.0.0 port listener binding.
+  - `apps/api/src/documents/documents.service.ts` — Wired wake on upload and throttled wake on status polling.
+  - `apps/api/src/quizzes/quizzes.service.ts` — Wired wake on quiz generation and retry.
+  - `apps/api/src/flashcards/flashcards.service.ts` — Wired wake on deck generation.
+  - `render.yaml` — Render Blueprint specification for two Free Web Services.
+  - `docs/DEPLOYMENT_GUIDE.md` — Updated with Render Free Web Services topology and step-by-step guide.
+  - `PROGRESS.md` — Updated Current Task Record and Update History.
 
 - **Verification Results**:
-  - `pnpm --filter @lernivox/contracts build`: Succeeded.
-  - `pnpm --filter @lernivox/database build`: Succeeded.
+  - `pnpm --filter @lernivox/worker test`: 21/21 tests passing across 5 suites (including 10 new HTTP control server tests).
+  - `pnpm --filter @lernivox/api test`: 171/171 tests passing across 14 suites (including 7 new WorkerWakeService tests).
   - `pnpm --filter @lernivox/ai-core test`: 25/25 tests passing across 5 suites.
-  - `pnpm --filter @lernivox/api test`: 164/164 tests passing across 13 suites.
-  - `pnpm --filter @lernivox/worker test`: 11/11 tests passing across 4 suites.
-  - `pnpm --filter @lernivox/web test`: 29/29 tests passing across 2 suites (including new Test 25).
+  - `pnpm --filter @lernivox/web test`: 32/32 tests passing across 2 suites.
   - `pnpm type-check`: 11/11 package tasks passing with 0 errors (`turbo run type-check`).
-  - `pnpm --filter @lernivox/web build`: 17/17 routes compiled cleanly (`next build`).
-  - `Port & Process Hygiene`: `ss -tulpn` verified zero leaked processes or lingering ports.
+  - `pnpm build`: 7/7 build tasks succeeded cleanly across the monorepo.
+  - Port & Process Hygiene: `ss -tulpn` verified zero leaked processes or lingering ports.
 
 ---
 
 ## 7. Next Recommended Action
 
-Deploy to staging/production environment following [`docs/OPERATIONS_RUNBOOK.md`](./docs/OPERATIONS_RUNBOOK.md) and conduct browser verification of real-time group discussions and mobile navigation on physical devices.
+Commit the verified Render Free Web Service preparation and deployment configuration changes to Git.
+
+---
+
+## 7. Next Recommended Action
+
+Deploy Lernivox to production or free-tier hosting (Vercel + Northflank + Neon + Upstash) by executing the 20-step walkthrough documented in [`docs/DEPLOYMENT_GUIDE.md`](./docs/DEPLOYMENT_GUIDE.md) once cloud authorization is granted.
 
 - **Work Completed**:
   - **Cross-Site UI & API Stabilization**:
@@ -832,4 +822,42 @@ Deploy to staging/production environment following [`docs/OPERATIONS_RUNBOOK.md`
     - Repaired Mobile Navigation Auto-Hide & Unified Reader Coordination: Diagnosed parent `page.tsx` attempting DOM query `document.getElementById('pdf-scroll-container')` inside an initial render `useEffect` before `DocumentReader` mounted. Replaced with direct `onScrollDelta` and `onCanvasTap` callback props wired to `#pdf-scroll-container`'s synthetic `onScroll`, `onTouchStart`, `onTouchMove`, and `onClick` handlers. Synchronized mobile top header (`-translate-y-full`), bottom dock (`translate-y-full`), and reading container padding with matching `transition-transform duration-300 ease-in-out`. Enforced auto-hide suppression when modals, drawers, or text selection are active, and immediate restoration on canvas tap or scrolling up.
     - Completed Phase 3C Individual Workspace Learning Progress: Scoped backend queries in `apps/api/src/workspaces/workspaces.service.ts` to `createdById: userId` for flashcard decks and `userId` for quiz attempts, guaranteeing 100% individual privacy even in shared GROUP workspaces. Enhanced `WorkspaceProgressView.tsx` with actionable evidence-based recommendations, topic understanding matrix with direct page navigation links (`onNavigateToPage`), recent attempt history with honest empty state, and privacy guarantee badge.
     - Verified all 22 invariant tests in `@lernivox/web`, 135 API tests across 11 suites, 11 worker tests across 4 suites, 20 AI-core tests, full monorepo type-check (`pnpm type-check` 11/11 tasks passing), and Next.js 15 production build (`next build` 17/17 routes). Verified clean port audit with `ss -tulpn`.
+
+  - Completed Marketing Website Layout Refinement, Responsive Navigation & Product Experience Polish:
+    - Standardized shared marketing container standard (`max-w-[1380px] w-full mx-auto px-4 sm:px-6 md:px-10`) across the Public Navbar, Hero section, and How It Works section, achieving pixel-perfect edge alignment with the Features, Readiness, and Groups sections.
+    - Unified mobile and tablet (< 1024px) action group to a shared 36px tactile button system: both the `BookOpen` Dashboard button and animated Hamburger button share `w-9 h-9 rounded-full bg-[#F4EFE4] border-[1.5px] border-[#1B3428]/20` with an exact 8px gap (`gap-2`), equal baseline, and matching hover behavior.
+    - Balanced the How It Works section: replaced developer jargon ("Semantic chunking", "vector indexing") in the left column with 3 clear, human, benefit-driven step cards ("Bring your material", "Explore what you're reading", "Practice and remember"). Decluttered the right showcase card by removing the redundant promotional banner ("Ready to study your own textbooks?..."), harmonizing column heights at ~480px vs ~490px.
+    - Fixed Sign In button text wrapping: applied `inline-flex h-11 shrink-0 items-center justify-center whitespace-nowrap px-5 rounded-full` to both `Sign In` and `Create Free Account`, guaranteeing uniform 44px height and single-line labels without vertical text collapse across all 11 viewports.
+    - Simplified 4 sample material selector pills to clean category labels (`Fiction`, `Science`, `Economics`, `History`) with secondary format badges (`PDF`, `DOCX`) in a 2×2 mobile / 4-column desktop grid, eliminating truncation and ellipsis.
+    - Preserved two-line fluid hero headline (`Understand every book,` and `one question at a time.`) with `clamp(1.35rem, 5.2vw, 5.25rem)` and terracotta unread badge on group member pill.
+    - Updated architectural Test 26 in `workspace-architecture.test.ts`. Verified full test suites (30 web tests, 164 api tests, 11 worker tests, 25 ai-core tests), 11/11 type-check tasks, Next.js production build (17/17 routes, 101 kB shared JS), and zero lingering ports with `ss -tulpn`.
+
+  - Completed Final Responsive Homepage Header Correction, Marketing Layout Alignment & Free Deployment Preparation:
+    - Diagnosed CSS box-model root cause of navbar boundary misalignment: `Navbar.tsx` previously placed both `max-w-[1380px]` and `px-4 sm:px-6 md:px-10` on the same container element, shrinking the inner content box by 80px (1300px vs 1380px) and insetting logo and controls by 40px relative to the reference section (`Section 3: Features`, `id="features"`, containing "Engineered for genuine academic retention").
+    - Standardized two-layer container architecture: outer header element receives `w-full px-4 sm:px-6 md:px-10` while inner container receives `w-full max-w-[1380px] mx-auto` without inline padding, achieving 0.0px boundary deviation across all 13 viewports (320px to 1920px).
+    - Resolved mobile bunching with responsive two-pole layout: below `1024px` (`< lg`), navbar inner container operates as `flex items-center justify-between` with Brand Lockup on far left, Zone 2 hidden (`hidden lg:flex`), and `[Dashboard (36px)] [Hamburger (36px)]` on far right with 8px `gap-2`. At `>= lg`, container switches to `lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]` with mathematically centered inline links.
+    - Authored comprehensive production and free-tier deployment guide in `docs/DEPLOYMENT_GUIDE.md` (400+ lines): covers 3 deployable code services (`apps/web`, `apps/api`, `apps/worker`), 3 managed resources (PostgreSQL 16 + pgvector, Upstash Redis 7, Cloudinary/R2), honest free-tier evaluations (Vercel, Northflank, Render, Neon, Upstash), Render disqualifications (30-day DB wipe, sleeping API, no free worker), BullMQ polling tuning for Upstash 500k monthly quota, complete environment variable inventories, cookie and CORS architecture (`SameSite=none; Secure` vs custom domain `.yourdomain.com`), and an ordered 20-step walkthrough.
+    - Updated Tests 15, 16, and 26 in `workspace-architecture.test.ts`. Verified all 30 web tests, 164 API tests across 13 suites, 11 worker tests, 25 AI-core tests, 11/11 package tasks in `pnpm type-check`, Next.js 15 production build (17/17 routes, 101 kB shared JS), and clean port hygiene (`ss -tulpn`).
+
+  - Completed Final Hero Typography, Navigation Hover & Supporting Copy Polish:
+    - Enhanced hero headline font size below 1024px with fluid typography formula `text-[clamp(1.375rem,0.2rem+5.8vw,3.9rem)] lg:text-[clamp(3.9rem,5.2vw,5.25rem)]` and container `max-w-6xl` in `page.tsx`: headline scales smoothly across mobile and tablet (+15% to +28% increase; ~25.4px on iPhone, ~47.8px on iPad) and smoothly continues into desktop sizing (66.6px at 1280px, 74.9px at 1440px, up to 84px on large monitors), strictly preserving the two-line layout ("Understand every book," and "one question at a time.") with 0 overflow across all 14 viewports (320px to 1920px).
+    - Standardized public navbar hover styling on the footer link design system in `Navbar.tsx`: changed hover color to terracotta `#E77130` with `transition-colors duration-200 motion-reduce:transition-none`, matching `Footer.tsx` (`hover:text-[#E77130]`). Eliminated font-weight jumping on hover by maintaining constant `font-medium` across both active and inactive states. Preserved the active orange underline (`after:bg-[#E8722C] after:rounded-full`) and added accessible keyboard-focus rings (`focus-visible:ring-[#E77130]/60`).
+    - Shortened hero supporting paragraph in `page.tsx` to human, concise copy: `"Bring a book, article, or notes. Read, ask questions, and learn with your AI tutor."` preserving typography, alignment, and natural multiline wrapping without horizontal crowding.
+    - Preserved all existing work: centered desktop navbar, two-zone mobile/tablet navbar, shared marketing content width, parchment navbar background, 36px action system, How It Works column balance, 4 diverse sample materials, and single-line 44px CTA buttons.
+    - Authored architectural Test 27 in `workspace-architecture.test.ts` (31/31 web tests passing). Verified full monorepo type-check (`pnpm type-check` 11/11 tasks passing), Next.js production build (`next build` 17/17 routes), and clean port audit (`ss -tulpn`).
+
+  - Completed Responsive Hero Typography & CTA Visual Hierarchy Correction:
+    - Implemented intentional 3-line mobile and 2-line desktop headline composition in `page.tsx`: on mobile (< 640px), breaks intentionally into 3 lines ("Understand every" / "book, one question" / "at a time.") with mobile fluid clamp `text-[clamp(1.75rem,1.25rem+2.5vw,2.125rem)]` (28px to 34px), creating a strong visual anchor without oversized buttons dominating; on tablet and desktop (>= 640px), breaks intentionally into 2 lines ("Understand every book," / "one question at a time.") with `sm:text-[clamp(2.5rem,5.6vw,3.9rem)] lg:text-[clamp(3.9rem,5.2vw,5.25rem)]` (40px to 84px). Zero text duplication or accessible sentence fragmentation.
+    - Resolved desktop supporting paragraph wrapping: widened container to `max-w-4xl` (896px) with `[text-wrap:balance]`, allowing the 80-character sentence ("Bring a book, article, or notes. Read, ask questions, and learn with your AI tutor.") to render as one elegant single line on desktop (720px width < 896px), eliminating the orphaned "tutor." word, while balancing into two lines on tablet and two/three balanced lines on mobile.
+    - Corrected mobile CTA visual hierarchy: replaced `w-full max-w-sm` container and 50px heights with `flex flex-wrap items-center justify-center gap-3 sm:gap-4 mb-10 sm:mb-12 md:mb-16 w-full mx-auto` and proportional 44px (`h-11`) pill buttons with intrinsic widths (`w-auto inline-flex`) and proportionate horizontal padding (`px-5 sm:px-6`). Buttons stack cleanly on narrow phones (< 390px) and display side by side on wider screens (>= 390px) with zero horizontal overflow, establishing clear hierarchy between primary terracotta action and secondary understated parchment action.
+  - Completed Preparation of NestJS API and BullMQ Worker for Render Free Web Services:
+    - Implemented Native Worker HTTP Control Server (`apps/worker/src/server/worker-http.service.ts`): Built lightweight Node.js native HTTP server (`http.createServer`) listening on `0.0.0.0:${PORT}` (assigned by Render or defaulting to 4001) that qualifies the BullMQ background worker as a Render Free Web Service ($0/month) without needing paid Background Workers ($7/mo min). Implemented `GET /healthz` (200 OK liveness check for Render automated health checker), `GET /readyz` (readiness probe checking BullMQ/Redis state), and `POST /internal/wake` (authenticated wake endpoint using timing-safe `crypto.timingSafeEqual` comparison against `x-worker-wake-secret` header or Bearer token; rejects invalid secrets with 401, non-POST with 405, and accepts zero execution payloads). Integrated graceful shutdown hooks (`OnApplicationShutdown`).
+    - Configured Worker Health & Redis TCP/TLS (`apps/worker`): Enhanced `WorkerHealthService` to record wake counts, last wake timestamp, and uptime. Built `buildRedisConnectionOptions` in `apps/worker/src/config/redis.config.ts` supporting `REDIS_URL` (`rediss://...`) or discrete parameters (`REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_TLS`), with `lazyConnect: true`, `maxRetriesPerRequest: null`, and `enableReadyCheck: false`. Authored 10 unit tests in `apps/worker/src/server/worker-http.service.spec.ts` (100% passing).
+    - Implemented API Asynchronous Wake Client (`apps/api/src/common/worker-wake/worker-wake.service.ts`): Created `WorkerWakeService` in a `@Global()` NestJS module (`WorkerWakeModule`). Built fire-and-forget, non-blocking `wake(reason)` that never delays user upload or quiz responses. Built in-flight request coalescing (`inFlightWakePromise`) to prevent wake storms from concurrent uploads. Built cold-start resilience with exponential backoff and jitter up to 90 seconds (accommodating Render's 50–60s wake delay). Built `wakeThrottled(reason, minIntervalMs = 30000)` called during active document status polling (`getDocumentStatus`) when a document is in `QUEUED`/`UPLOADED` state.
+    - Updated API Configuration & Enqueue Triggers: Added `buildRedisConnectionOptions` in `apps/api/src/config/redis.config.ts`. Added optional `REDIS_URL`, `REDIS_PASSWORD`, `REDIS_USERNAME`, `REDIS_TLS`, `WORKER_BASE_URL`, and `WORKER_WAKE_SECRET` in `env.validation.ts`. Bound API listener explicitly to `0.0.0.0:${port}` in `apps/api/src/main.ts`. Wired non-blocking `wake()` into `DocumentsService.uploadDocument()`, `DocumentsService.createFromText()`, `QuizzesService.generateQuiz()`, `QuizzesService.retryQuiz()`, and `FlashcardsService.generateDeck()`. Authored 7 unit tests in `apps/api/src/common/worker-wake/worker-wake.service.spec.ts` (100% passing).
+    - Authored Render Blueprint & Deployment Documentation: Created `render.yaml` defining both Free Web Services (`lernivox-api` and `lernivox-worker`) with exact build contexts, build commands, start commands, health check paths, and shared secret references (`fromService`). Updated `docs/DEPLOYMENT_GUIDE.md` with the dual Free Web Service topology, honest free-tier limits assessment (15m inactivity sleep, 50–90s cold starts, 750 shared instance-hours/month, no synthetic pingers), step-by-step instructions, and post-deployment smoke tests.
+    - Verified all test suites across the monorepo: Worker test suite (21/21 passing across 5 suites), API test suite (171/171 passing across 14 suites), AI-core test suite (25/25 passing across 5 suites), Web architecture invariants (32/32 passing across 2 suites), full monorepo type-check (`pnpm type-check` 11/11 package tasks passing with 0 errors), monorepo production build (`pnpm build` 7/7 build tasks succeeded), and port/process audit (`ss -tulpn` clean, zero orphaned processes).
+
+
+
 

@@ -1,0 +1,99 @@
+# Render Blueprint Infrastructure-as-Code Specification
+# Lernivox: NestJS Core API & BullMQ Background Worker as Render Free Web Services
+# Note: External resources (PostgreSQL with pgvector on Neon, Redis TCP/TLS on Upstash)
+# are connected via environment variables to avoid Render's 30-day database expiration.
+
+services:
+  # ==============================================================================
+  # Service 1: Lernivox Core REST API (Render Free Web Service)
+  # ==============================================================================
+  - type: web
+    name: lernivox-api
+    runtime: node
+    plan: free
+    region: oregon # Alternative free regions: frankfurt, ohio, singapore
+    rootDir: .
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @lernivox/contracts build && pnpm --filter @lernivox/database build && pnpm --filter @lernivox/storage build && pnpm --filter @lernivox/ai-core build && pnpm --filter @lernivox/api build
+    startCommand: pnpm --filter @lernivox/api start
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false # Set to your pooled Neon connection string (postgres://...?sslmode=require)
+      - key: REDIS_URL
+        sync: false # Set to your Upstash Redis rediss:// URL
+      - key: JWT_SECRET
+        generateValue: true # Render automatically generates a secure 32-character secret
+      - key: JWT_EXPIRES_IN
+        value: 15m
+      - key: REFRESH_TOKEN_EXPIRES_IN_DAYS
+        value: 7
+      - key: WORKER_BASE_URL
+        sync: false # Set to https://lernivox-worker.onrender.com once worker is created
+      - key: WORKER_WAKE_SECRET
+        generateValue: true # Render automatically generates a shared wake authentication secret
+      - key: CORS_ORIGIN
+        sync: false # Set to your frontend URL (e.g., https://lernivox.vercel.app)
+      - key: FRONTEND_URL
+        sync: false # Set to your frontend URL
+      - key: STORAGE_DRIVER
+        value: cloudinary
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: AI_PROVIDER
+        value: gemini
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: ENABLE_SWAGGER
+        value: "false"
+
+  # ==============================================================================
+  # Service 2: Lernivox Background Worker (Render Free Web Service with HTTP Control)
+  # ==============================================================================
+  - type: web
+    name: lernivox-worker
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: .
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @lernivox/contracts build && pnpm --filter @lernivox/database build && pnpm --filter @lernivox/storage build && pnpm --filter @lernivox/ai-core build && pnpm --filter @lernivox/worker build
+    startCommand: pnpm --filter @lernivox/worker start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false # Set to the same Neon pooled connection string
+      - key: REDIS_URL
+        sync: false # Set to the same Upstash Redis rediss:// URL
+      - key: WORKER_WAKE_SECRET
+        fromService:
+          type: web
+          name: lernivox-api
+          envVarKey: WORKER_WAKE_SECRET # Shares the exact secret generated on API
+      - key: STORAGE_DRIVER
+        value: cloudinary
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: AI_PROVIDER
+        value: gemini
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+
