@@ -13,7 +13,7 @@ services:
     plan: free
     region: oregon # Alternative free regions: frankfurt, ohio, singapore
     rootDir: .
-    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @lernivox/contracts build && pnpm --filter @lernivox/database build && pnpm --filter @lernivox/storage build && pnpm --filter @lernivox/ai-core build && pnpm --filter @lernivox/api build
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @lernivox/database db:generate && pnpm --filter @lernivox/contracts build && pnpm --filter @lernivox/database build && pnpm --filter @lernivox/storage build && pnpm --filter @lernivox/ai-core build && pnpm --filter @lernivox/api build
     startCommand: pnpm --filter @lernivox/api start
     healthCheckPath: /api/v1/health
     envVars:
@@ -65,7 +65,7 @@ services:
     plan: free
     region: oregon
     rootDir: .
-    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @lernivox/contracts build && pnpm --filter @lernivox/database build && pnpm --filter @lernivox/storage build && pnpm --filter @lernivox/ai-core build && pnpm --filter @lernivox/worker build
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @lernivox/database db:generate && pnpm --filter @lernivox/contracts build && pnpm --filter @lernivox/database build && pnpm --filter @lernivox/storage build && pnpm --filter @lernivox/ai-core build && pnpm --filter @lernivox/worker build
     startCommand: pnpm --filter @lernivox/worker start
     healthCheckPath: /healthz
     envVars:

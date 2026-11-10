@@ -87,80 +87,54 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 
 ## 6. Current Task Record
 
-- **Task**: Prepare the NestJS API and BullMQ Worker for Render Free Web Services
+- **Task**: Fix Render Production Build Failure: Prisma Client Generation in pnpm Monorepo
 - **Status**: **Complete**
 - **Objective**:
-  1. *Dual Free Web Service Model*: Prepare the existing NestJS Core API (`apps/api`) and TypeScript BullMQ background worker (`apps/worker`) to deploy strictly as **Render Free Web Services** ($0/month), eliminating any dependency on Render Paid Background Workers ($7/mo min), Northflank, paid compute, or payment cards.
-  2. *Worker HTTP Control & Health Interface*: Implement a lightweight, secure native Node.js HTTP control server inside `apps/worker` listening on `0.0.0.0:${PORT}` that satisfies Render's Web Service ingress check with `GET /healthz` (200 OK), `GET /readyz` (BullMQ/Redis ready check), and `POST /internal/wake` (authenticated wake signal).
-  3. *Asynchronous Non-Blocking Wake Protocol*: Implement `WorkerWakeService` in `apps/api` to asynchronously issue authenticated wake signals upon job enqueue (`DocumentsService`, `QuizzesService`, `FlashcardsService`), coalescing concurrent in-flight wake attempts to prevent wake storms, with exponential backoff and jitter up to 90 seconds for cold-start tolerance.
-  4. *Throttled Status-Poll Recovery*: Wire throttled wake triggers into `DocumentsService.getDocumentStatus()` so frontend status polling safely awakens sleeping workers if an ingestion job is queued or pending.
-  5. *Cloud Infrastructure Invariants & Data Preservation*: Retain external Neon PostgreSQL 16 (`pgvector`), Upstash Redis (TCP/TLS), Cloudinary file storage, and Gemini AI without data loss, table resets, or synthetic keep-alive pingers/cron monitors (which violate Render terms).
-  6. *Deployment Blueprint & Documentation*: Create a production-ready `render.yaml` Blueprint specification and update `docs/DEPLOYMENT_GUIDE.md` with complete Render Free Web Services deployment instructions.
+  1. *Diagnose Root Cause*: Identify why `packages/database` fails compilation on Render with 22 errors (`PrismaClient`, `WorkspaceType`, enums, and implicit `any` parameter types) while local development builds appeared to succeed.
+  2. *Build Pipeline Prisma Generation*: Ensure `prisma generate` is reliably executed prior to TypeScript compilation of `@lernivox/database` across all environments (Render CI/CD, local dev, Turborepo builds) without modifying application code or patching TypeScript imports to mask missing types.
+  3. *Defense-in-Depth Solution*: Wire client generation into root `postinstall`, `packages/database/package.json` build script, `render.yaml` Blueprint build commands, and `docs/DEPLOYMENT_GUIDE.md`.
+  4. *Clean-State Verification*: Verify that compiling from a clean state (without pre-existing `.prisma/client` or incremental `tsconfig.tsbuildinfo` caches) succeeds cleanly across API, Worker, and Web packages.
 
 - **Work Completed**:
-  - **Worker Native HTTP Control Server (`apps/worker/src/server/worker-http.service.ts`)**:
-    - Implemented lightweight `WorkerHttpService` using Node.js built-in `http` module (`http.createServer`) listening on `0.0.0.0:${PORT}` (default 4001 or assigned by Render) with zero heavy framework overhead and minimal memory consumption (<100 KB).
-    - `GET /healthz`: Automated liveness probe for Render health checker returning HTTP 200 OK `{ status: 'ok', service: 'worker', uptime, timestamp }`.
-    - `GET /readyz`: Readiness probe returning HTTP 200 OK when BullMQ and Redis are initialized, or HTTP 503 Service Unavailable when shutting down.
-    - `POST /internal/wake`: Authenticated wake signal protected by `WORKER_WAKE_SECRET` using timing-safe comparison (`crypto.timingSafeEqual`) against `x-worker-wake-secret` header or Bearer token; rejects invalid/missing secrets with HTTP 401; rejects non-POST with HTTP 405; allows zero arbitrary execution payloads.
-    - Graceful shutdown: Cleanly closes the HTTP server on `SIGTERM`/`SIGINT` via NestJS `OnApplicationShutdown`.
-  - **Worker Health Tracking & Upstash Redis Configuration (`apps/worker`)**:
-    - Updated `WorkerHealthService` with lifecycle state (`ready`, `lastWakeAt`, `wakeCount`, uptime).
-    - Created `buildRedisConnectionOptions` in `apps/worker/src/config/redis.config.ts` supporting `REDIS_URL` (`rediss://...`) or discrete parameters (`REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_TLS`), with `lazyConnect: true`, `maxRetriesPerRequest: null`, and `enableReadyCheck: false`.
-    - Updated `apps/worker/src/main.ts` with explicit `0.0.0.0:${PORT}` listener bootstrap and shutdown hooks.
-    - Authored unit test suite in `apps/worker/src/server/worker-http.service.spec.ts` (10 tests, 100% passing).
-  - **API Asynchronous Wake Client (`apps/api/src/common/worker-wake/worker-wake.service.ts`)**:
-    - Implemented `WorkerWakeService` and registered global `WorkerWakeModule` in `apps/api/src/app.module.ts`.
-    - Non-blocking `wake(reason)` trigger: Fire-and-forget execution that never delays user upload or quiz creation responses.
-    - In-flight request coalescing: Simultaneous job enqueues share a single in-flight wake promise, eliminating wake storms.
-    - Cold-start resilience: Retries with exponential backoff and jitter up to 90 seconds, matching Render's maximum 50–60s container wake latency.
-    - Throttled status-poll recovery: `wakeThrottled(reason, minIntervalMs = 30000)` prevents excessive pings during 2-second client status polls.
-    - Graceful no-op when `WORKER_BASE_URL` is omitted, preserving zero-configuration local development.
-    - Added `buildRedisConnectionOptions` in `apps/api/src/config/redis.config.ts`.
-    - Added optional `REDIS_URL`, `REDIS_PASSWORD`, `REDIS_USERNAME`, `REDIS_TLS`, `WORKER_BASE_URL`, and `WORKER_WAKE_SECRET` to `EnvironmentVariables` in `env.validation.ts`.
-    - Explicitly bound API HTTP server to `0.0.0.0:${port}` in `apps/api/src/main.ts`.
-    - Integrated `workerWakeService.wake()` into `DocumentsService.uploadDocument()`, `DocumentsService.createFromText()`, `QuizzesService.generateQuiz()`, `QuizzesService.retryQuiz()`, and `FlashcardsService.generateDeck()`.
-    - Integrated `workerWakeService.wakeThrottled()` into `DocumentsService.getDocumentStatus()`.
-    - Authored unit test suite in `apps/api/src/common/worker-wake/worker-wake.service.spec.ts` (7 tests, 100% passing).
-  - **Render Infrastructure-as-Code & Deployment Documentation**:
-    - Authored `render.yaml` Blueprint defining two Render Free Web Services (`lernivox-api` and `lernivox-worker`) with exact monorepo build contexts, build commands, start commands, health check paths, and shared secret references (`fromService`).
-    - Updated `docs/DEPLOYMENT_GUIDE.md` with full Render Free Web Services topology, honest limits assessment (15-minute inactivity sleep, 50-90s cold starts, 750 shared instance-hours/month, no synthetic pingers), step-by-step deployment instructions, and post-deployment smoke tests.
+  - **Root Cause Diagnosis**:
+    - Discovered that `@prisma/client` is installed in `node_modules` only as a stub package re-exporting from `.prisma/client/default`.
+    - In clean CI/CD environments (such as Render build containers), `pnpm install --frozen-lockfile` did not generate Prisma Client because no `postinstall` script was defined in root `package.json`.
+    - Furthermore, `packages/database/package.json` had `"build": "tsc"`, relying on a separate manual script `"db:generate": "prisma generate"`.
+    - When `render.yaml` ran `pnpm install --frozen-lockfile && pnpm --filter @lernivox/contracts build && pnpm --filter @lernivox/database build`, `tsc` compiled against an ungenerated stub, producing 22 missing export and contextual typing errors.
+    - Local builds previously succeeded only because `prisma generate` had been run manually in the past and incremental build caches (`tsconfig.tsbuildinfo`) masked the missing build-time generation dependency.
+  - **Defense-in-Depth Implementation**:
+    - **Root Lifecycle Script (`package.json`)**: Added `"postinstall": "pnpm db:generate"`, ensuring that any fresh `pnpm install` in any environment immediately runs `prisma generate` and populates the client in `node_modules`.
+    - **Self-Generating Database Build (`packages/database/package.json`)**: Updated `"build": "prisma generate && tsc"`, guaranteeing that `@lernivox/database` builds always generate the client first, even if postinstall was bypassed (e.g., `--ignore-scripts`).
+    - **Render Blueprint Specification (`render.yaml`)**: Updated `buildCommand` for both `lernivox-api` and `lernivox-worker` to include `pnpm --filter @lernivox/database db:generate` before package builds:
+      `pnpm install --frozen-lockfile && pnpm --filter @lernivox/database db:generate && pnpm --filter @lernivox/contracts build && pnpm --filter @lernivox/database build && pnpm --filter @lernivox/storage build && pnpm --filter @lernivox/ai-core build && pnpm --filter @lernivox/api build`
+    - **Deployment Guide (`docs/DEPLOYMENT_GUIDE.md`)**: Updated all build command instructions in Sections 4.2, 4.3, 4.4, and Section 7 Phase 3 to include `db:generate`.
 
 - **Files Created/Modified**:
-  - `apps/worker/src/server/worker-http.service.ts` — Native Node.js HTTP control server (`/healthz`, `/readyz`, `/internal/wake`).
-  - `apps/worker/src/server/worker-http.service.spec.ts` — Unit test suite for Worker HTTP endpoints (10 tests).
-  - `apps/worker/src/health/worker-health.service.ts` — Worker lifecycle and wake tracking.
-  - `apps/worker/src/config/redis.config.ts` — Upstash Redis connection builder for worker.
-  - `apps/worker/src/worker.module.ts` — BullModule connection integration and WorkerHttpService registration.
-  - `apps/worker/src/main.ts` — Explicit 0.0.0.0 port listener bootstrap.
-  - `apps/api/src/common/worker-wake/worker-wake.service.ts` — Asynchronous wake client with coalescing, retries, and throttling.
-  - `apps/api/src/common/worker-wake/worker-wake.service.spec.ts` — Unit test suite for API wake client (7 tests).
-  - `apps/api/src/common/worker-wake/worker-wake.module.ts` — Global NestJS module exporting WorkerWakeService.
-  - `apps/api/src/config/redis.config.ts` — Upstash Redis connection builder for API.
-  - `apps/api/src/config/env.validation.ts` — Added REDIS_URL, WORKER_BASE_URL, WORKER_WAKE_SECRET environment variables.
-  - `apps/api/src/app.module.ts` — Integrated WorkerWakeModule and buildRedisConnectionOptions.
-  - `apps/api/src/main.ts` — Explicit 0.0.0.0 port listener binding.
-  - `apps/api/src/documents/documents.service.ts` — Wired wake on upload and throttled wake on status polling.
-  - `apps/api/src/quizzes/quizzes.service.ts` — Wired wake on quiz generation and retry.
-  - `apps/api/src/flashcards/flashcards.service.ts` — Wired wake on deck generation.
-  - `render.yaml` — Render Blueprint specification for two Free Web Services.
-  - `docs/DEPLOYMENT_GUIDE.md` — Updated with Render Free Web Services topology and step-by-step guide.
+  - `package.json` — Added `"postinstall": "pnpm db:generate"`.
+  - `packages/database/package.json` — Updated `"build": "prisma generate && tsc"`.
+  - `render.yaml` — Added `pnpm --filter @lernivox/database db:generate` to `lernivox-api` and `lernivox-worker` build commands.
+  - `docs/DEPLOYMENT_GUIDE.md` — Updated build commands across Sections 4.2, 4.3, 4.4, and Phase 3.
   - `PROGRESS.md` — Updated Current Task Record and Update History.
 
 - **Verification Results**:
-  - `pnpm --filter @lernivox/worker test`: 21/21 tests passing across 5 suites (including 10 new HTTP control server tests).
-  - `pnpm --filter @lernivox/api test`: 171/171 tests passing across 14 suites (including 7 new WorkerWakeService tests).
-  - `pnpm --filter @lernivox/ai-core test`: 25/25 tests passing across 5 suites.
-  - `pnpm --filter @lernivox/web test`: 32/32 tests passing across 2 suites.
-  - `pnpm type-check`: 11/11 package tasks passing with 0 errors (`turbo run type-check`).
-  - `pnpm build`: 7/7 build tasks succeeded cleanly across the monorepo.
-  - Port & Process Hygiene: `ss -tulpn` verified zero leaked processes or lingering ports.
+  - Clean-State Compilation Test: Removed `.prisma/client` and `tsconfig.tsbuildinfo`, ran `pnpm --filter @lernivox/database build`; verified `prisma generate` executed in 460ms and `tsc` succeeded with exit code 0.
+  - Root Postinstall Test: Ran `pnpm run postinstall`; verified `prisma generate` executed cleanly in 411ms.
+  - Render API Build Chain Test: Ran full Render API build command (`db:generate` -> `contracts` -> `database` -> `storage` -> `ai-core` -> `api`); exit code 0, zero errors.
+  - Render Worker Build Chain Test: Ran full Render Worker build command (`db:generate` -> `contracts` -> `database` -> `storage` -> `ai-core` -> `worker`); exit code 0, zero errors.
+  - Monorepo Type Check: `pnpm type-check` (11/11 package tasks passing with 0 errors).
+  - Monorepo Production Build: `pnpm build` (7/7 build tasks succeeded).
+  - Unit Test Suites:
+    - `pnpm --filter @lernivox/api test`: 171/171 tests passing across 14 suites.
+    - `pnpm --filter @lernivox/worker test`: 21/21 tests passing across 5 suites.
+    - `pnpm --filter @lernivox/ai-core test`: 25/25 tests passing across 5 suites.
+    - `pnpm --filter @lernivox/web test`: 32/32 tests passing across 2 suites.
+  - Process & Port Audit: `ss -tulpn` verified zero leaked processes or lingering ports.
 
 ---
 
 ## 7. Next Recommended Action
 
-Commit the verified Render Free Web Service preparation and deployment configuration changes to Git.
+Commit the verified Prisma Client generation fixes and deployment documentation updates to Git.
 
 ---
 
@@ -857,6 +831,15 @@ Deploy Lernivox to production or free-tier hosting (Vercel + Northflank + Neon +
     - Updated API Configuration & Enqueue Triggers: Added `buildRedisConnectionOptions` in `apps/api/src/config/redis.config.ts`. Added optional `REDIS_URL`, `REDIS_PASSWORD`, `REDIS_USERNAME`, `REDIS_TLS`, `WORKER_BASE_URL`, and `WORKER_WAKE_SECRET` in `env.validation.ts`. Bound API listener explicitly to `0.0.0.0:${port}` in `apps/api/src/main.ts`. Wired non-blocking `wake()` into `DocumentsService.uploadDocument()`, `DocumentsService.createFromText()`, `QuizzesService.generateQuiz()`, `QuizzesService.retryQuiz()`, and `FlashcardsService.generateDeck()`. Authored 7 unit tests in `apps/api/src/common/worker-wake/worker-wake.service.spec.ts` (100% passing).
     - Authored Render Blueprint & Deployment Documentation: Created `render.yaml` defining both Free Web Services (`lernivox-api` and `lernivox-worker`) with exact build contexts, build commands, start commands, health check paths, and shared secret references (`fromService`). Updated `docs/DEPLOYMENT_GUIDE.md` with the dual Free Web Service topology, honest free-tier limits assessment (15m inactivity sleep, 50–90s cold starts, 750 shared instance-hours/month, no synthetic pingers), step-by-step instructions, and post-deployment smoke tests.
     - Verified all test suites across the monorepo: Worker test suite (21/21 passing across 5 suites), API test suite (171/171 passing across 14 suites), AI-core test suite (25/25 passing across 5 suites), Web architecture invariants (32/32 passing across 2 suites), full monorepo type-check (`pnpm type-check` 11/11 package tasks passing with 0 errors), monorepo production build (`pnpm build` 7/7 build tasks succeeded), and port/process audit (`ss -tulpn` clean, zero orphaned processes).
+
+  - Resolved Render Production Build Failure: Prisma Client Generation in pnpm Monorepo:
+    - Root-cause diagnosed the 22 compilation errors on Render (`TS2305: Module '"@prisma/client"' has no exported member 'PrismaClient' / 'WorkspaceType' / 'WorkspaceRole' / 15 enums` and `TS7006: Parameter 'tx' / 'o' implicitly has an 'any' type`): In fresh CI/Render containers, `pnpm install --frozen-lockfile` provides only stub types in `@prisma/client`. Because `prisma generate` was a separate manual script rather than a build-time dependency or postinstall hook, `packages/database`'s build script (`"build": "tsc"`) ran against ungenerated stubs.
+    - Added `"postinstall": "pnpm db:generate"` to root `package.json`, ensuring every fresh `pnpm install` in any environment immediately executes `prisma generate` and populates the client in `node_modules`.
+    - Updated `packages/database/package.json` build script from `"build": "tsc"` to `"build": "prisma generate && tsc"`, guaranteeing that `@lernivox/database` compilation is self-generating and resilient even if postinstall was skipped or bypassed.
+    - Updated `render.yaml` build commands for both `lernivox-api` and `lernivox-worker` to include `pnpm --filter @lernivox/database db:generate` before package builds.
+    - Updated `docs/DEPLOYMENT_GUIDE.md` build commands across Sections 4.2, 4.3, 4.4, and Section 7 Phase 3.
+    - Verified clean build after deleting `.prisma/client` and `tsconfig.tsbuildinfo`, verified root `pnpm run postinstall` (411ms), verified full Render API and Worker build chains (exit code 0), full monorepo type-check (11/11 tasks passing), monorepo build (7/7 tasks passing), all test suites passing (API 171/171, Worker 21/21, AI-core 25/25, Web 32/32), and zero open ports/processes via `ss -tulpn`.
+
 
 
 

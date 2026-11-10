@@ -9,6 +9,7 @@
     "lint": "turbo run lint",
     "type-check": "turbo run type-check",
     "test": "turbo run test",
+    "postinstall": "pnpm db:generate",
     "db:generate": "pnpm --filter @lernivox/database db:generate",
     "db:migrate": "pnpm --filter @lernivox/database exec prisma migrate deploy",
     "infra:up": "docker compose -f infra/docker/docker-compose.yml up -d",

@@ -199,7 +199,7 @@ In Northflank, create a **Combined Service** or **Web Service**:
 - **Build Context Directory**: **`.` (Repository Root)** *(Do NOT set to `apps/api`! The build requires the root `pnpm-lock.yaml`, `pnpm-workspace.yaml`, and `packages/*`)*.
 - **Build Command**:
   ```bash
-  pnpm install --frozen-lockfile && pnpm --filter @lernivox/database build && pnpm --filter @lernivox/api build
+  pnpm install --frozen-lockfile && pnpm --filter @lernivox/database db:generate && pnpm --filter @lernivox/database build && pnpm --filter @lernivox/api build
   ```
 - **Start Command**:
   ```bash
@@ -216,7 +216,7 @@ In Northflank, create a **Deployment** / **Background Worker Service**:
 - **Build Context Directory**: **`.` (Repository Root)**.
 - **Build Command**:
   ```bash
-  pnpm install --frozen-lockfile && pnpm --filter @lernivox/database build && pnpm --filter @lernivox/worker build
+  pnpm install --frozen-lockfile && pnpm --filter @lernivox/database db:generate && pnpm --filter @lernivox/database build && pnpm --filter @lernivox/worker build
   ```
 - **Start Command**:
   ```bash
@@ -249,7 +249,7 @@ If configuring manually via the Render UI:
 - **Instance Type**: `Free`
 - **Build Command**:
   ```bash
-  pnpm install --frozen-lockfile && pnpm --filter @lernivox/contracts build && pnpm --filter @lernivox/database build && pnpm --filter @lernivox/storage build && pnpm --filter @lernivox/ai-core build && pnpm --filter @lernivox/api build
+  pnpm install --frozen-lockfile && pnpm --filter @lernivox/database db:generate && pnpm --filter @lernivox/contracts build && pnpm --filter @lernivox/database build && pnpm --filter @lernivox/storage build && pnpm --filter @lernivox/ai-core build && pnpm --filter @lernivox/api build
   ```
 - **Start Command**:
   ```bash
@@ -268,7 +268,7 @@ If configuring manually via the Render UI:
 - **Instance Type**: `Free`
 - **Build Command**:
   ```bash
-  pnpm install --frozen-lockfile && pnpm --filter @lernivox/contracts build && pnpm --filter @lernivox/database build && pnpm --filter @lernivox/storage build && pnpm --filter @lernivox/ai-core build && pnpm --filter @lernivox/worker build
+  pnpm install --frozen-lockfile && pnpm --filter @lernivox/database db:generate && pnpm --filter @lernivox/contracts build && pnpm --filter @lernivox/database build && pnpm --filter @lernivox/storage build && pnpm --filter @lernivox/ai-core build && pnpm --filter @lernivox/worker build
   ```
 - **Start Command**:
   ```bash
@@ -448,7 +448,7 @@ You can deploy the API and Worker to Render using the automated **Blueprint** or
    - Runtime: `Node`. Plan: `Free`.
    - Build Command:
      ```bash
-     pnpm install --frozen-lockfile && pnpm --filter @lernivox/contracts build && pnpm --filter @lernivox/database build && pnpm --filter @lernivox/storage build && pnpm --filter @lernivox/ai-core build && pnpm --filter @lernivox/api build
+     pnpm install --frozen-lockfile && pnpm --filter @lernivox/database db:generate && pnpm --filter @lernivox/contracts build && pnpm --filter @lernivox/database build && pnpm --filter @lernivox/storage build && pnpm --filter @lernivox/ai-core build && pnpm --filter @lernivox/api build
      ```
    - Start Command: `pnpm --filter @lernivox/api start`
    - Health Check Path: `/api/v1/health`
@@ -460,7 +460,7 @@ You can deploy the API and Worker to Render using the automated **Blueprint** or
    - Root Directory: `.`. Runtime: `Node`. Plan: `Free`.
    - Build Command:
      ```bash
-     pnpm install --frozen-lockfile && pnpm --filter @lernivox/contracts build && pnpm --filter @lernivox/database build && pnpm --filter @lernivox/storage build && pnpm --filter @lernivox/ai-core build && pnpm --filter @lernivox/worker build
+     pnpm install --frozen-lockfile && pnpm --filter @lernivox/database db:generate && pnpm --filter @lernivox/contracts build && pnpm --filter @lernivox/database build && pnpm --filter @lernivox/storage build && pnpm --filter @lernivox/ai-core build && pnpm --filter @lernivox/worker build
      ```
    - Start Command: `pnpm --filter @lernivox/worker start`
    - Health Check Path: `/healthz`
