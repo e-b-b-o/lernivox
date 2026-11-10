@@ -59,6 +59,28 @@ export function GroupDiscussionPane({
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-expand input textarea up to max height (140px), resetting when empty
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    if (!inputText) {
+      textarea.style.height = '38px';
+      textarea.style.overflowY = 'hidden';
+      return;
+    }
+
+    textarea.style.height = 'auto';
+    const scrollHeight = textarea.scrollHeight;
+    const maxHeight = 140;
+    const minHeight = 38;
+    const targetHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight);
+
+    textarea.style.height = `${targetHeight}px`;
+    textarea.style.overflowY = scrollHeight > maxHeight ? 'auto' : 'hidden';
+  }, [inputText]);
 
   // Fetch Discussion Messages
   const fetchMessages = useCallback(async (isInitial = false) => {
@@ -113,14 +135,15 @@ export function GroupDiscussionPane({
   }, [messages.length]);
 
   // Send Discussion Message
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputText.trim() || sendingMessage || !accessToken || !workspaceId) return;
+  const handleSendMessage = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const trimmed = inputText.trim();
+    if (!trimmed || sendingMessage || !accessToken || !workspaceId) return;
 
     setSendingMessage(true);
     try {
       const payload = {
-        content: inputText.trim(),
+        content: trimmed,
         pageNumber: anchorCurrentPage && currentPage ? currentPage : undefined,
         chapter: anchorCurrentPage && currentChapter ? currentChapter : undefined,
       };
@@ -128,10 +151,24 @@ export function GroupDiscussionPane({
       setMessages((prev) => [...prev, created]);
       setInputText('');
       setAnchorCurrentPage(false);
+      if (textareaRef.current) {
+        textareaRef.current.style.height = '38px';
+        textareaRef.current.style.overflowY = 'hidden';
+      }
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : 'Failed to send group message');
     } finally {
       setSendingMessage(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      if ((e.nativeEvent as any)?.isComposing || e.keyCode === 229) {
+        return; // IME composition guard (e.g. Amharic, Japanese, Chinese)
+      }
+      e.preventDefault();
+      handleSendMessage(e);
     }
   };
 
@@ -304,49 +341,53 @@ export function GroupDiscussionPane({
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Chat Input Bar */}
-          <form
-            onSubmit={handleSendMessage}
-            className="p-3 border-t border-[#1B3428]/15 bg-[#FAF8F4] flex flex-col gap-2 shrink-0"
-          >
-            {/* Page anchoring tag indicator */}
-            <div className="flex items-center justify-between text-[11px]">
-              <label className="flex items-center gap-1.5 cursor-pointer text-[#14261D]/70 hover:text-[#14261D]">
-                <input
-                  type="checkbox"
-                  checked={anchorCurrentPage}
-                  onChange={(e) => setAnchorCurrentPage(e.target.checked)}
-                  className="rounded border-[#1B3428]/30 text-[#E8722C] focus:ring-[#E8722C]"
+          {/* Chat Input Bar - Professional Auto-Expanding Composer */}
+          <div className="p-3 border-t border-[#1B3428]/15 bg-[#FAF8F4] shrink-0">
+            <form onSubmit={handleSendMessage} className="flex flex-col gap-2">
+              <div className="w-full bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/25 focus-within:border-[#E8722C] rounded-[20px] p-3 shadow-2xs focus-within:shadow-xs transition-all">
+                <textarea
+                  ref={textareaRef}
+                  rows={1}
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Discuss with workspace members... (Enter to send)"
+                  className="w-full bg-transparent resize-none px-1 py-0.5 text-xs font-sans text-[#14261D] placeholder:text-[#14261D]/50 focus:outline-none transition-[height] duration-100 ease-out select-text"
+                  style={{ minHeight: '38px', maxHeight: '140px' }}
                 />
-                <span>Anchor to Page {currentPage || 1}</span>
-              </label>
-
-              <span className="text-[10px] text-[#14261D]/50 font-mono">
-                Shared with group
-              </span>
-            </div>
-
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                placeholder="Discuss with workspace members..."
-                className="flex-1 px-3 py-2 rounded-xl bg-[#F4F0E5] border border-[#1B3428]/25 text-xs text-[#14261D] placeholder:text-[#14261D]/40 focus:outline-hidden focus:border-[#1B3428]"
-              />
-              <button
-                type="submit"
-                disabled={!inputText.trim() || sendingMessage}
-                className="px-3.5 py-2 rounded-xl bg-[#1B3428] text-white font-display font-bold text-xs shadow-xs hover:bg-[#14261D] disabled:opacity-50 transition-colors flex items-center justify-center shrink-0"
-              >
-                {sendingMessage ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Send className="w-3.5 h-3.5" />
-                )}
-              </button>
-            </div>
-          </form>
+                <div className="flex items-center justify-between pt-2 px-1 border-t border-[#1B3428]/10 text-[11px]">
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-1.5 cursor-pointer text-[#14261D]/75 hover:text-[#14261D] select-none font-sans">
+                      <input
+                        type="checkbox"
+                        checked={anchorCurrentPage}
+                        onChange={(e) => setAnchorCurrentPage(e.target.checked)}
+                        className="rounded border-[#1B3428]/30 text-[#E8722C] focus:ring-[#E8722C] cursor-pointer"
+                      />
+                      <span>Anchor to p. {currentPage || 1}</span>
+                    </label>
+                    <span className="hidden sm:inline text-[#14261D]/50 font-mono text-[10px]">
+                      Shift + Enter for new line
+                    </span>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={!inputText.trim() || sendingMessage}
+                    className="h-7 px-3 rounded-full bg-[#E8722C] text-white font-display font-bold text-xs shadow-2xs hover:bg-[#d66320] disabled:opacity-40 transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    {sendingMessage ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <>
+                        <Send className="w-3 h-3" />
+                        <span>Send</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 

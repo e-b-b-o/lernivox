@@ -110,13 +110,13 @@ export function ProfileMenu({ compact = false }: ProfileMenuProps) {
         type="button"
         id="user-profile-menu-trigger"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex items-center gap-1.5 p-1 sm:px-2.5 sm:py-1 rounded-full bg-[#FAF8F4] border-[1.5px] border-[#1B3428] shadow-[0_2px_0_0_#1B3428] hover:-translate-y-0.5 hover:shadow-[0_3px_0_0_#1B3428] active:translate-y-0.5 active:shadow-none transition-all focus:outline-none shrink-0 cursor-pointer"
+        className="h-9 pl-1 pr-2.5 rounded-full border-[1.5px] border-[#1B3428]/20 bg-[#FAF8F4] flex items-center gap-1.5 shadow-2xs hover:border-[#1B3428] hover:-translate-y-0.5 active:translate-y-0.5 transition-all focus:outline-none shrink-0 cursor-pointer"
         aria-expanded={isOpen}
         aria-haspopup="true"
         title="Account Profile"
       >
         {/* Avatar Initials Pill */}
-        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#E2EBD8] text-[#497E64] font-display font-extrabold text-xs flex items-center justify-center border border-[#1B3428]/20 shrink-0">
+        <div className="w-7 h-7 rounded-full bg-[#497E64] text-white font-display font-bold text-[11px] flex items-center justify-center shrink-0">
           {initials}
         </div>
 

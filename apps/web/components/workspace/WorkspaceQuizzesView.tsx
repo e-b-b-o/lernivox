@@ -161,7 +161,7 @@ export function WorkspaceQuizzesView({
               className="w-full sm:w-auto px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-[#E8722C] text-white font-display font-bold text-xs shadow-[0_3px_0_0_#B26E45] hover:-translate-y-0.5 hover:shadow-[0_4px_0_0_#B26E45] active:translate-y-0.5 active:shadow-none transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5 text-white" />
-              <span>+ Create New Quiz</span>
+              <span>Create New Quiz</span>
             </button>
           )}
         </div>

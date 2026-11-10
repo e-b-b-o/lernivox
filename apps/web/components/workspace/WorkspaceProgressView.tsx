@@ -32,6 +32,7 @@ interface WorkspaceProgressViewProps {
   onReturnToBook: () => void;
   onTakeQuiz?: () => void;
   onStudyFlashcards?: () => void;
+  onNavigateToPage?: (pageNumber: number) => void;
   isCompactSidecar?: boolean;
 }
 
@@ -41,6 +42,7 @@ export function WorkspaceProgressView({
   onReturnToBook,
   onTakeQuiz,
   onStudyFlashcards,
+  onNavigateToPage,
   isCompactSidecar = false,
 }: WorkspaceProgressViewProps) {
   const { accessToken } = useAuth();
@@ -404,6 +406,126 @@ export function WorkspaceProgressView({
           </div>
         </div>
 
+        {/* Actionable Next Steps & Learning Guidance */}
+        <div className={`bg-[#FAF8F4] border-[2px] border-[#1B3428] rounded-[28px] ${isCompactSidecar ? 'p-4 sm:p-5' : 'p-6 sm:p-7 lg:p-8'} shadow-[0_5px_0_0_#1B3428]`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 sm:mb-7 pb-4 border-b border-[#1B3428]/10">
+            <div>
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-[#E8722C]" />
+                <h3 className="font-display font-black text-base sm:text-lg text-[#14261D]">
+                  Recommended Next Actions
+                </h3>
+              </div>
+              <p className="font-sans text-xs text-[#14261D]/70 mt-1 leading-relaxed">
+                Objective, evidence-based recommendations to accelerate your mastery across this material.
+              </p>
+            </div>
+            <span className="font-mono text-[11px] font-bold text-[#14261D]/50 uppercase tracking-wider hidden sm:inline">
+              Personalized Plan
+            </span>
+          </div>
+
+          <div className={isCompactSidecar ? 'grid grid-cols-1 gap-4' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6'}>
+            {/* Reading Action */}
+            <div className="p-5 sm:p-6 rounded-2xl bg-[#F4F0E5]/80 border-[1.5px] border-[#1B3428]/20 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-shadow">
+              <div>
+                <span className="inline-flex items-center gap-1.5 font-mono text-[10px] sm:text-[11px] uppercase font-bold text-[#14261D]/70 tracking-wider mb-2">
+                  <BookOpen className="w-3.5 h-3.5 text-[#1B3428]" />
+                  Reading Traversal
+                </span>
+                <p className="font-display font-bold text-sm sm:text-base text-[#14261D] leading-snug sm:leading-relaxed mb-4">
+                  {progress.reading.currentPage < progress.reading.totalPages
+                    ? `Continue reading from Page ${progress.reading.currentPage + 1}`
+                    : 'Textbook completely traversed! Solidify retention with targeted quizzes.'}
+                </p>
+              </div>
+              {progress.reading.currentPage < progress.reading.totalPages && onNavigateToPage && (
+                <div className="pt-4 border-t border-[#1B3428]/10 mt-auto">
+                  <button
+                    type="button"
+                    onClick={() => onNavigateToPage(progress.reading.currentPage + 1)}
+                    className="w-full py-2.5 px-4 rounded-full bg-[#1B3428] text-white font-display font-bold text-xs shadow-[0_2px_0_0_#0D1B14] hover:-translate-y-0.5 active:translate-y-0.5 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <span>Resume Reading</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Flashcard Action */}
+            <div className="p-5 sm:p-6 rounded-2xl bg-[#F4F0E5]/80 border-[1.5px] border-[#1B3428]/20 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-shadow">
+              <div>
+                <span className="inline-flex items-center gap-1.5 font-mono text-[10px] sm:text-[11px] uppercase font-bold text-[#E8722C] tracking-wider mb-2">
+                  <Layers className="w-3.5 h-3.5 text-[#E8722C]" />
+                  Spaced Repetition
+                </span>
+                <p className="font-display font-bold text-sm sm:text-base text-[#14261D] leading-snug sm:leading-relaxed mb-4">
+                  {progress.flashcards.cardsDue > 0
+                    ? `${progress.flashcards.cardsDue} card${progress.flashcards.cardsDue > 1 ? 's' : ''} scheduled for review today`
+                    : progress.flashcards.totalCards > 0
+                    ? 'All flashcard reviews up to date! Great consistency.'
+                    : 'No flashcard decks created yet for this material.'}
+                </p>
+              </div>
+              <div className="pt-4 border-t border-[#1B3428]/10 mt-auto">
+                {progress.flashcards.cardsDue > 0 && onStudyFlashcards ? (
+                  <button
+                    type="button"
+                    onClick={onStudyFlashcards}
+                    className="w-full py-2.5 px-4 rounded-full bg-[#E8722C] text-white font-display font-bold text-xs shadow-[0_2px_0_0_#B26E45] hover:-translate-y-0.5 active:translate-y-0.5 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <span>Review {progress.flashcards.cardsDue} Cards</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                ) : onStudyFlashcards && progress.flashcards.totalCards === 0 ? (
+                  <button
+                    type="button"
+                    onClick={onStudyFlashcards}
+                    className="w-full py-2.5 px-4 rounded-full border-[1.5px] border-[#1B3428] bg-[#FAF8F4] text-[#14261D] font-display font-bold text-xs shadow-[0_2px_0_0_#1B3428] hover:-translate-y-0.5 active:translate-y-0.5 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <span>Create First Deck</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                ) : (
+                  <div className="py-2.5 text-center text-xs text-[#14261D]/50 font-sans italic">
+                    Up to date
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Assessment Action */}
+            <div className={`p-5 sm:p-6 rounded-2xl bg-[#F4F0E5]/80 border-[1.5px] border-[#1B3428]/20 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-shadow ${isCompactSidecar ? 'col-span-1' : 'md:col-span-2 lg:col-span-1'}`}>
+              <div>
+                <span className="inline-flex items-center gap-1.5 font-mono text-[10px] sm:text-[11px] uppercase font-bold text-[#14261D]/70 tracking-wider mb-2">
+                  <HelpCircle className="w-3.5 h-3.5 text-[#1B3428]" />
+                  Targeted Assessment
+                </span>
+                <p className="font-display font-bold text-sm sm:text-base text-[#14261D] leading-snug sm:leading-relaxed mb-4">
+                  {progress.assessment.totalFailedQuestions > 0
+                    ? `${progress.assessment.totalFailedQuestions} question${progress.assessment.totalFailedQuestions > 1 ? 's' : ''} missed across attempts. Revisit weak areas.`
+                    : progress.assessment.totalAttempts > 0
+                    ? 'No missed questions remaining! Keep up the practice.'
+                    : 'Take a diagnostic quiz to benchmark comprehension.'}
+                </p>
+              </div>
+              <div className="pt-4 border-t border-[#1B3428]/10 mt-auto">
+                {onTakeQuiz && (
+                  <button
+                    type="button"
+                    onClick={onTakeQuiz}
+                    className="w-full py-2.5 px-4 rounded-full border-[1.5px] border-[#1B3428] bg-white text-[#14261D] font-display font-bold text-xs shadow-[0_2px_0_0_#1B3428] hover:-translate-y-0.5 active:translate-y-0.5 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <span>{progress.assessment.totalAttempts > 0 ? 'Practice Quizzes' : 'Start Diagnostic Quiz'}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Topic Understanding Matrix */}
         <div className="bg-[#FAF8F4] border-[2px] border-[#1B3428] rounded-[28px] p-6 sm:p-7 shadow-[0_6px_0_0_#1B3428]">
           <div className="flex items-center justify-between mb-4">
@@ -440,7 +562,24 @@ export function WorkspaceProgressView({
                   {progress.topics.map((t) => (
                     <tr key={t.id} className="hover:bg-[#F4F0E5]/50 transition-colors">
                       <td className="py-3 px-3 font-display font-bold text-[#14261D]">
-                        {t.title}
+                        <div className="flex items-center gap-2">
+                          <span>{t.title}</span>
+                          {t.pageNumber && onNavigateToPage && (
+                            <button
+                              type="button"
+                              onClick={() => onNavigateToPage(t.pageNumber!)}
+                              className="font-mono text-[10px] text-[#E8722C] bg-[#FBE8DC] px-2 py-0.5 rounded-md hover:bg-[#E8722C] hover:text-white transition-colors cursor-pointer"
+                              title={`Jump to Page ${t.pageNumber}`}
+                            >
+                              p. {t.pageNumber}
+                            </button>
+                          )}
+                          {t.pageNumber && !onNavigateToPage && (
+                            <span className="font-mono text-[10px] text-[#14261D]/60 bg-[#1B3428]/5 px-2 py-0.5 rounded-md">
+                              p. {t.pageNumber}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-3 px-3">
                         {getStatusBadge(t.status)}
@@ -462,6 +601,55 @@ export function WorkspaceProgressView({
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+        </div>
+
+        {/* Recent Quiz Attempts & Activity */}
+        <div className="bg-[#FAF8F4] border-[2px] border-[#1B3428] rounded-[24px] p-5 sm:p-6 shadow-[0_4px_0_0_#1B3428]">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-display font-bold text-sm text-[#14261D]">
+              Recent Quiz Attempts
+            </h3>
+            <span className="font-mono text-xs text-[#14261D]/60 font-bold">
+              {progress.assessment.recentAttempts.length} Recorded
+            </span>
+          </div>
+
+          {progress.assessment.recentAttempts.length === 0 ? (
+            <p className="text-xs text-[#14261D]/60 py-4 text-center italic">
+              No completed quiz attempts recorded yet. Take a quiz to track performance trends.
+            </p>
+          ) : (
+            <div className="divide-y divide-[#1B3428]/10">
+              {progress.assessment.recentAttempts.map((att) => {
+                const scoreColor =
+                  att.score >= 80
+                    ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                    : att.score >= 60
+                    ? 'text-amber-700 bg-amber-50 border-amber-200'
+                    : 'text-red-700 bg-red-50 border-red-200';
+                return (
+                  <div
+                    key={att.attemptId}
+                    className="py-2.5 flex items-center justify-between gap-3 text-xs"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-display font-bold text-[#14261D] truncate">
+                        {att.quizTitle}
+                      </p>
+                      <p className="text-[11px] text-[#14261D]/50 font-mono">
+                        {new Date(att.completedAt).toLocaleDateString()} &bull; {att.totalQuestions} Questions
+                      </p>
+                    </div>
+                    <span
+                      className={`font-mono font-bold text-xs px-2.5 py-1 rounded-full border ${scoreColor} shrink-0`}
+                    >
+                      {att.score}%
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

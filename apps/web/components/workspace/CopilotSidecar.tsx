@@ -26,7 +26,9 @@ import type {
   DocumentDto,
   MessageCitationDto,
   ConversationMessageMetadataDto,
+  PlanOfferDto,
 } from '@lernivox/contracts';
+import { LearningPlanOfferBanner } from './LearningPlanOfferBanner';
 
 interface CopilotSidecarProps {
   isOpen: boolean;
@@ -51,6 +53,9 @@ interface CopilotSidecarProps {
   isMobileDrawer?: boolean;
   onCloseMobileDrawer?: () => void;
   hideHeader?: boolean;
+  planOffer?: PlanOfferDto | null;
+  onOpenPlanModal?: () => void;
+  onDismissPlanOffer?: () => void;
 }
 
 export function CopilotSidecar({
@@ -76,6 +81,9 @@ export function CopilotSidecar({
   isMobileDrawer = false,
   onCloseMobileDrawer,
   hideHeader = false,
+  planOffer,
+  onOpenPlanModal,
+  onDismissPlanOffer,
 }: CopilotSidecarProps) {
   const [inputText, setInputText] = useState('');
   const [showSessionsMenu, setShowSessionsMenu] = useState(false);
@@ -302,6 +310,13 @@ export function CopilotSidecar({
         ref={chatContainerRef}
         className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#FAF8F4] select-text"
       >
+        {planOffer?.shouldOffer && onOpenPlanModal && onDismissPlanOffer && (
+          <LearningPlanOfferBanner
+            offer={planOffer}
+            onOpenPlanModal={onOpenPlanModal}
+            onDismiss={onDismissPlanOffer}
+          />
+        )}
         {loadingConv ? (
           <div className="p-12 text-center">
             <Loader2 className="w-6 h-6 animate-spin text-[#E8722C] mx-auto mb-2" />

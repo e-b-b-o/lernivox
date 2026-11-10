@@ -5,9 +5,9 @@ import Link from 'next/link';
 import {
   ArrowLeft,
   BookOpen,
+  Calendar,
   HelpCircle,
   Layers,
-  List,
   Sparkles,
   TrendingUp,
   User,
@@ -16,14 +16,15 @@ import {
 import type { DocumentDto, WorkspaceType } from '@lernivox/contracts';
 import { ProfileMenu } from './ProfileMenu';
 
-export type WorkspaceViewMode = 'read' | 'quizzes' | 'flashcards' | 'progress';
-export type CompanionToolMode = 'read' | 'ai-tutor' | 'quizzes' | 'flashcards' | 'progress';
+export type WorkspaceViewMode = 'read' | 'quizzes' | 'flashcards' | 'plan' | 'progress';
+export type CompanionToolMode = 'read' | 'ai-tutor' | 'quizzes' | 'flashcards' | 'plan' | 'progress';
 
 interface TutorHeaderProps {
   document: DocumentDto | null;
   workspaceType?: WorkspaceType;
   isOwner?: boolean;
   memberCount?: number;
+  unreadDiscussionCount?: number;
   activeView?: CompanionToolMode;
   onViewChange?: (view: WorkspaceViewMode) => void;
   onToggleAiTutor?: () => void;
@@ -41,6 +42,7 @@ export function TutorHeader({
   workspaceType = 'PERSONAL',
   isOwner = false,
   memberCount,
+  unreadDiscussionCount = 0,
   activeView,
   onViewChange,
   onToggleAiTutor,
@@ -52,7 +54,7 @@ export function TutorHeader({
   onToggleCopilot,
 }: TutorHeaderProps) {
   return (
-    <header className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] h-14 w-full px-3 sm:px-6 bg-[#FAF8F4] border-b-[2px] border-[#1B3428]/10 sticky top-0 z-30 select-none items-center">
+    <header className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] h-14 w-full px-3 sm:px-6 bg-[#FAF8F4] border-b border-[#1B3428]/10 sticky top-0 z-30 select-none items-center">
       {/* =========================================================================
           ZONE 1: Brand & Outline Toggle (Left-aligned)
           Kept compact on laptop/tablet to prevent center navigation collisions
@@ -75,20 +77,20 @@ export function TutorHeader({
         {/* Subtle Vertical Separator */}
         <div className="h-5 w-px bg-[#1B3428]/15 shrink-0 hidden sm:block" />
 
-        {/* Outline Toggle Control */}
+        {/* Outline Toggle Control (Clean text-only pill) */}
         <button
           type="button"
           onClick={onToggleOutline}
-          className={`h-8 px-2.5 sm:px-2.5 xl:px-3 rounded-full border-[1.5px] border-[#1B3428] font-display font-bold text-xs flex items-center gap-1.5 transition-all shrink-0 cursor-pointer ${
+          className={`h-9 px-3.5 rounded-full border-[1.5px] font-display font-bold text-xs flex items-center justify-center transition-all shrink-0 cursor-pointer ${
             outlineOpen
-              ? 'bg-[#1B3428] text-white shadow-xs'
-              : 'bg-[#FAF8F4] text-[#14261D] shadow-[0_2px_0_0_#1B3428] hover:-translate-y-0.5'
+              ? 'bg-[#1B3428] text-white border-[#1B3428] shadow-xs'
+              : 'bg-[#FAF8F4] text-[#14261D] border-[#1B3428]/20 shadow-2xs hover:border-[#1B3428] hover:-translate-y-0.5'
           }`}
           title={outlineOpen ? 'Collapse Document Outline' : 'Open Document Outline'}
           aria-label="Outline"
         >
-          <List className="w-3.5 h-3.5" />
           <span className="hidden xl:inline">Outline</span>
+          <span className="xl:hidden">Outline</span>
         </button>
       </div>
 
@@ -149,7 +151,24 @@ export function TutorHeader({
               <span className="xl:hidden whitespace-nowrap">Cards</span>
             </button>
 
-            {/* 4. My Progress Mode */}
+            {/* 4. Study Plan Mode */}
+            <button
+              type="button"
+              onClick={() => onViewChange('plan')}
+              className={`px-2.5 sm:px-3 xl:px-4 py-1.5 rounded-full font-display font-bold text-xs flex items-center gap-1.5 transition-all whitespace-nowrap shrink-0 cursor-pointer ${
+                activeView === 'plan' && copilotOpen
+                  ? 'bg-[#14261D] text-white shadow-xs'
+                  : 'text-[#14261D]/75 hover:text-[#14261D] hover:bg-[#1B3428]/5'
+              }`}
+              title="Adaptive Study Plan"
+              aria-label="Study Plan"
+            >
+              <Calendar className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden xl:inline whitespace-nowrap">Study Plan</span>
+              <span className="xl:hidden whitespace-nowrap">Plan</span>
+            </button>
+
+            {/* 5. My Progress Mode */}
             <button
               type="button"
               onClick={() => onViewChange('progress')}
@@ -179,12 +198,17 @@ export function TutorHeader({
           <button
             type="button"
             onClick={onOpenManageGroupModal}
-            className="h-8 px-2 sm:px-2.5 rounded-full border border-[#1B3428]/25 bg-[#FAF8F4] text-[#14261D] font-display font-bold text-xs hover:bg-[#FBE8DC] hover:border-[#E8722C] shadow-2xs hover:-translate-y-0.5 transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
-            title={`Manage workspace members (${memberCount || 1})`}
-            aria-label={`Manage workspace members (${memberCount || 1})`}
+            className="relative h-9 px-3 rounded-full border-[1.5px] border-[#1B3428]/20 bg-[#FAF8F4] text-[#14261D] font-display font-bold text-xs hover:border-[#E8722C] hover:text-[#E8722C] shadow-2xs hover:-translate-y-0.5 transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
+            title={`Manage workspace members (${memberCount || 1})${unreadDiscussionCount > 0 ? ` • ${unreadDiscussionCount} unread message${unreadDiscussionCount > 1 ? 's' : ''}` : ''}`}
+            aria-label={`Manage workspace members (${memberCount || 1})${unreadDiscussionCount > 0 ? `, ${unreadDiscussionCount} unread messages` : ''}`}
           >
             <Users className="w-3.5 h-3.5 text-[#E8722C]" />
             <span className="font-mono text-xs font-bold text-[#14261D]">{memberCount || 1}</span>
+            {unreadDiscussionCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 min-w-5 h-5 px-1 bg-[#E8722C] text-white text-[10px] font-mono font-bold rounded-full border-2 border-[#FAF8F4] flex items-center justify-center shadow-xs">
+                {unreadDiscussionCount > 99 ? '99+' : unreadDiscussionCount}
+              </span>
+            )}
           </button>
         )}
 
@@ -193,10 +217,10 @@ export function TutorHeader({
           <button
             type="button"
             onClick={onOpenConvertModal}
-            className="hidden 2xl:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full border border-[#1B3428]/25 bg-[#FAF8F4] text-[#14261D] font-display font-bold text-[11px] hover:bg-[#FBE8DC] hover:border-[#E8722C] shadow-2xs hover:-translate-y-0.5 transition-all shrink-0 cursor-pointer"
+            className="hidden 2xl:inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full border-[1.5px] border-[#1B3428]/20 bg-[#FAF8F4] text-[#14261D] font-display font-bold text-xs hover:border-[#E8722C] hover:text-[#E8722C] shadow-2xs hover:-translate-y-0.5 transition-all shrink-0 cursor-pointer"
             title="Convert to shared group workspace"
           >
-            <Users className="w-3 h-3 text-[#E8722C]" />
+            <Users className="w-3.5 h-3.5 text-[#E8722C]" />
             <span>Convert</span>
           </button>
         )}
@@ -204,7 +228,7 @@ export function TutorHeader({
         {/* Back to Books Launcher */}
         <Link
           href="/dashboard"
-          className="h-8 px-2 sm:px-2.5 xl:px-3 rounded-full bg-[#FAF8F4] border-[1.5px] border-[#1B3428] text-[#14261D] font-display font-bold text-xs shadow-[0_2px_0_0_#1B3428] hover:-translate-y-0.5 hover:shadow-[0_3px_0_0_#1B3428] active:translate-y-0.5 active:shadow-none transition-all flex items-center gap-1.5 shrink-0"
+          className="h-9 px-3.5 rounded-full border-[1.5px] border-[#1B3428]/20 bg-[#FAF8F4] text-[#14261D] font-display font-bold text-xs hover:border-[#1B3428] shadow-2xs hover:-translate-y-0.5 active:translate-y-0.5 transition-all flex items-center gap-1.5 shrink-0"
           title="Books"
           aria-label="Books"
         >

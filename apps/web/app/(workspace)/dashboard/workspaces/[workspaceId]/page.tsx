@@ -14,10 +14,12 @@ import {
   HelpCircle,
   Layers,
   TrendingUp,
+  Calendar,
   List,
   ChevronLeft,
   ChevronRight,
   Bookmark,
+  Users,
 } from 'lucide-react';
 import type {
   ConversationDetailDto,
@@ -30,6 +32,7 @@ import type {
   MessageCitationDto,
   TutorChunkDetailDto,
   WorkspaceDto,
+  PlanOfferDto,
 } from '@lernivox/contracts';
 import { useAuth } from '../../../../../context/AuthContext';
 import { api } from '../../../../../lib/api';
@@ -43,6 +46,8 @@ import { ManageGroupModal } from '../../../../../components/workspace/ManageGrou
 import { WorkspaceQuizzesView } from '../../../../../components/workspace/WorkspaceQuizzesView';
 import { WorkspaceFlashcardsView } from '../../../../../components/workspace/WorkspaceFlashcardsView';
 import { WorkspaceProgressView } from '../../../../../components/workspace/WorkspaceProgressView';
+import { WorkspaceLearningPlanView } from '../../../../../components/workspace/WorkspaceLearningPlanView';
+import { GenerateLearningPlanModal } from '../../../../../components/workspace/GenerateLearningPlanModal';
 import { ProfileMenu } from '../../../../../components/workspace/ProfileMenu';
 
 function WorkspaceInner() {
@@ -60,6 +65,7 @@ function WorkspaceInner() {
   const [currentDoc, setCurrentDoc] = useState<DocumentDto | null>(null);
   const [loadingWorkspace, setLoadingWorkspace] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [unreadDiscussionCount, setUnreadDiscussionCount] = useState<number>(0);
 
   // Companion Tool State ('ai-tutor' | 'quizzes' | 'flashcards' | 'progress') - NO 'read' mode!
   const [activeView, setActiveView] = useState<CompanionToolMode>('ai-tutor');
@@ -73,6 +79,10 @@ function WorkspaceInner() {
   const [isPracticeModalOpen, setIsPracticeModalOpen] = useState(false);
   const [preselectedPracticeChapter, setPreselectedPracticeChapter] = useState<string>('');
   const [preselectedPracticePage, setPreselectedPracticePage] = useState<number | undefined>(undefined);
+
+  // Learning Plan State
+  const [planOffer, setPlanOffer] = useState<PlanOfferDto | null>(null);
+  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
 
   // Desktop Zen Focus Mode State
   const [isFocusMode, setIsFocusMode] = useState(false);
@@ -284,52 +294,111 @@ function WorkspaceInner() {
     };
   }, []);
 
-  // Mobile Immersive Scroll Detection (auto-hides header and dock on scroll down >60px, restores on scroll up)
+  // Mobile Immersive Reading Scroll Coordination (auto-hides header and dock on scroll down, restores on scroll up, canvas tap, or 2.5s inactivity)
+  const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const clearInactivityTimer = useCallback(() => {
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+      inactivityTimerRef.current = null;
+    }
+  }, []);
+
+  // Cleanup inactivity timer on unmount
   useEffect(() => {
-    const scrollEl = document.getElementById('pdf-scroll-container');
-    if (!scrollEl) return;
-
-    let ticking = false;
-    const handlePdfScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        const currentScrollY = scrollEl.scrollTop;
-        const diff = currentScrollY - lastScrollYRef.current;
-
-        // Auto-hide only on mobile screens when no drawer/modal is open and no active text selection
-        if (
-          window.innerWidth < 768 &&
-          mobileDrawer === 'none' &&
-          !isTextSelectionActive &&
-          !isPracticeModalOpen &&
-          !isConvertModalOpen &&
-          !isManageGroupModalOpen &&
-          !inspectingCitation
-        ) {
-          if (diff > 60 && currentScrollY > 80) {
-            setMobileNavHidden(true);
-            lastScrollYRef.current = currentScrollY;
-          } else if (diff < -10) {
-            setMobileNavHidden(false);
-            lastScrollYRef.current = currentScrollY;
-          }
-        } else {
-          setMobileNavHidden(false);
-        }
-        ticking = false;
-      });
+    return () => {
+      clearInactivityTimer();
     };
+  }, [clearInactivityTimer]);
 
-    scrollEl.addEventListener('scroll', handlePdfScroll, { passive: true });
-    return () => scrollEl.removeEventListener('scroll', handlePdfScroll);
+  const handleReaderScrollDelta = useCallback(
+    (deltaY: number, scrollTop: number) => {
+      if (typeof window === 'undefined') return;
+      if (window.innerWidth >= 768) return; // Strict mobile-only (<768px) rule
+
+      // Keep navigation visible when modals, drawers, or text selection are active
+      const isAutoHidingAllowed =
+        mobileDrawer === 'none' &&
+        !isTextSelectionActive &&
+        !isPlanModalOpen &&
+        !isPracticeModalOpen &&
+        !isConvertModalOpen &&
+        !isManageGroupModalOpen &&
+        !inspectingCitation &&
+        (activeView === 'read' || activeView === 'ai-tutor');
+
+      if (!isAutoHidingAllowed) {
+        clearInactivityTimer();
+        setMobileNavHidden(false);
+        return;
+      }
+
+      // If near the top (within first 30px), always keep bars visible
+      if (scrollTop <= 30) {
+        clearInactivityTimer();
+        setMobileNavHidden(false);
+        return;
+      }
+
+      // Directional auto-hide thresholds:
+      // Upward finger swipe (deltaY > 20 && scrollTop > 50) advances down -> hides navigation
+      if (deltaY > 20 && scrollTop > 50) {
+        setMobileNavHidden(true);
+        // Start 2.5-second inactivity timeout: reveals navigation if user pauses reading
+        clearInactivityTimer();
+        inactivityTimerRef.current = setTimeout(() => {
+          setMobileNavHidden(false);
+        }, 2500);
+      } else if (deltaY > 0 && scrollTop > 50) {
+        // Continuous upward finger swiping keeps bars hidden and resets the 2.5s timer
+        clearInactivityTimer();
+        inactivityTimerRef.current = setTimeout(() => {
+          setMobileNavHidden(false);
+        }, 2500);
+      } else if (deltaY < -15) {
+        // Downward finger swipe toward earlier content -> reveals navigation immediately
+        clearInactivityTimer();
+        setMobileNavHidden(false);
+      }
+    },
+    [
+      mobileDrawer,
+      isTextSelectionActive,
+      isPracticeModalOpen,
+      isConvertModalOpen,
+      isManageGroupModalOpen,
+      isPlanModalOpen,
+      inspectingCitation,
+      activeView,
+      clearInactivityTimer,
+    ],
+  );
+
+  const handleReaderCanvasTap = useCallback(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      if (
+        mobileDrawer !== 'none' ||
+        isTextSelectionActive ||
+        isPracticeModalOpen ||
+        isConvertModalOpen ||
+        isManageGroupModalOpen ||
+        isPlanModalOpen ||
+        inspectingCitation
+      ) {
+        return;
+      }
+      clearInactivityTimer();
+      setMobileNavHidden((hidden) => !hidden);
+    }
   }, [
     mobileDrawer,
     isTextSelectionActive,
     isPracticeModalOpen,
     isConvertModalOpen,
     isManageGroupModalOpen,
+    isPlanModalOpen,
     inspectingCitation,
+    clearInactivityTimer,
   ]);
 
   // Desktop Zen Focus Mode: restore standard workspace on Escape key
@@ -374,11 +443,20 @@ function WorkspaceInner() {
     try {
       const ws = await api.workspaces.getById(workspaceId, accessToken);
       setWorkspace(ws);
+      if (ws.unreadDiscussionCount !== undefined) {
+        setUnreadDiscussionCount(ws.unreadDiscussionCount);
+      }
       setCurrentDoc(ws.document);
       if (ws.document.pageCount) {
         setTotalPages(ws.document.pageCount);
       }
       setError(null);
+
+      // Load contextual study plan offer
+      api.learningPlans
+        .getOffer(workspaceId, accessToken)
+        .then((offer) => setPlanOffer(offer))
+        .catch((err) => console.warn('Failed to load learning plan offer:', err));
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Unable to access this workspace.';
       setError(msg);
@@ -386,6 +464,16 @@ function WorkspaceInner() {
       setLoadingWorkspace(false);
     }
   }, [accessToken, workspaceId]);
+
+  const handleDismissPlanOffer = async () => {
+    if (!accessToken || !workspaceId) return;
+    try {
+      await api.learningPlans.dismissOffer(workspaceId, accessToken);
+      setPlanOffer({ shouldOffer: false, dismissed: true });
+    } catch (err) {
+      console.error('Failed to dismiss plan offer:', err);
+    }
+  };
 
   useEffect(() => {
     fetchWorkspace();
@@ -415,6 +503,40 @@ function WorkspaceInner() {
 
     return () => clearInterval(interval);
   }, [accessToken, workspaceId, currentDoc?.status]);
+
+  const handleMarkDiscussionAsRead = useCallback(async () => {
+    if (!accessToken || !workspaceId || workspace?.type !== 'GROUP') return;
+    try {
+      await api.workspaces.markDiscussionAsRead(workspaceId, accessToken);
+      setUnreadDiscussionCount(0);
+    } catch {
+      // ignore
+    }
+  }, [accessToken, workspaceId, workspace?.type]);
+
+  // Polling unread discussion count every 6 seconds for group workspaces
+  useEffect(() => {
+    if (!accessToken || !workspaceId || workspace?.type !== 'GROUP') return;
+
+    let isMounted = true;
+    const pollUnread = async () => {
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
+      try {
+        const res = await api.workspaces.getUnreadDiscussionCount(workspaceId, accessToken);
+        if (isMounted) {
+          setUnreadDiscussionCount(res.unreadCount);
+        }
+      } catch {
+        // ignore
+      }
+    };
+
+    const interval = setInterval(pollUnread, 6000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [accessToken, workspaceId, workspace?.type]);
 
   const documentId = currentDoc?.id;
 
@@ -950,6 +1072,7 @@ function WorkspaceInner() {
           workspaceType={workspace.type}
           isOwner={isOwner}
           memberCount={workspace.members?.length || 1}
+          unreadDiscussionCount={unreadDiscussionCount}
           activeView={activeView}
           onViewChange={handleViewChange}
           onToggleAiTutor={handleToggleAiTutor}
@@ -964,7 +1087,7 @@ function WorkspaceInner() {
 
       {/* Mobile (<768px) Unified Coordinated Header Wrapper (Row 1: 48px Header + Row 2: 40px Reader Toolbar) */}
       <header
-        className={`md:hidden fixed top-0 inset-x-0 z-30 w-full bg-[#FAF8F4] transition-transform duration-300 select-none ${
+        className={`md:hidden fixed top-0 inset-x-0 z-30 w-full bg-[#FAF8F4] transition-transform duration-300 ease-in-out motion-reduce:transition-none select-none ${
           mobileNavHidden ? '-translate-y-full' : 'translate-y-0'
         }`}
       >
@@ -998,16 +1121,45 @@ function WorkspaceInner() {
 
         {/* Row 2: 40px Secondary Reader Toolbar */}
         <div className="h-10 w-full border-b border-[#1B3428]/15 px-3 flex items-center justify-between bg-[#FAF8F4]">
-          {/* Left: Outline Shortcut */}
-          <button
-            type="button"
-            onClick={toggleToc}
-            className="flex items-center gap-1 text-[11px] font-display font-bold text-[#14261D]/75 hover:text-[#14261D] cursor-pointer"
-            title="View Outline"
-          >
-            <List className="w-3.5 h-3.5 text-[#E8722C]" />
-            <span className="truncate max-w-[100px]">Outline</span>
-          </button>
+          {/* Left: Group Hub Collaboration Action (Mobile) */}
+          {workspace?.type === 'GROUP' ? (
+            <button
+              type="button"
+              onClick={() => {
+                setMobileNavHidden(false);
+                setIsManageGroupModalOpen(true);
+              }}
+              className="relative h-7 px-2.5 rounded-full border border-[#1B3428]/25 bg-[#FAF8F4] text-[#14261D] font-display font-bold text-xs hover:bg-[#FBE8DC] hover:border-[#E8722C] shadow-2xs active:translate-y-0.5 transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
+              title={`Manage group members (${workspace.members?.length || 1})${unreadDiscussionCount > 0 ? ` • ${unreadDiscussionCount} unread message${unreadDiscussionCount > 1 ? 's' : ''}` : ''}`}
+              aria-label={`Manage group members (${workspace.members?.length || 1})${unreadDiscussionCount > 0 ? `, ${unreadDiscussionCount} unread messages` : ''}`}
+            >
+              <Users className="w-3.5 h-3.5 text-[#E8722C]" />
+              <span className="font-mono text-xs font-bold text-[#14261D]">
+                {workspace.members?.length || 1}
+              </span>
+              {unreadDiscussionCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-1 bg-[#E8722C] text-white text-[9px] font-mono font-bold rounded-full border border-[#FAF8F4] flex items-center justify-center shadow-xs">
+                  {unreadDiscussionCount > 99 ? '99+' : unreadDiscussionCount}
+                </span>
+              )}
+            </button>
+          ) : isOwner ? (
+            <button
+              type="button"
+              onClick={() => {
+                setMobileNavHidden(false);
+                setIsConvertModalOpen(true);
+              }}
+              className="h-7 px-2.5 rounded-full border border-[#1B3428]/25 bg-[#FAF8F4] text-[#14261D] font-display font-bold text-xs hover:bg-[#FBE8DC] hover:border-[#E8722C] shadow-2xs active:translate-y-0.5 transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
+              title="Convert to shared group workspace"
+              aria-label="Convert to shared group workspace"
+            >
+              <Users className="w-3.5 h-3.5 text-[#E8722C]" />
+              <span className="text-[11px] font-display font-bold text-[#14261D]">Group</span>
+            </button>
+          ) : (
+            <div className="w-7 h-7" />
+          )}
 
           {/* Center: Authoritative Page Navigation */}
           <div className="flex items-center gap-1">
@@ -1073,9 +1225,9 @@ function WorkspaceInner() {
           They NEVER unmount or reload on companion mode changes.
           ========================================================================= */}
       <div
-        className={`flex-1 min-h-0 flex w-full relative overflow-hidden transition-[padding] duration-300 md:pt-0 ${
+        className={`flex-1 min-h-0 flex w-full relative overflow-hidden transition-[padding] duration-300 ease-in-out motion-reduce:transition-none md:pt-0 md:pb-0 ${
           mobileNavHidden ? 'pt-0' : 'pt-[88px]'
-        }`}
+        } ${mobileNavHidden ? 'pb-0' : 'pb-14'}`}
       >
         {/* PANE 1: DESKTOP LEFT OUTLINE (Hidden on Mobile, Single Docked Sidebar below 1280px) */}
         <DocumentOutlinePane
@@ -1098,10 +1250,7 @@ function WorkspaceInner() {
         />
 
         {/* PANE 2: CENTER DOCUMENT READER (The Permanent Central Reading Stage) */}
-        <main
-          onClick={() => setMobileNavHidden(false)}
-          className="w-full lg:flex-1 h-full min-h-0 flex flex-col min-w-0 md:min-w-[620px] max-md:min-w-0 max-md:w-full bg-[#F4F0E5] relative overflow-hidden"
-        >
+        <main className="w-full lg:flex-1 h-full min-h-0 flex flex-col min-w-0 md:min-w-[620px] max-md:min-w-0 max-md:w-full bg-[#F4F0E5] relative overflow-hidden">
           <DocumentReader
             document={currentDoc}
             readerContent={readerContent}
@@ -1121,6 +1270,14 @@ function WorkspaceInner() {
               setPreselectedPracticePage(page);
               setIsPracticeModalOpen(true);
             }}
+            onCreateCardSelection={(_text, page) => {
+              const currentChapter =
+                [...outlineItems].reverse().find((o) => o.pageNumber <= page)?.title || '';
+              setPreselectedPracticeChapter(currentChapter);
+              setPreselectedPracticePage(page);
+              setActiveView('flashcards');
+              setCopilotOpen(true);
+            }}
             onAddBookmark={handleAddBookmark}
             bookmarks={bookmarks}
             onToggleBookmark={handleToggleBookmark}
@@ -1129,6 +1286,8 @@ function WorkspaceInner() {
             isFocusMode={isFocusMode}
             onToggleFocusMode={() => setIsFocusMode((f) => !f)}
             onSelectionActiveChange={setIsTextSelectionActive}
+            onScrollDelta={handleReaderScrollDelta}
+            onCanvasTap={handleReaderCanvasTap}
           />
         </main>
 
@@ -1194,6 +1353,11 @@ function WorkspaceInner() {
                   onClearPreparedQuestion={() => setPreparedQuestion(null)}
                   onShareConversation={handleShareConversation}
                   isSharingConversation={isSharingConversation}
+                  planOffer={planOffer}
+                  onOpenPlanModal={() => setIsPlanModalOpen(true)}
+                  onDismissPlanOffer={handleDismissPlanOffer}
+                  unreadDiscussionCount={unreadDiscussionCount}
+                  onDiscussionRead={handleMarkDiscussionAsRead}
                 />
               )}
               {activeView === 'quizzes' && (
@@ -1218,6 +1382,21 @@ function WorkspaceInner() {
                   isCompactSidecar={true}
                 />
               )}
+              {activeView === 'plan' && (
+                <WorkspaceLearningPlanView
+                  workspaceId={workspace.id}
+                  document={currentDoc}
+                  onNavigateToPage={(page) => handlePageChange(page)}
+                  onSwitchTab={(tab) => {
+                    if (tab === 'read') {
+                      setActiveView('ai-tutor');
+                    } else {
+                      setActiveView(tab as any);
+                    }
+                  }}
+                  onOpenTutor={() => setActiveView('ai-tutor')}
+                />
+              )}
               {activeView === 'progress' && (
                 <WorkspaceProgressView
                   workspaceId={workspace.id}
@@ -1225,6 +1404,7 @@ function WorkspaceInner() {
                   onReturnToBook={() => setCopilotOpen(false)}
                   onTakeQuiz={() => setActiveView('quizzes')}
                   onStudyFlashcards={() => setActiveView('flashcards')}
+                  onNavigateToPage={(page) => handlePageChange(page)}
                   isCompactSidecar={true}
                 />
               )}
@@ -1372,6 +1552,11 @@ function WorkspaceInner() {
                     isSharingConversation={isSharingConversation}
                     isMobileDrawer={true}
                     onCloseMobileDrawer={() => setCopilotOpen(false)}
+                    planOffer={planOffer}
+                    onOpenPlanModal={() => setIsPlanModalOpen(true)}
+                    onDismissPlanOffer={handleDismissPlanOffer}
+                    unreadDiscussionCount={unreadDiscussionCount}
+                    onDiscussionRead={handleMarkDiscussionAsRead}
                   />
                 )}
                 {activeView === 'quizzes' && (
@@ -1402,6 +1587,24 @@ function WorkspaceInner() {
                     isCompactSidecar={true}
                   />
                 )}
+                {activeView === 'plan' && (
+                  <WorkspaceLearningPlanView
+                    workspaceId={workspace.id}
+                    document={currentDoc}
+                    onNavigateToPage={(page) => {
+                      handlePageChange(page);
+                      setCopilotOpen(false);
+                    }}
+                    onSwitchTab={(tab) => {
+                      if (tab === 'read') {
+                        setCopilotOpen(false);
+                      } else {
+                        setActiveView(tab as any);
+                      }
+                    }}
+                    onOpenTutor={() => setActiveView('ai-tutor')}
+                  />
+                )}
                 {activeView === 'progress' && (
                   <WorkspaceProgressView
                     workspaceId={workspace.id}
@@ -1409,6 +1612,7 @@ function WorkspaceInner() {
                     onReturnToBook={() => setCopilotOpen(false)}
                     onTakeQuiz={() => setActiveView('quizzes')}
                     onStudyFlashcards={() => setActiveView('flashcards')}
+                    onNavigateToPage={(page) => handlePageChange(page)}
                     isCompactSidecar={true}
                   />
                 )}
@@ -1494,6 +1698,18 @@ function WorkspaceInner() {
                     </button>
                     <button
                       type="button"
+                      onClick={() => setActiveView('plan')}
+                      className={`px-3 py-1 rounded-full font-display font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+                        activeView === 'plan'
+                          ? 'bg-[#14261D] text-white shadow-xs'
+                          : 'text-[#14261D]/70'
+                      }`}
+                    >
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>Plan</span>
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => setActiveView('progress')}
                       className={`px-3 py-1 rounded-full font-display font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
                         activeView === 'progress'
@@ -1547,6 +1763,24 @@ function WorkspaceInner() {
                       isCompactSidecar={true}
                     />
                   )}
+                  {activeView === 'plan' && (
+                    <WorkspaceLearningPlanView
+                      workspaceId={workspace.id}
+                      document={currentDoc}
+                      onNavigateToPage={(page) => {
+                        handlePageChange(page);
+                        closeMobileDrawer();
+                      }}
+                      onSwitchTab={(tab) => {
+                        if (tab === 'read') {
+                          closeMobileDrawer();
+                        } else {
+                          setActiveView(tab as any);
+                        }
+                      }}
+                      onOpenTutor={() => setMobileDrawer('chat')}
+                    />
+                  )}
                   {activeView === 'progress' && (
                     <WorkspaceProgressView
                       workspaceId={workspace.id}
@@ -1554,6 +1788,10 @@ function WorkspaceInner() {
                       onReturnToBook={closeMobileDrawer}
                       onTakeQuiz={() => setActiveView('quizzes')}
                       onStudyFlashcards={() => setActiveView('flashcards')}
+                      onNavigateToPage={(page) => {
+                        handlePageChange(page);
+                        closeMobileDrawer();
+                      }}
                       isCompactSidecar={true}
                     />
                   )}
@@ -1624,6 +1862,11 @@ function WorkspaceInner() {
                     isSharingConversation={isSharingConversation}
                     isMobileDrawer={true}
                     onCloseMobileDrawer={closeMobileDrawer}
+                    planOffer={planOffer}
+                    onOpenPlanModal={() => setIsPlanModalOpen(true)}
+                    onDismissPlanOffer={handleDismissPlanOffer}
+                    unreadDiscussionCount={unreadDiscussionCount}
+                    onDiscussionRead={handleMarkDiscussionAsRead}
                   />
                 </div>
               </div>
@@ -1636,14 +1879,17 @@ function WorkspaceInner() {
           4. MOBILE 56px BOTTOM THUMB DOCK (No 'Read' button! Resting state is the book)
           ========================================================================= */}
       <div
-        className={`md:hidden fixed bottom-0 inset-x-0 h-14 bg-[#FAF8F4]/95 backdrop-blur-md border-t-[1.5px] border-[#1B3428]/15 z-40 px-6 flex items-center justify-around pb-[env(safe-area-inset-bottom)] transition-transform duration-200 select-none ${
+        className={`md:hidden fixed bottom-0 inset-x-0 h-14 bg-[#FAF8F4]/95 backdrop-blur-md border-t-[1.5px] border-[#1B3428]/15 z-40 px-6 flex items-center justify-around pb-[env(safe-area-inset-bottom)] transition-transform duration-300 ease-in-out motion-reduce:transition-none select-none ${
           mobileNavHidden ? 'translate-y-full' : 'translate-y-0'
         }`}
       >
         {/* Outline Button */}
         <button
           type="button"
-          onClick={() => setMobileDrawer((prev) => (prev === 'toc' ? 'none' : 'toc'))}
+          onClick={() => {
+            setMobileNavHidden(false);
+            setMobileDrawer((prev) => (prev === 'toc' ? 'none' : 'toc'));
+          }}
           className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-colors cursor-pointer ${
             mobileDrawer === 'toc' ? 'text-[#E8722C]' : 'text-[#14261D]/75 active:text-[#14261D]'
           }`}
@@ -1657,7 +1903,10 @@ function WorkspaceInner() {
         {/* Review Button (opens Quizzes, Flashcards, Progress) */}
         <button
           type="button"
-          onClick={() => setMobileDrawer((prev) => (prev === 'review' ? 'none' : 'review'))}
+          onClick={() => {
+            setMobileNavHidden(false);
+            setMobileDrawer((prev) => (prev === 'review' ? 'none' : 'review'));
+          }}
           className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-colors cursor-pointer ${
             mobileDrawer === 'review' ? 'text-[#E8722C]' : 'text-[#14261D]/75 active:text-[#14261D]'
           }`}
@@ -1671,7 +1920,10 @@ function WorkspaceInner() {
         {/* AI Tutor Button */}
         <button
           type="button"
-          onClick={() => setMobileDrawer((prev) => (prev === 'chat' ? 'none' : 'chat'))}
+          onClick={() => {
+            setMobileNavHidden(false);
+            setMobileDrawer((prev) => (prev === 'chat' ? 'none' : 'chat'));
+          }}
           className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-colors cursor-pointer ${
             mobileDrawer === 'chat' ? 'text-[#E8722C]' : 'text-[#14261D]/75 active:text-[#14261D]'
           }`}
@@ -1795,6 +2047,20 @@ function WorkspaceInner() {
           setActiveView('quizzes');
         }}
       />
+
+      {/* Generate Learning Plan Modal */}
+      {workspace && (
+        <GenerateLearningPlanModal
+          isOpen={isPlanModalOpen}
+          onClose={() => setIsPlanModalOpen(false)}
+          workspaceId={workspace.id}
+          document={currentDoc}
+          onPlanCreated={() => {
+            setActiveView('plan');
+            setCopilotOpen(true);
+          }}
+        />
+      )}
 
       {/* Convert to Group Confirmation Modal */}
       {workspace && (

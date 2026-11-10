@@ -17,6 +17,7 @@ import type {
   DocumentDto,
   MessageCitationDto,
   WorkspaceType,
+  PlanOfferDto,
 } from '@lernivox/contracts';
 import { CopilotSidecar } from './CopilotSidecar';
 import { GroupDiscussionPane } from './GroupDiscussionPane';
@@ -52,6 +53,11 @@ interface RightWorkspacePanelProps {
   isMobileDrawer?: boolean;
   onCloseMobileDrawer?: () => void;
   hideHeader?: boolean;
+  planOffer?: PlanOfferDto | null;
+  onOpenPlanModal?: () => void;
+  onDismissPlanOffer?: () => void;
+  unreadDiscussionCount?: number;
+  onDiscussionRead?: () => void;
 }
 
 export function RightWorkspacePanel(props: RightWorkspacePanelProps) {
@@ -69,10 +75,19 @@ export function RightWorkspacePanel(props: RightWorkspacePanelProps) {
     isMobileDrawer = false,
     onCloseMobileDrawer,
     hideHeader = false,
+    unreadDiscussionCount = 0,
+    onDiscussionRead,
   } = props;
 
   const [activeTab, setActiveTab] = useState<'ai' | 'discussion'>('ai');
   const [shareModalOpen, setShareModalOpen] = useState(false);
+
+  // Automatically mark as read if viewing discussion tab with unread messages
+  React.useEffect(() => {
+    if (activeTab === 'discussion' && unreadDiscussionCount > 0) {
+      onDiscussionRead?.();
+    }
+  }, [activeTab, unreadDiscussionCount, onDiscussionRead]);
 
   // If PERSONAL workspace, render pure CopilotSidecar without any group elements
   if (workspaceType === 'PERSONAL') {
@@ -100,6 +115,9 @@ export function RightWorkspacePanel(props: RightWorkspacePanelProps) {
         isMobileDrawer={isMobileDrawer}
         onCloseMobileDrawer={onCloseMobileDrawer}
         hideHeader={hideHeader}
+        planOffer={props.planOffer}
+        onOpenPlanModal={props.onOpenPlanModal}
+        onDismissPlanOffer={props.onDismissPlanOffer}
       />
     );
   }
@@ -137,7 +155,10 @@ export function RightWorkspacePanel(props: RightWorkspacePanelProps) {
 
             <button
               type="button"
-              onClick={() => setActiveTab('discussion')}
+              onClick={() => {
+                setActiveTab('discussion');
+                onDiscussionRead?.();
+              }}
               className={`px-2.5 py-1 rounded-md text-[11px] font-display font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                 activeTab === 'discussion'
                   ? 'bg-[#1B3428] text-white shadow-2xs'
@@ -147,6 +168,11 @@ export function RightWorkspacePanel(props: RightWorkspacePanelProps) {
             >
               <MessageSquare className="w-3 h-3 text-[#497E64]" />
               <span>Group Discussion</span>
+              {unreadDiscussionCount > 0 && (
+                <span className="min-w-4 h-4 px-1 bg-[#E8722C] text-white text-[9px] font-mono font-bold rounded-full flex items-center justify-center">
+                  {unreadDiscussionCount > 99 ? '99+' : unreadDiscussionCount}
+                </span>
+              )}
               <Users className="w-2.5 h-2.5 opacity-80" />
             </button>
           </div>
@@ -173,7 +199,10 @@ export function RightWorkspacePanel(props: RightWorkspacePanelProps) {
             {/* Tab 2: Group Discussion */}
             <button
               type="button"
-              onClick={() => setActiveTab('discussion')}
+              onClick={() => {
+                setActiveTab('discussion');
+                onDiscussionRead?.();
+              }}
               className={`h-8 px-3 rounded-full text-xs font-display font-bold flex items-center gap-1.5 transition-all ${
                 activeTab === 'discussion'
                   ? 'bg-[#1B3428] text-white shadow-xs'
@@ -183,6 +212,11 @@ export function RightWorkspacePanel(props: RightWorkspacePanelProps) {
             >
               <MessageSquare className="w-3.5 h-3.5" />
               <span>Group Discussion</span>
+              {unreadDiscussionCount > 0 && (
+                <span className="min-w-4 h-4 px-1 bg-[#E8722C] text-white text-[9px] font-mono font-bold rounded-full flex items-center justify-center">
+                  {unreadDiscussionCount > 99 ? '99+' : unreadDiscussionCount}
+                </span>
+              )}
               <Users className="w-2.5 h-2.5 opacity-80" />
             </button>
           </div>
@@ -270,6 +304,9 @@ export function RightWorkspacePanel(props: RightWorkspacePanelProps) {
             isMobileDrawer={true} // Embedded inside our container
             onCloseMobileDrawer={onCloseMobileDrawer}
             hideHeader={true}
+            planOffer={props.planOffer}
+            onOpenPlanModal={props.onOpenPlanModal}
+            onDismissPlanOffer={props.onDismissPlanOffer}
           />
         ) : (
           <GroupDiscussionPane

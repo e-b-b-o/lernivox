@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X,
   Sparkles,
@@ -29,6 +30,7 @@ interface GenerateFlashcardsModalProps {
   workspaceId: string;
   documentId: string;
   documentTitle?: string;
+  pageCount?: number | null;
   preselectedChapter?: string;
   preselectedPage?: number;
   onDeckCreated?: (deck: FlashcardDeckSummaryDto) => void;
@@ -40,6 +42,7 @@ export function GenerateFlashcardsModal({
   workspaceId,
   documentId,
   documentTitle = 'Textbook',
+  pageCount,
   preselectedChapter = '',
   preselectedPage,
   onDeckCreated,
@@ -60,6 +63,41 @@ export function GenerateFlashcardsModal({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Lock background scroll when modal is open
+  useEffect(() => {
+    if (!isOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
+
+  // Escape key closes modal
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !isGenerating && !isSaving) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, isGenerating, isSaving, onClose]);
+
+  // Reset to configuration on fresh open
+  useEffect(() => {
+    if (isOpen) {
+      setStep('CONFIG');
+      setError(null);
+    }
+  }, [isOpen]);
+
   // Initialize title when range changes or modal opens
   useEffect(() => {
     if (isOpen && step === 'CONFIG') {
@@ -71,7 +109,7 @@ export function GenerateFlashcardsModal({
     }
   }, [isOpen, step, rangeScope.summaryLabel, rangeScope.scopeType, documentTitle]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   const handleGeneratePreview = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -215,7 +253,7 @@ export function GenerateFlashcardsModal({
     }
   };
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-[#14261D]/60 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto"
       onClick={onClose}
@@ -282,6 +320,8 @@ export function GenerateFlashcardsModal({
             {/* Range Selector Component */}
             <BookRangeSelector
               documentId={documentId}
+              documentTitle={documentTitle}
+              pageCount={pageCount}
               preselectedChapter={preselectedChapter}
               preselectedPage={preselectedPage}
               onChange={(scope, valid) => {
@@ -519,6 +559,7 @@ export function GenerateFlashcardsModal({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

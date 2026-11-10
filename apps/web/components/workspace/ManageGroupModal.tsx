@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Users,
   UserPlus,
@@ -64,6 +65,25 @@ export function ManageGroupModal({
 
   // Leaving workspace state
   const [leaving, setLeaving] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Lock body scroll and listen for Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    document.body.style.overflow = 'hidden';
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
 
   // Load members
   const fetchMembers = useCallback(async () => {
@@ -182,21 +202,28 @@ export function ManageGroupModal({
     setTimeout(() => setCopiedLink(false), 2500);
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150"
+      onClick={onClose}
+    >
       <div
-        className="w-full max-w-xl bg-[#FAF8F4] rounded-3xl border-[2px] border-[#1B3428] shadow-[0_8px_0_0_#1B3428] p-6 sm:p-7 relative flex flex-col gap-5 max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-150"
+        className="w-full max-w-xl bg-[#FAF8F4] rounded-t-[28px] sm:rounded-3xl border-t-[2px] sm:border-[2px] border-[#1B3428] shadow-[0_-8px_24px_rgba(20,38,29,0.15)] sm:shadow-[0_8px_0_0_#1B3428] p-5 sm:p-7 relative flex flex-col gap-4 sm:gap-5 max-h-[85vh] sm:max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom duration-200 sm:zoom-in-95 sm:slide-in-from-bottom-0 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:pb-7"
         role="dialog"
         aria-modal="true"
         aria-labelledby="group-modal-title"
+        onClick={(e) => e.stopPropagation()}
       >
+        {/* Mobile Tactile Drag Handle */}
+        <div className="sm:hidden w-12 h-1.5 bg-[#1B3428]/20 rounded-full mx-auto -mt-1 mb-1 shrink-0" />
+
         {/* Close button */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-5 right-5 w-8 h-8 rounded-full border border-[#1B3428]/20 flex items-center justify-center text-[#14261D]/70 hover:bg-[#FBE8DC] hover:text-[#14261D] transition-colors"
+          className="absolute top-5 right-5 w-8 h-8 rounded-full border border-[#1B3428]/20 flex items-center justify-center text-[#14261D]/70 hover:bg-[#FBE8DC] hover:text-[#14261D] transition-colors cursor-pointer"
           aria-label="Close dialog"
         >
           <X className="w-4 h-4" />
@@ -491,6 +518,7 @@ export function ManageGroupModal({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

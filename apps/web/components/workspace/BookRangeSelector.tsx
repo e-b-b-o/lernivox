@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { BookOpen, Layers, Hash, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
@@ -64,12 +64,72 @@ export function BookRangeSelector({
   const [fromSectionIndex, setFromSectionIndex] = useState<number>(0);
   const [toSectionIndex, setToSectionIndex] = useState<number>(0);
 
-  // Page range selections
-  const effectivePageCount = Math.max(1, pageCount || 1);
+  // Dynamic outline max page detection
+  const outlineMaxPage = useMemo(() => {
+    return sections.reduce((max, s) => Math.max(max, s.pageNumber), 1);
+  }, [sections]);
+
+  const effectivePageCount = Math.max(pageCount && pageCount > 1 ? pageCount : outlineMaxPage, 1);
+
+  // Page range selections with draft string states allowing free typing & backspacing
   const [fromPage, setFromPage] = useState<number>(preselectedPage || 1);
-  const [toPage, setToPage] = useState<number>(
-    preselectedPage ? Math.min(effectivePageCount, preselectedPage + 10) : Math.min(effectivePageCount, 20),
-  );
+  const [toPage, setToPage] = useState<number>(() => {
+    if (preselectedPage) return preselectedPage + 10;
+    return pageCount && pageCount > 1 ? Math.min(pageCount, 20) : 20;
+  });
+
+  const [fromPageDraft, setFromPageDraft] = useState<string>(() => String(preselectedPage || 1));
+  const [toPageDraft, setToPageDraft] = useState<string>(() => {
+    if (preselectedPage) return String(preselectedPage + 10);
+    return String(pageCount && pageCount > 1 ? Math.min(pageCount, 20) : 20);
+  });
+
+  // Sync draft states when preselectedPage changes
+  useEffect(() => {
+    if (preselectedPage) {
+      setFromPage(preselectedPage);
+      setFromPageDraft(String(preselectedPage));
+      const end = preselectedPage + 10;
+      setToPage(end);
+      setToPageDraft(String(end));
+    }
+  }, [preselectedPage]);
+
+  const handleFromPageChange = (val: string) => {
+    setFromPageDraft(val);
+    const num = parseInt(val, 10);
+    if (!isNaN(num) && num >= 1) {
+      setFromPage(num);
+    }
+  };
+
+  const handleFromPageBlur = () => {
+    const num = parseInt(fromPageDraft, 10);
+    if (isNaN(num) || num < 1) {
+      setFromPageDraft(String(fromPage));
+    } else {
+      setFromPage(num);
+      setFromPageDraft(String(num));
+    }
+  };
+
+  const handleToPageChange = (val: string) => {
+    setToPageDraft(val);
+    const num = parseInt(val, 10);
+    if (!isNaN(num) && num >= 1) {
+      setToPage(num);
+    }
+  };
+
+  const handleToPageBlur = () => {
+    const num = parseInt(toPageDraft, 10);
+    if (isNaN(num) || num < 1) {
+      setToPageDraft(String(toPage));
+    } else {
+      setToPage(num);
+      setToPageDraft(String(num));
+    }
+  };
 
   // Fetch document outline
   useEffect(() => {
@@ -200,7 +260,10 @@ export function BookRangeSelector({
     }
 
     // By Page Range
-    if (toPage < fromPage) {
+    const parsedFrom = parseInt(fromPageDraft, 10) || fromPage;
+    const parsedTo = parseInt(toPageDraft, 10) || toPage;
+
+    if (parsedTo < parsedFrom) {
       return {
         currentScope: {
           scopeType: 'CUSTOM_RANGE',
@@ -215,11 +278,11 @@ export function BookRangeSelector({
     const scope: QuizRangeScopeDto = {
       scopeType: 'CUSTOM_RANGE',
       rangeType: 'PAGE',
-      from: { label: `Page ${fromPage}`, pageNumber: fromPage },
-      to: { label: `Page ${toPage}`, pageNumber: toPage },
-      startPage: fromPage,
-      endPage: toPage,
-      summaryLabel: fromPage === toPage ? `Page ${fromPage}` : `Pages ${fromPage}–${toPage}`,
+      from: { label: `Page ${parsedFrom}`, pageNumber: parsedFrom },
+      to: { label: `Page ${parsedTo}`, pageNumber: parsedTo },
+      startPage: parsedFrom,
+      endPage: parsedTo,
+      summaryLabel: parsedFrom === parsedTo ? `Page ${parsedFrom}` : `Pages ${parsedFrom}–${parsedTo}`,
     };
 
     return { currentScope: scope, isValid: true, validationError: null };
@@ -231,12 +294,17 @@ export function BookRangeSelector({
     toSectionIndex,
     fromPage,
     toPage,
+    fromPageDraft,
+    toPageDraft,
     effectivePageCount,
   ]);
 
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+
   useEffect(() => {
-    onChange(currentScope, isValid);
-  }, [currentScope, isValid, onChange]);
+    onChangeRef.current(currentScope, isValid);
+  }, [currentScope, isValid]);
 
   return (
     <div className="space-y-3 p-3.5 bg-[#FAF7F3] rounded-[20px] border border-[#1B3428]/20 text-xs">
@@ -347,34 +415,36 @@ export function BookRangeSelector({
             /* Strategy 2: Page numbers fallback */
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] font-bold text-[#14261D]/80 mb-1 flex items-center gap-1">
+                <label className="block text-[11px] font-bold text-[#14261D]/80 mb-1 flex items-center justify-between">
                   <span>From Page:</span>
-                  <span className="text-[#E8722C] font-mono">{fromPage}</span>
+                  <span className="text-[#E8722C] font-mono font-bold">p. {fromPage}</span>
                 </label>
                 <input
-                  type="number"
-                  min={1}
-                  max={effectivePageCount}
-                  value={fromPage}
-                  onChange={(e) => setFromPage(Math.max(1, Number(e.target.value)))}
-                  className="w-full h-9 px-3 rounded-xl bg-white border border-[#1B3428]/30 font-mono text-xs text-[#14261D] focus:outline-hidden focus:border-[#E8722C]"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={fromPageDraft}
+                  onChange={(e) => handleFromPageChange(e.target.value)}
+                  onBlur={handleFromPageBlur}
+                  placeholder="1"
+                  className="w-full h-9 px-3 rounded-xl bg-white border border-[#1B3428]/30 font-mono text-xs text-[#14261D] focus:outline-hidden focus:border-[#E8722C] transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-[#14261D]/80 mb-1 flex items-center gap-1">
+                <label className="block text-[11px] font-bold text-[#14261D]/80 mb-1 flex items-center justify-between">
                   <span>To Page:</span>
-                  <span className="text-[#E8722C] font-mono">{toPage}</span>
+                  <span className="text-[#E8722C] font-mono font-bold">p. {toPage}</span>
                 </label>
                 <input
-                  type="number"
-                  min={1}
-                  max={effectivePageCount}
-                  value={toPage}
-                  onChange={(e) =>
-                    setToPage(Math.min(effectivePageCount, Math.max(1, Number(e.target.value))))
-                  }
-                  className="w-full h-9 px-3 rounded-xl bg-white border border-[#1B3428]/30 font-mono text-xs text-[#14261D] focus:outline-hidden focus:border-[#E8722C]"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={toPageDraft}
+                  onChange={(e) => handleToPageChange(e.target.value)}
+                  onBlur={handleToPageBlur}
+                  placeholder={String(effectivePageCount > 1 ? effectivePageCount : 20)}
+                  className="w-full h-9 px-3 rounded-xl bg-white border border-[#1B3428]/30 font-mono text-xs text-[#14261D] focus:outline-hidden focus:border-[#E8722C] transition-colors"
                 />
               </div>
             </div>

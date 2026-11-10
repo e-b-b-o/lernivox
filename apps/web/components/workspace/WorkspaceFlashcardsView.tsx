@@ -329,6 +329,7 @@ export function WorkspaceFlashcardsView({
           workspaceId={workspaceId}
           documentId={document.id}
           documentTitle={document.title}
+          pageCount={document.pageCount}
           preselectedChapter={preselectedChapter}
           preselectedPage={preselectedPage}
           onDeckCreated={() => {
