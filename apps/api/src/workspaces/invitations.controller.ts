@@ -62,4 +62,44 @@ export class InvitationsController {
   ): Promise<AcceptInvitationResponseResultDto> {
     return this.workspacesService.acceptInvitation(user.id, token);
   }
+
+  @Post('pending/:id/accept')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Accept a pending workspace invitation from dashboard' })
+  @ApiParam({ name: 'id', description: 'Invitation ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully accepted invitation and joined workspace.',
+    type: AcceptInvitationResponseResultDto,
+  })
+  @ApiResponse({ status: 400, description: 'Expired, revoked, or already used' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden (invitation sent to different email)' })
+  async acceptPendingInvitation(
+    @CurrentUser() user: UserDto,
+    @Param('id') id: string,
+  ): Promise<AcceptInvitationResponseResultDto> {
+    return this.workspacesService.acceptPendingInvitation(user.id, id);
+  }
+
+  @Post('pending/:id/decline')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Decline a pending workspace invitation from dashboard' })
+  @ApiParam({ name: 'id', description: 'Invitation ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully declined invitation.',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden (invitation sent to different email)' })
+  async declinePendingInvitation(
+    @CurrentUser() user: UserDto,
+    @Param('id') id: string,
+  ): Promise<{ success: boolean; message: string }> {
+    return this.workspacesService.declinePendingInvitation(user.id, id);
+  }
 }

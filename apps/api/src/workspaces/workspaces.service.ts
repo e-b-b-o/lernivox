@@ -27,9 +27,12 @@ import type {
   WorkspaceRole,
   WorkspaceType,
   WorkspacesListResponseDto,
+  PendingInvitationDto,
   TopicUnderstandingDto,
   TopicUnderstandingStatus,
   WorkspaceProgressOverviewDto,
+  WorkspaceDiscussionUnreadDto,
+  MarkDiscussionReadResponseDto,
 } from '@lernivox/contracts';
 import { PrismaService } from '../common/prisma/prisma.service';
 
@@ -57,6 +60,11 @@ export class WorkspacesService {
     errorMessage: string | null;
     pageCount: number | null;
     totalTokens: number | null;
+    processingProgress?: number | null;
+    processingStage?: string | null;
+    processingMessage?: string | null;
+    completedUnits?: number | null;
+    totalUnits?: number | null;
     processingStartedAt: Date | null;
     processingCompletedAt: Date | null;
     createdAt: Date;
@@ -77,6 +85,11 @@ export class WorkspacesService {
       errorMessage: doc.errorMessage,
       pageCount: doc.pageCount,
       totalTokens: doc.totalTokens,
+      processingProgress: doc.processingProgress ?? null,
+      processingStage: doc.processingStage ?? null,
+      processingMessage: doc.processingMessage ?? null,
+      completedUnits: doc.completedUnits ?? null,
+      totalUnits: doc.totalUnits ?? null,
       processingStartedAt: doc.processingStartedAt?.toISOString() ?? null,
       processingCompletedAt: doc.processingCompletedAt?.toISOString() ?? null,
       createdAt: doc.createdAt.toISOString(),
@@ -237,9 +250,58 @@ export class WorkspacesService {
       }
     }
 
+    // Query pending invitations addressed to the verified user's email
+    const currentUser = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+
+    let pendingInvites: PendingInvitationDto[] = [];
+    if (currentUser?.email) {
+      const userEmail = currentUser.email.toLowerCase().trim();
+      const rawInvites = await this.prisma.workspaceInvitation.findMany({
+        where: {
+          email: userEmail,
+          acceptedAt: null,
+          revokedAt: null,
+          declinedAt: null,
+          expiresAt: { gt: new Date() },
+        },
+        include: {
+          workspace: {
+            include: {
+              owner: { select: { id: true, name: true } },
+              members: { where: { userId } },
+            },
+          },
+          createdBy: { select: { id: true, name: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      pendingInvites = rawInvites
+        .filter(
+          (inv) =>
+            (inv.workspace?.members?.length ?? 0) === 0 &&
+            inv.workspace?.ownerId !== userId,
+        )
+        .map((inv) => ({
+          id: inv.id,
+          workspaceId: inv.workspaceId,
+          workspaceTitle: inv.workspace?.name || 'Group Workspace',
+          inviterName: inv.createdBy?.name || inv.workspace?.owner?.name || 'Classmate',
+          role: inv.role as WorkspaceRole,
+          expiresAt: inv.expiresAt.toISOString(),
+          createdAt: inv.createdAt.toISOString(),
+          status: 'PENDING' as const,
+        }));
+    }
+
     return {
       myBooks,
       sharedWithMe,
+      pendingInvites,
+      sharedWorkspaces: sharedWithMe,
     };
   }
 
@@ -300,6 +362,16 @@ export class WorkspacesService {
       userEmail: m.user?.email,
     }));
 
+    let unreadDiscussionCount = 0;
+    if (workspace.type === 'GROUP') {
+      try {
+        const unread = await this.getUnreadDiscussionCount(userId, workspace.id);
+        unreadDiscussionCount = unread.unreadCount;
+      } catch {
+        unreadDiscussionCount = 0;
+      }
+    }
+
     return {
       id: workspace.id,
       name: workspace.name,
@@ -314,6 +386,7 @@ export class WorkspacesService {
       members,
       myRole,
       myReadingProgress: this.formatReadingProgress(readingProgressRecord),
+      unreadDiscussionCount,
       createdAt: workspace.createdAt.toISOString(),
       updatedAt: workspace.updatedAt.toISOString(),
     };
@@ -828,6 +901,144 @@ export class WorkspacesService {
     };
   }
 
+  /**
+   * Accepts a pending group workspace invitation by ID for the logged-in recipient.
+   */
+  async acceptPendingInvitation(
+    userId: string,
+    invitationId: string,
+  ): Promise<AcceptInvitationResponseDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found.');
+    }
+
+    const invitation = await this.prisma.workspaceInvitation.findUnique({
+      where: { id: invitationId },
+      include: {
+        workspace: true,
+      },
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found.');
+    }
+
+    if (invitation.revokedAt) {
+      throw new BadRequestException('This invitation has been revoked by the workspace owner.');
+    }
+
+    if (invitation.declinedAt) {
+      throw new BadRequestException('This invitation was previously declined.');
+    }
+
+    if (invitation.expiresAt < new Date()) {
+      throw new BadRequestException('This invitation has expired.');
+    }
+
+    if (
+      invitation.email &&
+      invitation.email.toLowerCase().trim() !== user.email.toLowerCase().trim()
+    ) {
+      throw new ForbiddenException('This invitation was addressed to a different email account.');
+    }
+
+    if (invitation.acceptedAt) {
+      return {
+        success: true,
+        workspaceId: invitation.workspaceId,
+        workspaceTitle: invitation.workspace.name,
+        role: invitation.role as WorkspaceRole,
+      };
+    }
+
+    const existingMember = await this.prisma.workspaceMember.findUnique({
+      where: {
+        workspaceId_userId: {
+          workspaceId: invitation.workspaceId,
+          userId,
+        },
+      },
+    });
+
+    await this.prisma.$transaction(async (tx) => {
+      if (!existingMember) {
+        await tx.workspaceMember.create({
+          data: {
+            workspaceId: invitation.workspaceId,
+            userId,
+            role: invitation.role,
+          },
+        });
+      }
+
+      await tx.workspaceInvitation.update({
+        where: { id: invitation.id },
+        data: {
+          acceptedAt: new Date(),
+          acceptedById: userId,
+        },
+      });
+    });
+
+    return {
+      success: true,
+      workspaceId: invitation.workspaceId,
+      workspaceTitle: invitation.workspace.name,
+      role: invitation.role as WorkspaceRole,
+    };
+  }
+
+  /**
+   * Declines a pending group workspace invitation by ID.
+   */
+  async declinePendingInvitation(
+    userId: string,
+    invitationId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found.');
+    }
+
+    const invitation = await this.prisma.workspaceInvitation.findUnique({
+      where: { id: invitationId },
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found.');
+    }
+
+    if (
+      invitation.email &&
+      invitation.email.toLowerCase().trim() !== user.email.toLowerCase().trim()
+    ) {
+      throw new ForbiddenException('This invitation was addressed to a different email account.');
+    }
+
+    if (invitation.acceptedAt) {
+      throw new BadRequestException('Cannot decline an already accepted invitation.');
+    }
+
+    await this.prisma.workspaceInvitation.update({
+      where: { id: invitation.id },
+      data: {
+        declinedAt: new Date(),
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Invitation declined successfully.',
+    };
+  }
+
   // =========================================================================
   // GROUP DISCUSSION MESSAGES (People <-> People)
   // =========================================================================
@@ -954,6 +1165,32 @@ export class WorkspacesService {
         .slice(0, 2)
         .toUpperCase() || 'ST';
 
+    // Update the author's read cursor to this message
+    try {
+      if (this.prisma.workspaceDiscussionReadCursor?.upsert) {
+        await this.prisma.workspaceDiscussionReadCursor.upsert({
+          where: {
+            workspaceId_userId: {
+              workspaceId,
+              userId,
+            },
+          },
+          create: {
+            workspaceId,
+            userId,
+            lastReadMessageId: msg.id,
+            lastReadAt: msg.createdAt,
+          },
+          update: {
+            lastReadMessageId: msg.id,
+            lastReadAt: msg.createdAt,
+          },
+        });
+      }
+    } catch (err: any) {
+      this.logger.warn(`Failed to update discussion read cursor for author ${userId}: ${err?.message}`);
+    }
+
     return {
       id: msg.id,
       workspaceId: msg.workspaceId,
@@ -964,6 +1201,155 @@ export class WorkspacesService {
       pageNumber: msg.pageNumber,
       chapter: msg.chapter,
       createdAt: msg.createdAt.toISOString(),
+    };
+  }
+
+  /**
+   * Calculates unread discussion messages for the user in a group workspace.
+   */
+  async getUnreadDiscussionCount(
+    userId: string,
+    workspaceId: string,
+  ): Promise<WorkspaceDiscussionUnreadDto> {
+    const workspace = await this.prisma.workspace.findUnique({
+      where: { id: workspaceId },
+      include: { members: true },
+    });
+
+    if (!workspace) {
+      throw new NotFoundException('Workspace not found.');
+    }
+
+    const isOwner = workspace.ownerId === userId;
+    const isMember = (workspace.members as any[]).some((m: any) => m.userId === userId);
+
+    if (!isOwner && !isMember) {
+      throw new ForbiddenException(
+        'You do not have permission to access this workspace discussion.',
+      );
+    }
+
+    if (workspace.type !== 'GROUP') {
+      return {
+        workspaceId,
+        unreadCount: 0,
+      };
+    }
+
+    const cursor = await this.prisma.workspaceDiscussionReadCursor.findUnique({
+      where: {
+        workspaceId_userId: {
+          workspaceId,
+          userId,
+        },
+      },
+    });
+
+    const unreadCount = await this.prisma.workspaceDiscussionMessage.count({
+      where: {
+        workspaceId,
+        userId: { not: userId },
+        ...(cursor?.lastReadAt ? { createdAt: { gt: cursor.lastReadAt } } : {}),
+      },
+    });
+
+    return {
+      workspaceId,
+      unreadCount,
+      lastReadAt: cursor?.lastReadAt?.toISOString() ?? null,
+    };
+  }
+
+  /**
+   * Marks discussion messages as read up to a specified message or the latest message.
+   */
+  async markDiscussionAsRead(
+    userId: string,
+    workspaceId: string,
+    lastReadMessageId?: string,
+  ): Promise<MarkDiscussionReadResponseDto> {
+    const workspace = await this.prisma.workspace.findUnique({
+      where: { id: workspaceId },
+      include: { members: true },
+    });
+
+    if (!workspace) {
+      throw new NotFoundException('Workspace not found.');
+    }
+
+    const isOwner = workspace.ownerId === userId;
+    const isMember = (workspace.members as any[]).some((m: any) => m.userId === userId);
+
+    if (!isOwner && !isMember) {
+      throw new ForbiddenException(
+        'You do not have permission to access this workspace discussion.',
+      );
+    }
+
+    if (workspace.type !== 'GROUP') {
+      return {
+        success: true,
+        workspaceId,
+        unreadCount: 0,
+        lastReadAt: new Date().toISOString(),
+      };
+    }
+
+    let targetDate = new Date();
+    let targetMessageId = lastReadMessageId;
+
+    if (lastReadMessageId) {
+      const msg = await this.prisma.workspaceDiscussionMessage.findUnique({
+        where: { id: lastReadMessageId },
+        select: { id: true, createdAt: true, workspaceId: true },
+      });
+      if (msg && msg.workspaceId === workspaceId) {
+        targetDate = msg.createdAt;
+      }
+    } else {
+      const latestMsg = await this.prisma.workspaceDiscussionMessage.findFirst({
+        where: { workspaceId },
+        orderBy: { createdAt: 'desc' },
+        select: { id: true, createdAt: true },
+      });
+      if (latestMsg) {
+        targetDate = latestMsg.createdAt;
+        targetMessageId = latestMsg.id;
+      }
+    }
+
+    const cursor = await this.prisma.workspaceDiscussionReadCursor.upsert({
+      where: {
+        workspaceId_userId: {
+          workspaceId,
+          userId,
+        },
+      },
+      create: {
+        workspaceId,
+        userId,
+        lastReadMessageId: targetMessageId,
+        lastReadAt: targetDate,
+      },
+      update: {
+        lastReadMessageId: targetMessageId,
+        lastReadAt: targetDate,
+      },
+    });
+
+    const unreadCount = await this.prisma.workspaceDiscussionMessage.count({
+      where: {
+        workspaceId,
+        userId: { not: userId },
+        createdAt: { gt: cursor.lastReadAt },
+      },
+    });
+
+    return {
+      success: true,
+      workspaceId,
+      unreadCount,
+      lastReadAt: cursor.lastReadAt.toISOString(),
     };
   }
 
@@ -1289,9 +1675,9 @@ export class WorkspacesService {
       completedAt: a.completedAt?.toISOString() || a.startedAt.toISOString(),
     }));
 
-    // 3. Flashcards Progress (strictly this student's reviews)
+    // 3. Flashcards Progress (strictly this student's private decks and reviews)
     const decks = await this.prisma.flashcardDeck.findMany({
-      where: { workspaceId },
+      where: { workspaceId, createdById: userId },
       include: {
         cards: {
           include: {

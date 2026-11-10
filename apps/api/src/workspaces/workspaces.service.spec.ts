@@ -122,6 +122,12 @@ describe('WorkspacesService', () => {
         create: jest.fn(),
         findMany: jest.fn(),
         count: jest.fn(),
+        findUnique: jest.fn(),
+        findFirst: jest.fn(),
+      },
+      workspaceDiscussionReadCursor: {
+        findUnique: jest.fn(),
+        upsert: jest.fn(),
       },
       sharedConversationSnapshot: {
         create: jest.fn(),
@@ -539,6 +545,68 @@ describe('WorkspacesService', () => {
         }),
       });
     });
+
+    it('should allow user to accept pending invitation by ID', async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        id: mockStrangerId,
+        email: 'stranger@test.com',
+      });
+      prisma.workspaceInvitation.findUnique.mockResolvedValue({
+        id: 'inv-pending-1',
+        workspaceId: 'ws-2',
+        email: 'stranger@test.com',
+        role: 'MEMBER',
+        expiresAt: new Date(Date.now() + 86400000),
+        acceptedAt: null,
+        declinedAt: null,
+        revokedAt: null,
+        workspace: {
+          id: 'ws-2',
+          name: 'Distributed Systems',
+        },
+      });
+      prisma.workspaceMember.findUnique.mockResolvedValue(null);
+      prisma.workspaceMember.create.mockResolvedValue({ id: 'member-new' });
+      prisma.workspaceInvitation.update.mockResolvedValue({ id: 'inv-pending-1' });
+
+      const res = await service.acceptPendingInvitation(mockStrangerId, 'inv-pending-1');
+      expect(res.success).toBe(true);
+      expect(res.workspaceId).toBe('ws-2');
+      expect(prisma.workspaceInvitation.update).toHaveBeenCalledWith({
+        where: { id: 'inv-pending-1' },
+        data: expect.objectContaining({
+          acceptedById: mockStrangerId,
+        }),
+      });
+    });
+
+    it('should allow user to decline pending invitation by ID', async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        id: mockStrangerId,
+        email: 'stranger@test.com',
+      });
+      prisma.workspaceInvitation.findUnique.mockResolvedValue({
+        id: 'inv-pending-2',
+        workspaceId: 'ws-2',
+        email: 'stranger@test.com',
+        role: 'MEMBER',
+        expiresAt: new Date(Date.now() + 86400000),
+        acceptedAt: null,
+        declinedAt: null,
+        revokedAt: null,
+      });
+      prisma.workspaceInvitation.update.mockResolvedValue({ id: 'inv-pending-2' });
+
+      const res = await service.declinePendingInvitation(mockStrangerId, 'inv-pending-2');
+      expect(res.success).toBe(true);
+      expect(res.message).toContain('declined');
+      expect(prisma.workspaceInvitation.update).toHaveBeenCalledWith({
+        where: { id: 'inv-pending-2' },
+        data: expect.objectContaining({
+          declinedAt: expect.any(Date),
+        }),
+      });
+    });
   });
 
   describe('Group Discussions (People <-> People)', () => {
@@ -585,6 +653,49 @@ describe('WorkspacesService', () => {
       await expect(
         service.getDiscussionMessages(mockStrangerId, 'ws-2'),
       ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should return unread discussion count for member based on read cursor', async () => {
+      prisma.workspace.findUnique.mockResolvedValue(mockGroupWorkspace);
+      prisma.workspaceDiscussionReadCursor.findUnique.mockResolvedValue({
+        workspaceId: 'ws-2',
+        userId: mockMemberId,
+        lastReadAt: new Date('2026-11-01T12:00:00.000Z'),
+      });
+      prisma.workspaceDiscussionMessage.count.mockResolvedValue(3);
+
+      const res = await service.getUnreadDiscussionCount(mockMemberId, 'ws-2');
+      expect(res.workspaceId).toBe('ws-2');
+      expect(res.unreadCount).toBe(3);
+      expect(res.lastReadAt).toBe(new Date('2026-11-01T12:00:00.000Z').toISOString());
+    });
+
+    it('should return unreadCount 0 for PERSONAL workspace', async () => {
+      prisma.workspace.findUnique.mockResolvedValue(mockPersonalWorkspace);
+
+      const res = await service.getUnreadDiscussionCount(mockOwnerId, 'ws-1');
+      expect(res.unreadCount).toBe(0);
+    });
+
+    it('should mark discussion as read and update cursor', async () => {
+      prisma.workspace.findUnique.mockResolvedValue(mockGroupWorkspace);
+      const now = new Date();
+      prisma.workspaceDiscussionMessage.findFirst.mockResolvedValue({
+        id: 'msg-latest',
+        createdAt: now,
+      });
+      prisma.workspaceDiscussionReadCursor.upsert.mockResolvedValue({
+        workspaceId: 'ws-2',
+        userId: mockMemberId,
+        lastReadMessageId: 'msg-latest',
+        lastReadAt: now,
+      });
+      prisma.workspaceDiscussionMessage.count.mockResolvedValue(0);
+
+      const res = await service.markDiscussionAsRead(mockMemberId, 'ws-2');
+      expect(res.success).toBe(true);
+      expect(res.unreadCount).toBe(0);
+      expect(res.lastReadAt).toBe(now.toISOString());
     });
   });
 

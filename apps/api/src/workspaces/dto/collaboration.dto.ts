@@ -23,6 +23,9 @@ import type {
   WorkspaceInvitationDto,
   WorkspaceRole,
   InvitationStatus,
+  WorkspaceDiscussionUnreadDto,
+  MarkDiscussionReadDto,
+  MarkDiscussionReadResponseDto,
 } from '@lernivox/contracts';
 
 export class CreateInvitationRequestDto implements CreateInvitationDto {
@@ -174,4 +177,36 @@ export class DiscussionMessagesListResultDto implements DiscussionMessagesListRe
 
   @ApiProperty({ example: 12 })
   total!: number;
+}
+
+export class MarkDiscussionReadRequestDto implements MarkDiscussionReadDto {
+  @ApiPropertyOptional({ example: 'msg-uuid-1', description: 'Optional ID of message last read' })
+  @IsOptional()
+  @IsString()
+  lastReadMessageId?: string;
+}
+
+export class WorkspaceDiscussionUnreadResponseDto implements WorkspaceDiscussionUnreadDto {
+  @ApiProperty({ example: 'workspace-uuid-1' })
+  workspaceId!: string;
+
+  @ApiProperty({ example: 3 })
+  unreadCount!: number;
+
+  @ApiPropertyOptional({ example: '2026-11-09T14:30:00.000Z', nullable: true })
+  lastReadAt?: string | null;
+}
+
+export class MarkDiscussionReadResponseResultDto implements MarkDiscussionReadResponseDto {
+  @ApiProperty({ example: true })
+  success!: boolean;
+
+  @ApiProperty({ example: 'workspace-uuid-1' })
+  workspaceId!: string;
+
+  @ApiProperty({ example: 0 })
+  unreadCount!: number;
+
+  @ApiProperty({ example: '2026-11-09T14:30:00.000Z' })
+  lastReadAt!: string;
 }

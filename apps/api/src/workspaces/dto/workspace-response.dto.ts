@@ -8,8 +8,35 @@ import type {
   WorkspacesListResponseDto,
   ConvertWorkspaceResponseDto,
   DocumentReadingProgressDto,
+  PendingInvitationDto,
 } from '@lernivox/contracts';
 import { DocumentResponseDto } from '../../documents/dto/document-response.dto';
+
+export class PendingInvitationResponseDto implements PendingInvitationDto {
+  @ApiProperty({ example: 'inv-uuid-1' })
+  id!: string;
+
+  @ApiProperty({ example: 'workspace-uuid-1' })
+  workspaceId!: string;
+
+  @ApiProperty({ example: 'Operating Systems Course Group' })
+  workspaceTitle!: string;
+
+  @ApiProperty({ example: 'Sarah Connor' })
+  inviterName!: string;
+
+  @ApiProperty({ enum: ['OWNER', 'MEMBER'], example: 'MEMBER' })
+  role!: WorkspaceRole;
+
+  @ApiProperty({ example: '2026-11-16T12:00:00.000Z' })
+  expiresAt!: string;
+
+  @ApiProperty({ example: '2026-11-09T12:00:00.000Z' })
+  createdAt!: string;
+
+  @ApiProperty({ example: 'PENDING' })
+  status!: 'PENDING';
+}
 
 export class WorkspaceMemberResponseDto implements WorkspaceMemberDto {
   @ApiProperty({ example: 'member-uuid-1' })
@@ -133,6 +160,12 @@ export class WorkspacesListResponseDtoClass implements WorkspacesListResponseDto
 
   @ApiProperty({ type: () => [WorkspaceListItemResponseDto] })
   sharedWithMe!: WorkspaceListItemResponseDto[];
+
+  @ApiPropertyOptional({ type: () => [PendingInvitationResponseDto] })
+  pendingInvites?: PendingInvitationResponseDto[];
+
+  @ApiPropertyOptional({ type: () => [WorkspaceListItemResponseDto] })
+  sharedWorkspaces?: WorkspaceListItemResponseDto[];
 }
 
 export class ConvertWorkspaceResponseDtoClass implements ConvertWorkspaceResponseDto {

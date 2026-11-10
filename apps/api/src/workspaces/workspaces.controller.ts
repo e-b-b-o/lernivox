@@ -25,6 +25,8 @@ import type {
   SharedConversationSnapshotDto,
   SharedConversationsListResponseDto,
   UserDto,
+  WorkspaceDiscussionUnreadDto,
+  MarkDiscussionReadResponseDto,
   WorkspaceInvitationDto,
   WorkspaceMembersResponseDto,
 } from '@lernivox/contracts';
@@ -43,6 +45,9 @@ import {
   CreateSharedConversationRequestDto,
   DiscussionMessageResponseDto,
   DiscussionMessagesListResultDto,
+  MarkDiscussionReadRequestDto,
+  MarkDiscussionReadResponseResultDto,
+  WorkspaceDiscussionUnreadResponseDto,
   WorkspaceInvitationResponseDto,
 } from './dto/collaboration.dto';
 
@@ -256,6 +261,38 @@ export class WorkspacesController {
     @Body() dto: CreateDiscussionMessageRequestDto,
   ): Promise<DiscussionMessageDto> {
     return this.workspacesService.createDiscussionMessage(user.id, id, dto);
+  }
+
+  @Get(':id/discussions/unread')
+  @ApiOperation({ summary: 'Get unread discussion message count for current user' })
+  @ApiParam({ name: 'id', description: 'Workspace UUID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Unread discussion count for current user.',
+    type: WorkspaceDiscussionUnreadResponseDto,
+  })
+  async getUnreadDiscussionCount(
+    @CurrentUser() user: UserDto,
+    @Param('id') id: string,
+  ): Promise<WorkspaceDiscussionUnreadDto> {
+    return this.workspacesService.getUnreadDiscussionCount(user.id, id);
+  }
+
+  @Post(':id/discussions/read')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Mark discussion messages as read' })
+  @ApiParam({ name: 'id', description: 'Workspace UUID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Discussion marked as read.',
+    type: MarkDiscussionReadResponseResultDto,
+  })
+  async markDiscussionAsRead(
+    @CurrentUser() user: UserDto,
+    @Param('id') id: string,
+    @Body() dto: MarkDiscussionReadRequestDto,
+  ): Promise<MarkDiscussionReadResponseDto> {
+    return this.workspacesService.markDiscussionAsRead(user.id, id, dto?.lastReadMessageId);
   }
 
   // =========================================================================
