@@ -415,4 +415,49 @@ describe('AuthService', () => {
       expect(mockPrisma.user.create).toHaveBeenCalled();
     });
   });
+
+  describe('Configuration Resilience', () => {
+    it('should safely parse REFRESH_TOKEN_EXPIRES_IN_DAYS when provided as formatted string', async () => {
+      const customConfigService = {
+        get: jest.fn((key: string, defaultValue: any) => {
+          if (key === 'REFRESH_TOKEN_EXPIRES_IN_DAYS') return '14d';
+          return defaultValue;
+        }),
+      };
+
+      const customService = new AuthService(
+        mockPrisma as unknown as PrismaService,
+        mockJwtService as unknown as JwtService,
+        customConfigService as unknown as ConfigService,
+      );
+
+      mockPrisma.user.findUnique.mockResolvedValue({
+        id: 'u-1',
+        email: 'test@example.com',
+        role: 'USER',
+        planTier: 'FREE',
+        isActive: true,
+        createdAt: new Date(),
+        identities: [
+          {
+            id: 'id-1',
+            provider: 'EMAIL_PASSWORD',
+            passwordHash: await authService.hashPassword('Pass123!'),
+          },
+        ],
+      });
+      mockPrisma.userIdentity.update.mockResolvedValue({});
+      mockPrisma.userSession.create.mockResolvedValue({});
+
+      await customService.login({ email: 'test@example.com', password: 'Pass123!' });
+
+      expect(mockPrisma.userSession.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            expiresAt: expect.any(Date),
+          }),
+        }),
+      );
+    });
+  });
 });

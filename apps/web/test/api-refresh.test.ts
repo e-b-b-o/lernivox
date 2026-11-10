@@ -210,4 +210,50 @@ describe('Centralized API Silent Refresh & Concurrency Guard', () => {
 
     assert.equal(refreshCalls, 0, 'Must NOT attempt refresh on /auth/login 401');
   });
+
+  test('propagates HTTP 500 server errors cleanly with server error message', async () => {
+    globalThis.fetch = async () => {
+      return new Response(
+        JSON.stringify({
+          statusCode: 500,
+          error: { message: 'Internal server error' },
+        }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
+    };
+
+    await assert.rejects(
+      async () => {
+        await api.auth.login({ email: 'user@example.com', password: 'password123' });
+      },
+      (err: any) => {
+        assert(err instanceof ApiError);
+        assert.equal(err.statusCode, 500);
+        assert.equal(err.message, 'Internal server error');
+        return true;
+      },
+    );
+  });
+
+  test('provides user-friendly connection error without dev-only port references', async () => {
+    globalThis.fetch = async () => {
+      throw new Error('Failed to fetch (network error)');
+    };
+
+    await assert.rejects(
+      async () => {
+        await api.auth.login({ email: 'user@example.com', password: 'password123' });
+      },
+      (err: any) => {
+        assert(err instanceof ApiError);
+        assert.equal(err.statusCode, 0);
+        assert(!err.message.includes('port 4000'), 'Error message must not reference local port 4000');
+        assert(err.message.includes('Cannot connect to API'));
+        return true;
+      },
+    );
+  });
 });

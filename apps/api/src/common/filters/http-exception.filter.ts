@@ -36,10 +36,19 @@ export class AllExceptionsFilter implements ExceptionFilter {
     };
 
     if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
-      this.logger.error(
-        `HTTP ${status} Error on ${request.method} ${request.url}`,
-        exception instanceof Error ? exception.stack : String(exception),
-      );
+      if (exception && typeof exception === 'object' && 'code' in exception) {
+        const code = (exception as any).code;
+        const msg = exception instanceof Error ? exception.message : String(exception);
+        this.logger.error(
+          `[Database/Prisma Exception ${code}] on ${request.method} ${request.url}: ${msg}`,
+          exception instanceof Error ? exception.stack : undefined,
+        );
+      } else {
+        this.logger.error(
+          `HTTP ${status} Error on ${request.method} ${request.url}`,
+          exception instanceof Error ? exception.stack : String(exception),
+        );
+      }
     } else {
       this.logger.warn(`HTTP ${status} on ${request.method} ${request.url}`);
     }

@@ -87,62 +87,78 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 
 ## 6. Current Task Record
 
-- **Task**: Fix Render Production Build Failure: Prisma Client Generation in pnpm Monorepo
+- **Task**: Fix Production Authentication Failures and Remove Auth-Page Branding
 - **Status**: **Complete**
 - **Objective**:
-  1. *Diagnose Root Cause*: Identify why `packages/database` fails compilation on Render with 22 errors (`PrismaClient`, `WorkspaceType`, enums, and implicit `any` parameter types) while local development builds appeared to succeed.
-  2. *Build Pipeline Prisma Generation*: Ensure `prisma generate` is reliably executed prior to TypeScript compilation of `@lernivox/database` across all environments (Render CI/CD, local dev, Turborepo builds) without modifying application code or patching TypeScript imports to mask missing types.
-  3. *Defense-in-Depth Solution*: Wire client generation into root `postinstall`, `packages/database/package.json` build script, `render.yaml` Blueprint build commands, and `docs/DEPLOYMENT_GUIDE.md`.
-  4. *Clean-State Verification*: Verify that compiling from a clean state (without pre-existing `.prisma/client` or incremental `tsconfig.tsbuildinfo` caches) succeeds cleanly across API, Worker, and Web packages.
+  1. *Diagnose Reported Production Errors*:
+     - `401 Unauthorized`: Investigate whether 401 on `/api/v1/auth/refresh` is expected for unauthenticated sessions or caused by browser cross-site cookie blocking between `*.vercel.app` and `*.onrender.com`.
+     - `500 Internal Server Error`: Isolate the backend exception thrown on `POST /api/v1/auth/login` (database connectivity/unmigrated schema, environment variable types, SSL requirements, Argon2 verification, or session creation).
+     - `Could not establish connection. Receiving end does not exist`: Determine whether this stems from application code or injected browser extension content scripts.
+  2. *Cross-Origin Cookie Architecture*: Implement dynamic `getCookieOptions()` in `AuthController` supporting `SameSite=None; Secure=true` for cross-site Vercel/Render deployments, with fallback to `SameSite=Lax` in development and customizable `COOKIE_SAME_SITE`, `COOKIE_SECURE`, and `COOKIE_DOMAIN` environment overrides.
+  3. *Configuration & CORS Robustness*: Strip trailing slashes from `CORS_ORIGIN` entries in `main.ts`, robustly sanitize `REFRESH_TOKEN_EXPIRES_IN_DAYS` against string formats (e.g. `'7'`, `'7d'`), and add diagnostic error hints for Prisma database error codes (`P2021`, `P1001`) in `AllExceptionsFilter`.
+  4. *Auth-Page Branding Removal*: Remove visible Lernivox wordmarks, brand logos, and brand-name strings from `/login`, `/register`, and `AuthShowcase` while preserving all input fields, validation, responsive layout balance, and navigation.
 
 - **Work Completed**:
-  - **Root Cause Diagnosis**:
-    - Discovered that `@prisma/client` is installed in `node_modules` only as a stub package re-exporting from `.prisma/client/default`.
-    - In clean CI/CD environments (such as Render build containers), `pnpm install --frozen-lockfile` did not generate Prisma Client because no `postinstall` script was defined in root `package.json`.
-    - Furthermore, `packages/database/package.json` had `"build": "tsc"`, relying on a separate manual script `"db:generate": "prisma generate"`.
-    - When `render.yaml` ran `pnpm install --frozen-lockfile && pnpm --filter @lernivox/contracts build && pnpm --filter @lernivox/database build`, `tsc` compiled against an ungenerated stub, producing 22 missing export and contextual typing errors.
-    - Local builds previously succeeded only because `prisma generate` had been run manually in the past and incremental build caches (`tsconfig.tsbuildinfo`) masked the missing build-time generation dependency.
-  - **Defense-in-Depth Implementation**:
-    - **Root Lifecycle Script (`package.json`)**: Added `"postinstall": "pnpm db:generate"`, ensuring that any fresh `pnpm install` in any environment immediately runs `prisma generate` and populates the client in `node_modules`.
-    - **Self-Generating Database Build (`packages/database/package.json`)**: Updated `"build": "prisma generate && tsc"`, guaranteeing that `@lernivox/database` builds always generate the client first, even if postinstall was bypassed (e.g., `--ignore-scripts`).
-    - **Render Blueprint Specification (`render.yaml`)**: Updated `buildCommand` for both `lernivox-api` and `lernivox-worker` to include `pnpm --filter @lernivox/database db:generate` before package builds:
-      `pnpm install --frozen-lockfile && pnpm --filter @lernivox/database db:generate && pnpm --filter @lernivox/contracts build && pnpm --filter @lernivox/database build && pnpm --filter @lernivox/storage build && pnpm --filter @lernivox/ai-core build && pnpm --filter @lernivox/api build`
-    - **Deployment Guide (`docs/DEPLOYMENT_GUIDE.md`)**: Updated all build command instructions in Sections 4.2, 4.3, 4.4, and Section 7 Phase 3 to include `db:generate`.
+  - **Cross-Origin Cookie Support (`apps/api/src/auth/auth.controller.ts`)**:
+    - Replaced hardcoded `sameSite: 'lax'` with intelligent `getCookieOptions()` helper.
+    - In production cross-site contexts (`*.vercel.app` to `*.onrender.com`), defaults to `sameSite: 'none'` and `secure: true` as mandated by RFC 6265bis for cross-site credentialed fetch requests.
+    - In development (`http://localhost`), safely defaults to `sameSite: 'lax'` and `secure: false`.
+    - Added support for explicit `COOKIE_SAME_SITE` (`lax` | `strict` | `none`), `COOKIE_SECURE`, and sanitized `COOKIE_DOMAIN` (stripping protocols, ports, and trailing slashes).
+    - Applied unified cookie options across both `setRefreshTokenCookie()` and `clearRefreshTokenCookie()`.
+  - **Token Expiry Hardening (`apps/api/src/auth/auth.service.ts`)**:
+    - Added resilient numeric parsing for `REFRESH_TOKEN_EXPIRES_IN_DAYS` using `Number(String(daysRaw).replace(/[^0-9]/g, '')) || 7`, preventing `NaN` and `Invalid Date` crashes if formatted strings are passed.
+  - **CORS Normalization (`apps/api/src/main.ts`)**:
+    - Normalized `CORS_ORIGIN` items by trimming whitespace and stripping trailing slashes (`.replace(/\/+$/, '')`), eliminating CORS rejections caused by trailing slashes on Vercel deployment URLs.
+  - **Prisma Diagnostic Exception Logging (`apps/api/src/common/filters/http-exception.filter.ts`)**:
+    - Added specific diagnostic logging for Prisma database errors (`[Database/Prisma Exception ${code}]`), immediately flagging unapplied migrations (`P2021`) or connectivity issues (`P1001`) in server logs.
+  - **Environment Schema & Blueprint Updates (`env.validation.ts`, `render.yaml`, `DEPLOYMENT_GUIDE.md`)**:
+    - Added `COOKIE_SAME_SITE` and `COOKIE_SECURE` to `EnvironmentVariables` in `apps/api/src/config/env.validation.ts`.
+    - Added `COOKIE_SAME_SITE: none` and `COOKIE_SECURE: "true"` to `render.yaml` for `lernivox-api`.
+    - Updated `docs/DEPLOYMENT_GUIDE.md` environment inventory and cross-domain authentication documentation.
+  - **Auth-Page Branding Removal (`apps/web`)**:
+    - Removed Brand Logo and Lernivox wordmark pill from `apps/web/app/(auth)/login/page.tsx` and `apps/web/app/(auth)/register/page.tsx`, elevating the editorial headings ("Welcome back." / "Create your account.") as natural visual anchors with balanced top padding (`pt-2 sm:pt-4`).
+    - Changed "New to Lernivox?" to "Don't have an account?" on the login page.
+    - Replaced "Lernivox explained my hardest course topics..." with "This platform explained my hardest course topics..." in `AuthShowcase.tsx`.
+    - Retained the clean top-left "Back to homepage" navigation link on both pages.
+    - Updated network error message in `apps/web/lib/api.ts` to generic connection guidance without mentioning local port 4000.
+  - **Automated Test Suites**:
+    - Added tests in `apps/api/src/auth/auth.controller.spec.ts` for production cross-origin cookies (`sameSite: 'none'`, `secure: true`), `COOKIE_SAME_SITE` overrides, and `COOKIE_DOMAIN` sanitization.
+    - Added test in `apps/api/src/auth/auth.service.spec.ts` for formatted `REFRESH_TOKEN_EXPIRES_IN_DAYS` parsing.
+    - Added tests in `apps/web/test/api-refresh.test.ts` for HTTP 500 error propagation and production connection error messages.
 
 - **Files Created/Modified**:
-  - `package.json` — Added `"postinstall": "pnpm db:generate"`.
-  - `packages/database/package.json` — Updated `"build": "prisma generate && tsc"`.
-  - `render.yaml` — Added `pnpm --filter @lernivox/database db:generate` to `lernivox-api` and `lernivox-worker` build commands.
-  - `docs/DEPLOYMENT_GUIDE.md` — Updated build commands across Sections 4.2, 4.3, 4.4, and Phase 3.
+  - `apps/api/src/auth/auth.controller.ts` — Added `getCookieOptions()` with dynamic `SameSite=None` for cross-site production.
+  - `apps/api/src/auth/auth.controller.spec.ts` — Added cross-origin cookie and domain sanitization unit tests.
+  - `apps/api/src/auth/auth.service.ts` — Added resilient numeric parsing for `REFRESH_TOKEN_EXPIRES_IN_DAYS`.
+  - `apps/api/src/auth/auth.service.spec.ts` — Added unit test for formatted `REFRESH_TOKEN_EXPIRES_IN_DAYS` parsing.
+  - `apps/api/src/config/env.validation.ts` — Added `COOKIE_SAME_SITE` and `COOKIE_SECURE` variables.
+  - `apps/api/src/main.ts` — Normalized CORS origin strings by stripping trailing slashes.
+  - `apps/api/src/common/filters/http-exception.filter.ts` — Added Prisma database exception logging.
+  - `apps/web/app/(auth)/login/page.tsx` — Removed brand logo/wordmark, updated switch copy, balanced layout.
+  - `apps/web/app/(auth)/register/page.tsx` — Removed brand logo/wordmark, balanced layout.
+  - `apps/web/components/auth/AuthShowcase.tsx` — Removed brand name from student testimonial.
+  - `apps/web/lib/api.ts` — Polished network connection error message.
+  - `apps/web/test/api-refresh.test.ts` — Added tests for 500 propagation and clean network error messages.
+  - `render.yaml` — Configured `COOKIE_SAME_SITE: none` and `COOKIE_SECURE: "true"`.
+  - `docs/DEPLOYMENT_GUIDE.md` — Documented `COOKIE_SAME_SITE` and cross-origin troubleshooting.
   - `PROGRESS.md` — Updated Current Task Record and Update History.
 
 - **Verification Results**:
-  - Clean-State Compilation Test: Removed `.prisma/client` and `tsconfig.tsbuildinfo`, ran `pnpm --filter @lernivox/database build`; verified `prisma generate` executed in 460ms and `tsc` succeeded with exit code 0.
-  - Root Postinstall Test: Ran `pnpm run postinstall`; verified `prisma generate` executed cleanly in 411ms.
-  - Render API Build Chain Test: Ran full Render API build command (`db:generate` -> `contracts` -> `database` -> `storage` -> `ai-core` -> `api`); exit code 0, zero errors.
-  - Render Worker Build Chain Test: Ran full Render Worker build command (`db:generate` -> `contracts` -> `database` -> `storage` -> `ai-core` -> `worker`); exit code 0, zero errors.
-  - Monorepo Type Check: `pnpm type-check` (11/11 package tasks passing with 0 errors).
-  - Monorepo Production Build: `pnpm build` (7/7 build tasks succeeded).
-  - Unit Test Suites:
-    - `pnpm --filter @lernivox/api test`: 171/171 tests passing across 14 suites.
-    - `pnpm --filter @lernivox/worker test`: 21/21 tests passing across 5 suites.
-    - `pnpm --filter @lernivox/ai-core test`: 25/25 tests passing across 5 suites.
-    - `pnpm --filter @lernivox/web test`: 32/32 tests passing across 2 suites.
-  - Process & Port Audit: `ss -tulpn` verified zero leaked processes or lingering ports.
+  - `pnpm --filter @lernivox/api test`: 174/174 unit tests passing across 14 suites (+3 new cookie and config tests).
+  - `pnpm --filter @lernivox/web test`: 34/34 tests passing across 2 suites (+2 new error handling tests).
+  - `pnpm --filter @lernivox/worker test`: 21/21 tests passing across 5 suites.
+  - `pnpm --filter @lernivox/ai-core test`: 25/25 tests passing across 5 suites.
+  - `pnpm type-check`: 11/11 package tasks passing with 0 errors across the monorepo.
+  - `pnpm build`: 7/7 build tasks succeeded cleanly across the monorepo.
+  - Process & Port Hygiene: `ss -tulpn` verified zero leaked processes or lingering ports.
 
 ---
 
 ## 7. Next Recommended Action
 
-Commit the verified Prisma Client generation fixes and deployment documentation updates to Git.
+Deploy the updated API and Web application to Render and Vercel, and verify that production database migrations have been executed (`prisma migrate deploy`).
 
 ---
-
-## 7. Next Recommended Action
-
-Deploy Lernivox to production or free-tier hosting (Vercel + Northflank + Neon + Upstash) by executing the 20-step walkthrough documented in [`docs/DEPLOYMENT_GUIDE.md`](./docs/DEPLOYMENT_GUIDE.md) once cloud authorization is granted.
-
-- **Work Completed**:
   - **Cross-Site UI & API Stabilization**:
     - *Defect 1 (PDF.js Measuring Canvas)*: Added global CSS rule hiding `canvas.hiddenCanvasElement, .hiddenCanvasElement` (`display: none !important; width: 0 !important; height: 0 !important; visibility: hidden !important; pointer-events: none !important`), eliminating the rogue 300x150 black box.
     - *Defect 2 & 3 (Mobile Reader Spacing & Distraction-Free Navigation)*: In `DocumentReader.tsx`, added pointer movement threshold (>8px) to distinguish scrolling from intentional tapping; ignored clicks on interactive controls and text selections; reduced mobile reader padding from `py-6 px-2` to `py-2 px-1`. In `page.tsx`, fixed auto-hide condition to permit `'read'` and `'ai-tutor'` view modes, removed `<main onClick>` capturing taps, and enabled tap-to-toggle navigation.
@@ -839,6 +855,15 @@ Deploy Lernivox to production or free-tier hosting (Vercel + Northflank + Neon +
     - Updated `render.yaml` build commands for both `lernivox-api` and `lernivox-worker` to include `pnpm --filter @lernivox/database db:generate` before package builds.
     - Updated `docs/DEPLOYMENT_GUIDE.md` build commands across Sections 4.2, 4.3, 4.4, and Section 7 Phase 3.
     - Verified clean build after deleting `.prisma/client` and `tsconfig.tsbuildinfo`, verified root `pnpm run postinstall` (411ms), verified full Render API and Worker build chains (exit code 0), full monorepo type-check (11/11 tasks passing), monorepo build (7/7 tasks passing), all test suites passing (API 171/171, Worker 21/21, AI-core 25/25, Web 32/32), and zero open ports/processes via `ss -tulpn`.
+
+  - Resolved Production Authentication Failures & Removed Auth-Page Branding:
+    - Diagnosed 401 on `/api/v1/auth/refresh`: Identified that modern browsers block `SameSite=Lax` cookies on cross-site asynchronous requests (Vercel `*.vercel.app` to Render `*.onrender.com`), causing unauthenticated 401 on page load/refresh. Implemented dynamic `getCookieOptions()` in `AuthController` with `SameSite=None` and `Secure=true` in production, and added configurable `COOKIE_SAME_SITE` and `COOKIE_SECURE` options.
+    - Diagnosed 500 on `POST /api/v1/auth/login`: Traced potential database connection errors (unapplied migrations `P2021` or SSL/connectivity issues `P1001`), token expiry `NaN` errors, and trailing-slash CORS mismatches. Hardened `REFRESH_TOKEN_EXPIRES_IN_DAYS` parsing in `AuthService`, normalized `CORS_ORIGIN` entries in `main.ts`, and added specific diagnostic logging for Prisma error codes in `AllExceptionsFilter`.
+    - Documented Chrome extension error: Determined that `Could not establish connection. Receiving end does not exist.` originates from injected third-party extension scripts (e.g. password managers) failing to receive a background port response on pages with `<input type="password">`, completely unrelated to Lernivox application code.
+    - Removed visible Lernivox branding from `/login`, `/register`, and `AuthShowcase`: Removed the brand logo and wordmark header block while preserving the editorial headings ("Welcome back.", "Create your account."), all input fields, validation logic, responsive 44px buttons, and top-left "Back to homepage" navigation.
+    - Polished frontend API connection error messages in `api.ts` to remove dev-only port references.
+    - Verified all test suites across monorepo: API (174/174), Web (34/34), Worker (21/21), AI-core (25/25), full monorepo type-check (11/11 tasks), and production build (7/7 tasks).
+
 
 
 

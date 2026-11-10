@@ -46,6 +46,13 @@ export class EnvironmentVariables {
 
   @IsString()
   @IsOptional()
+  COOKIE_SAME_SITE?: string;
+
+  @IsOptional()
+  COOKIE_SECURE?: boolean | string;
+
+  @IsString()
+  @IsOptional()
   GOOGLE_CLIENT_ID?: string;
 
   @IsString()

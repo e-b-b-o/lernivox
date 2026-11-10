@@ -205,4 +205,71 @@ describe('AuthController', () => {
       'http://localhost:3000/login?error=GoogleAuthFailed',
     );
   });
+
+  describe('Cross-Origin Cookie Configuration', () => {
+    it('should set sameSite none and secure true in production by default', async () => {
+      mockConfigService.get = jest.fn((key: string, defaultValue?: any) => {
+        if (key === 'NODE_ENV') return 'production';
+        if (key === 'REFRESH_TOKEN_EXPIRES_IN_DAYS') return 7;
+        return defaultValue;
+      });
+
+      mockAuthService.login.mockResolvedValue({
+        user: { id: 'u1', email: 'test@example.com' },
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+      });
+
+      await controller.login(
+        { email: 'test@example.com', password: 'Password123!' },
+        '127.0.0.1',
+        'agent',
+        mockResponse as Response,
+      );
+
+      expect(mockResponse.cookie).toHaveBeenCalledWith(
+        'refreshToken',
+        'refresh-token',
+        expect.objectContaining({
+          httpOnly: true,
+          sameSite: 'none',
+          secure: true,
+          path: '/api/v1/auth',
+        }),
+      );
+    });
+
+    it('should respect custom COOKIE_SAME_SITE and sanitize COOKIE_DOMAIN', async () => {
+      mockConfigService.get = jest.fn((key: string, defaultValue?: any) => {
+        if (key === 'NODE_ENV') return 'production';
+        if (key === 'COOKIE_SAME_SITE') return 'lax';
+        if (key === 'COOKIE_DOMAIN') return 'https://lernivox.com:443/';
+        if (key === 'REFRESH_TOKEN_EXPIRES_IN_DAYS') return 14;
+        return defaultValue;
+      });
+
+      mockAuthService.login.mockResolvedValue({
+        user: { id: 'u1', email: 'test@example.com' },
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+      });
+
+      await controller.login(
+        { email: 'test@example.com', password: 'Password123!' },
+        '127.0.0.1',
+        'agent',
+        mockResponse as Response,
+      );
+
+      expect(mockResponse.cookie).toHaveBeenCalledWith(
+        'refreshToken',
+        'refresh-token',
+        expect.objectContaining({
+          sameSite: 'lax',
+          domain: 'lernivox.com',
+          maxAge: 14 * 24 * 60 * 60 * 1000,
+        }),
+      );
+    });
+  });
 });

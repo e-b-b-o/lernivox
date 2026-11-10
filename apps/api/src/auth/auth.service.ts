@@ -31,10 +31,12 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {
-    this.refreshTokenExpiresInDays = this.configService.get<number>(
+    const daysRaw = this.configService.get(
       'REFRESH_TOKEN_EXPIRES_IN_DAYS',
       7,
     );
+    this.refreshTokenExpiresInDays =
+      Number(String(daysRaw).replace(/[^0-9]/g, '')) || 7;
   }
 
   // --- Password Hashing with Argon2id ---

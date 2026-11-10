@@ -43,37 +43,77 @@ export class AuthController {
     private readonly configService: ConfigService,
   ) {}
 
-  private setRefreshTokenCookie(res: Response, token: string): void {
+  private getCookieOptions(): {
+    httpOnly: boolean;
+    secure: boolean;
+    sameSite: 'lax' | 'strict' | 'none';
+    path: string;
+    maxAge: number;
+    domain?: string;
+  } {
     const isProduction =
       this.configService.get<string>('NODE_ENV') === 'production';
     const cookieDomain = this.configService.get<string>('COOKIE_DOMAIN');
-    const days = this.configService.get<number>(
-      'REFRESH_TOKEN_EXPIRES_IN_DAYS',
-      7,
-    );
+    const configuredSameSite = this.configService
+      .get<string>('COOKIE_SAME_SITE')
+      ?.toLowerCase();
+    const configuredSecure = this.configService.get<string | boolean>('COOKIE_SECURE');
+    const daysRaw = this.configService.get('REFRESH_TOKEN_EXPIRES_IN_DAYS', 7);
+    const days = Number(String(daysRaw).replace(/[^0-9]/g, '')) || 7;
 
-    res.cookie('refreshToken', token, {
+    // In cross-origin production deployments (e.g. Vercel frontend on *.vercel.app
+    // and Render API on *.onrender.com), sameSite MUST be 'none' and secure MUST be true
+    // for modern browsers to attach the HttpOnly cookie to cross-site credentialed requests.
+    let sameSite: 'lax' | 'strict' | 'none' = isProduction ? 'none' : 'lax';
+    if (
+      configuredSameSite === 'lax' ||
+      configuredSameSite === 'strict' ||
+      configuredSameSite === 'none'
+    ) {
+      sameSite = configuredSameSite;
+    }
+
+    let secure = isProduction;
+    if (configuredSecure !== undefined && configuredSecure !== '') {
+      secure =
+        configuredSecure === true ||
+        configuredSecure === 'true' ||
+        configuredSecure === '1';
+    }
+    // RFC 6265bis: Browsers strictly reject SameSite=None without Secure
+    if (sameSite === 'none') {
+      secure = true;
+    }
+
+    // Sanitize domain: strip protocol, port, and trailing slashes if accidentally provided
+    let sanitizedDomain: string | undefined = undefined;
+    if (cookieDomain && cookieDomain.trim()) {
+      sanitizedDomain = cookieDomain
+        .trim()
+        .replace(/^https?:\/\//i, '')
+        .replace(/\/.*$/, '')
+        .replace(/:\d+$/, '');
+    }
+
+    return {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: 'lax',
+      secure,
+      sameSite,
       path: '/api/v1/auth',
       maxAge: days * 24 * 60 * 60 * 1000,
-      domain: cookieDomain || undefined,
-    });
+      domain: sanitizedDomain || undefined,
+    };
+  }
+
+  private setRefreshTokenCookie(res: Response, token: string): void {
+    res.cookie('refreshToken', token, this.getCookieOptions());
   }
 
   private clearRefreshTokenCookie(res: Response): void {
-    const isProduction =
-      this.configService.get<string>('NODE_ENV') === 'production';
-    const cookieDomain = this.configService.get<string>('COOKIE_DOMAIN');
-
+    const options = this.getCookieOptions();
     res.cookie('refreshToken', '', {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: 'lax',
-      path: '/api/v1/auth',
+      ...options,
       maxAge: 0,
-      domain: cookieDomain || undefined,
     });
   }
 

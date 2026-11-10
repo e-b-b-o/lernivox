@@ -30,7 +30,7 @@ export function AuthShowcase() {
             <div className="flex text-[#F59E0B] text-xs">★★★★★</div>
           </div>
           <p className="font-sans text-xs text-[#14261D] leading-snug font-medium mb-1">
-            &ldquo;Lernivox explained my hardest course topics in 10 minutes when the textbook made no sense.&rdquo;
+            &ldquo;This platform explained my hardest course topics in 10 minutes when the textbook made no sense.&rdquo;
           </p>
           <p className="font-sans text-[11px] text-[#14261D]/55 italic">
             — Biology Major, 2nd Year

@@ -66,19 +66,7 @@ function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-[420px] flex flex-col">
-      {/* Brand Logo & Wordmark */}
-      <Link href="/" className="inline-flex items-center gap-2.5 mb-7 group">
-        <div className="w-9 h-9 rounded-xl bg-[#E8722C] text-white flex items-center justify-center shadow-sm transition-transform group-hover:scale-105">
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-          </svg>
-        </div>
-        <span className="font-display font-extrabold text-2xl text-[#14261D] tracking-tight">
-          Lernivox
-        </span>
-      </Link>
-
+    <div className="w-full max-w-[420px] flex flex-col pt-2 sm:pt-4">
       {/* Header */}
       <h1 className="font-display font-extrabold text-3xl sm:text-4xl text-[#14261D] tracking-tight leading-[1.1] mb-2.5">
         Welcome{' '}
@@ -230,7 +218,7 @@ function LoginForm() {
       {/* Switch Auth Mode Link */}
       <div className="mt-6 text-center">
         <p className="font-sans text-sm text-[#14261D]/70">
-          New to Lernivox?{' '}
+          Don&apos;t have an account?{' '}
           <Link
             href={`/register${redirectUrl !== '/dashboard' ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`}
             className="font-bold text-[#E8722C] hover:underline"

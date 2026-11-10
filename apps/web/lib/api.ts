@@ -201,7 +201,7 @@ async function request<T>(
   } catch (netErr: any) {
     throw new ApiError(
       0,
-      `Cannot connect to Lernivox API at ${API_BASE_URL}. Please ensure the NestJS API server is running on port 4000.`,
+      `Cannot connect to API at ${API_BASE_URL}. Please verify your network connection and server status.`,
       netErr,
     );
   }

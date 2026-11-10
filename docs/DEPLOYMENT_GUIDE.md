@@ -325,6 +325,7 @@ Never commit real values to Git. Set these in the respective platform secret das
 | `JWT_EXPIRES_IN` | Access token lifetime | `15m` |
 | `REFRESH_TOKEN_EXPIRES_IN_DAYS` | Refresh cookie lifetime | `7` |
 | `COOKIE_SECURE` | Enforce HTTPS for authentication cookies | `true` |
+| `COOKIE_SAME_SITE` | Cookie SameSite attribute | `none` *(Required for cross-site Vercel + Render domains)* |
 | `COOKIE_DOMAIN` | Optional parent domain for subdomains | Leave blank if using separate Vercel/Render domains |
 | `AI_PROVIDER` | Active LLM provider | `gemini` |
 | `GEMINI_API_KEY` | Google Gemini API key | `AIzaSy...` |

@@ -50,7 +50,10 @@ async function bootstrap() {
   );
 
   // CORS - Explicit origin control; never reflect wildcard when credentials are true
-  let corsOrigin: boolean | string | string[] = configuredCors.split(',').map((o) => o.trim());
+  let corsOrigin: boolean | string | string[] = configuredCors
+    .split(',')
+    .map((o) => o.trim().replace(/\/+$/, ''))
+    .filter(Boolean);
   if (configuredCors === '*') {
     if (nodeEnv === 'production') {
       corsOrigin = false;
