@@ -28,6 +28,7 @@ import {
 import { useAuth } from '../../../context/AuthContext';
 import { api } from '../../../lib/api';
 import { BookCard } from '../../../components/workspace/BookCard';
+import { BookCardSkeleton } from '../../../components/ui/loading';
 
 const MAX_SIZE_BYTES = MAX_UPLOAD_SIZE_BYTES; // 1,048,576 bytes (1 MiB)
 const ALLOWED_EXTS = ['.pdf', '.docx', '.txt'];
@@ -414,9 +415,16 @@ function MyBooksDashboardContent() {
         </div>
 
         {loading ? (
-          <div className="py-16 flex flex-col items-center justify-center text-[#14261D]/60 space-y-3">
-            <Loader2 className="w-8 h-8 animate-spin text-[#E8722C]" />
-            <p className="font-display font-bold text-sm">Loading your personal library...</p>
+          <div
+            aria-label="Loading your personal library"
+            aria-busy="true"
+            className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6"
+          >
+            <BookCardSkeleton />
+            <BookCardSkeleton />
+            <BookCardSkeleton />
+            <BookCardSkeleton />
+            <BookCardSkeleton />
           </div>
         ) : filteredMyBooks.length === 0 ? (
           <div className="rounded-[24px] bg-[#FAF8F4] border-[2px] border-dashed border-[#1B3428]/20 p-8 sm:p-12 text-center flex flex-col items-center justify-center space-y-4">

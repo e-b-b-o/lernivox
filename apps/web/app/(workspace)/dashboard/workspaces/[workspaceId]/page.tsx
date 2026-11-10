@@ -49,6 +49,7 @@ import { WorkspaceProgressView } from '../../../../../components/workspace/Works
 import { WorkspaceLearningPlanView } from '../../../../../components/workspace/WorkspaceLearningPlanView';
 import { GenerateLearningPlanModal } from '../../../../../components/workspace/GenerateLearningPlanModal';
 import { ProfileMenu } from '../../../../../components/workspace/ProfileMenu';
+import { WorkspaceSkeleton } from '../../../../../components/ui/loading';
 
 function WorkspaceInner() {
   const router = useRouter();
@@ -962,16 +963,7 @@ function WorkspaceInner() {
   };
 
   if (loadingWorkspace) {
-    return (
-      <div className="flex h-[100dvh] w-full flex-col items-center justify-center bg-[#F4F0E5]">
-        <div className="w-12 h-12 rounded-2xl bg-[#E8722C] text-white flex items-center justify-center shadow-[0_4px_0_0_#B26E45] mb-4">
-          <Loader2 className="h-6 w-6 animate-spin text-white" />
-        </div>
-        <p className="font-display font-bold text-sm text-[#14261D]">
-          Opening your workspace...
-        </p>
-      </div>
-    );
+    return <WorkspaceSkeleton />;
   }
 
   if (error || !workspace || !currentDoc) {

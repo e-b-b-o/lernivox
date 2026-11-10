@@ -7,6 +7,7 @@ import { AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { api, ApiError } from '../../../lib/api';
 import { AuthShowcase } from '../../../components/auth/AuthShowcase';
+import { GoogleComingSoonModal } from '../../../components/auth/GoogleComingSoonModal';
 
 function LoginForm() {
   const router = useRouter();
@@ -21,6 +22,34 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showGoogleModal, setShowGoogleModal] = useState(false);
+
+  // Field-level error & touched states
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  // Email format regex: standard personal or institutional format
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const validateEmail = (val: string): string | null => {
+    const trimmed = val.trim();
+    if (!trimmed) {
+      return 'Enter your email address.';
+    }
+    if (!EMAIL_REGEX.test(trimmed)) {
+      return 'Enter a valid email address.';
+    }
+    return null;
+  };
+
+  const validatePassword = (val: string): string | null => {
+    if (!val) {
+      return 'Enter your password.';
+    }
+    return null;
+  };
 
   useEffect(() => {
     if (urlError === 'GoogleAuthFailed') {
@@ -41,8 +70,23 @@ function LoginForm() {
     e.preventDefault();
     setErrorMessage(null);
 
-    if (!email.trim() || !password) {
-      setErrorMessage('Please enter both your email and password.');
+    // Mark all fields touched
+    setEmailTouched(true);
+    setPasswordTouched(true);
+
+    const emailErr = validateEmail(email);
+    const passErr = validatePassword(password);
+
+    setEmailError(emailErr);
+    setPasswordError(passErr);
+
+    if (emailErr) {
+      document.getElementById('email')?.focus();
+      return;
+    }
+
+    if (passErr) {
+      document.getElementById('password')?.focus();
       return;
     }
 
@@ -52,9 +96,36 @@ function LoginForm() {
       router.push(redirectUrl);
     } catch (err: unknown) {
       if (err instanceof ApiError) {
-        setErrorMessage(err.message);
+        if (
+          err.statusCode === 401 ||
+          err.message?.toLowerCase().includes('invalid email or password')
+        ) {
+          setErrorMessage(
+            "We couldn't sign you in. Check your email and password and try again."
+          );
+        } else if (err.statusCode >= 500) {
+          setErrorMessage(
+            'Something went wrong on our side. Please try again shortly.'
+          );
+        } else if (
+          err.statusCode === 0 ||
+          err.message?.toLowerCase().includes('network') ||
+          err.message?.toLowerCase().includes('failed to fetch')
+        ) {
+          setErrorMessage(
+            "We couldn't connect. Check your internet connection and try again."
+          );
+        } else {
+          setErrorMessage(err.message);
+        }
+      } else if (err instanceof TypeError || String(err).includes('fetch')) {
+        setErrorMessage(
+          "We couldn't connect. Check your internet connection and try again."
+        );
       } else {
-        setErrorMessage('Failed to sign in. Please verify your connection and credentials.');
+        setErrorMessage(
+          'Failed to sign in. Please verify your connection and credentials.'
+        );
       }
     } finally {
       setIsSubmitting(false);
@@ -62,7 +133,14 @@ function LoginForm() {
   };
 
   const handleGoogleSignIn = () => {
-    window.location.href = api.auth.getGoogleAuthUrl();
+    setShowGoogleModal(true);
+  };
+
+  const handleEmailAuth = () => {
+    setShowGoogleModal(false);
+    setTimeout(() => {
+      document.getElementById('email')?.focus();
+    }, 50);
   };
 
   return (
@@ -143,7 +221,7 @@ function LoginForm() {
       )}
 
       {/* Form Fields */}
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} noValidate className="space-y-4">
         <div>
           <label
             htmlFor="email"
@@ -156,13 +234,37 @@ function LoginForm() {
             name="email"
             type="email"
             autoComplete="email"
-            required
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (emailTouched) {
+                setEmailError(validateEmail(e.target.value));
+              }
+            }}
+            onBlur={() => {
+              setEmailTouched(true);
+              setEmailError(validateEmail(email));
+            }}
             placeholder="you@example.com"
             disabled={isSubmitting}
-            className="w-full bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/20 rounded-2xl px-4 py-3.5 text-sm text-[#14261D] placeholder-[#14261D]/40 focus:outline-none focus:border-[#497E64] focus:ring-2 focus:ring-[#497E64]/20 shadow-sm transition-all disabled:opacity-50"
+            aria-invalid={Boolean(emailTouched && emailError)}
+            aria-describedby={emailTouched && emailError ? 'email-error' : undefined}
+            className={`w-full bg-[#FAF8F4] border-[1.5px] rounded-2xl px-4 py-3.5 text-sm text-[#14261D] placeholder-[#14261D]/40 focus:outline-none shadow-sm transition-all disabled:opacity-50 ${
+              emailTouched && emailError
+                ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200'
+                : 'border-[#1B3428]/20 focus:border-[#497E64] focus:ring-2 focus:ring-[#497E64]/20'
+            }`}
           />
+          {emailTouched && emailError && (
+            <p
+              id="email-error"
+              role="alert"
+              className="text-xs text-red-600 mt-1.5 flex items-center gap-1 font-sans animate-fadeIn"
+            >
+              <AlertCircle className="w-3.5 h-3.5 shrink-0 text-red-500" />
+              <span>{emailError}</span>
+            </p>
+          )}
         </div>
 
         <div>
@@ -180,12 +282,26 @@ function LoginForm() {
               name="password"
               type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
-              required
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (passwordTouched) {
+                  setPasswordError(validatePassword(e.target.value));
+                }
+              }}
+              onBlur={() => {
+                setPasswordTouched(true);
+                setPasswordError(validatePassword(password));
+              }}
               placeholder="••••••••"
               disabled={isSubmitting}
-              className="w-full bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/20 rounded-2xl px-4 py-3.5 pr-11 text-sm text-[#14261D] placeholder-[#14261D]/40 focus:outline-none focus:border-[#497E64] focus:ring-2 focus:ring-[#497E64]/20 shadow-sm transition-all disabled:opacity-50"
+              aria-invalid={Boolean(passwordTouched && passwordError)}
+              aria-describedby={passwordTouched && passwordError ? 'password-error' : undefined}
+              className={`w-full bg-[#FAF8F4] border-[1.5px] rounded-2xl px-4 py-3.5 pr-11 text-sm text-[#14261D] placeholder-[#14261D]/40 focus:outline-none shadow-sm transition-all disabled:opacity-50 ${
+                passwordTouched && passwordError
+                  ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200'
+                  : 'border-[#1B3428]/20 focus:border-[#497E64] focus:ring-2 focus:ring-[#497E64]/20'
+              }`}
             />
             <button
               type="button"
@@ -196,6 +312,16 @@ function LoginForm() {
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
+          {passwordTouched && passwordError && (
+            <p
+              id="password-error"
+              role="alert"
+              className="text-xs text-red-600 mt-1.5 flex items-center gap-1 font-sans animate-fadeIn"
+            >
+              <AlertCircle className="w-3.5 h-3.5 shrink-0 text-red-500" />
+              <span>{passwordError}</span>
+            </p>
+          )}
         </div>
 
         {/* Tactile Terracotta Sign In Button */}
@@ -227,6 +353,13 @@ function LoginForm() {
           </Link>
         </p>
       </div>
+
+      <GoogleComingSoonModal
+        isOpen={showGoogleModal}
+        onClose={() => setShowGoogleModal(false)}
+        mode="login"
+        onEmailAuth={handleEmailAuth}
+      />
     </div>
   );
 }

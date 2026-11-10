@@ -87,37 +87,47 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 
 ## 6. Current Task Record
 
-- **Task**: Fix Production Registration Failure (Prisma P2021) and Simplify Public Website Experience
+- **Task**: Restore Freemium Pricing (999 Birr/mo), Polish Marketing CTA & Footer, and Implement Accessible Auth Validation with Custom Error UI
 - **Status**: **Complete**
 - **Objective**:
-  1. *Diagnose and Automate Database Migrations (Render + Neon)*:
-     - Root cause of `POST /api/v1/auth/register` returning HTTP 500: Prisma exception `P2021: The table public.users does not exist in the current database`. The Neon PostgreSQL database had zero migrations applied because `prisma migrate deploy` was not in Render's build or start commands.
-     - Automate migrations via `preDeployCommand: pnpm db:migrate` and `startCommand: pnpm db:migrate && pnpm --filter @lernivox/api start` in `render.yaml`.
-     - Add startup database table existence check in `PrismaService.onModuleInit()`.
-  2. *Remove University Email Restrictions Across Monorepo*:
-     - Update all login and registration email field labels from "University email" to "Email address".
-     - Update email placeholders to `you@example.com` (replacing `student@university.edu` and `alex@university.edu`).
-     - Update Swagger DTO examples in `RegisterDto`, `LoginDto`, and `UserResponseDto`.
-     - Confirm ordinary email providers (Gmail, Outlook, Yahoo, Proton, custom domains) are 100% accepted by backend validation.
-  3. *Simplify Login and Registration Pages*:
-     - Login: Keep "Welcome back" heading; simplify supporting text to "Sign in to continue learning with your books."
-     - Register: Set clear heading "Create your account"; simplify supporting text to "Enter your details to get started."
-     - Right-side showcase (`AuthShowcase.tsx`):
-       - Login: "Your learning continues here." / "Open your books, ask questions, and pick up where you left off."
-       - Register: "Make every book easier to understand." / "Bring your books or notes and learn at your own pace."
-       - Testimonial: simplified attribution to "Second-year student".
-  4. *Rewrite Free Plan Section*:
-     - Replace technical/industry term "Freemium" with "Free plan" (0 Birr / forever).
-     - Rewrite plan description in one short sentence: "Everything you need to study your books with a personal AI tutor."
-     - Accurately state real features and limits in plain English (1 MB upload limit for PDF, DOCX, TXT; grounded page citations; chapter quizzes and flashcards).
-     - Replace Pro Scholar tier with "Study Groups" (0 Birr / free preview) reflecting real monorepo group workspace features, eliminating technical jargon (vector indexing, OCR pipelines, worker queueing).
-  5. *Simplify Text Under Headings Across Public Marketing Homepage*:
-     - Shorten descriptions under every public section heading to 1 short sentence (max 2) with 14–16px typography hierarchy (`text-sm sm:text-base text-[#14261D]/75`).
-     - Remove technical jargon ("zero hallucination", "asymmetric retention", "worked derivations").
-  6. *Remove Decorative Section Tags & Badges*:
-     - Removed `Interactive Showcase` badge from `HeroUpload.tsx`.
-     - Removed `Interactive Preview` badge from `HeroUpload.tsx`.
-     - Removed `Interactive Lesson Preview` badge and `Curated Demonstration` tag from `GuidedLearningPreview.tsx`.
+  1. *Restore Freemium Pricing Display*:
+     - Restored the visible plan name "Freemium" and displayed price exactly to "999 Birr per month".
+     - Removed the unintended "0 Birr" / "during preview" and "Free preview" badge.
+     - Preserved existing card styling, features, and benefits without altering runtime billing entitlements.
+  2. *Improve CTA / Callout Section*:
+     - Headline: "Your next book is ready to be understood."
+     - Description: "Bring your books or notes. Read, ask questions, and learn at your own pace."
+     - Buttons: "Get started" linking to `/register` and "Upload a book or notes" linking to `#how-it-works`.
+     - Micro indicator: "Private book storage. Instant setup."
+  3. *Improve Footer Copy*:
+     - Concise brand description: "Bring your books and notes. Read, ask your AI tutor questions, and understand more as you learn."
+     - Updated attribution to "Turn textbooks into real understanding".
+     - Preserved all navigation links, social links, logo, and responsive styling.
+  4. *Frontend Authentication Validation & Custom Error UI*:
+     - Implemented accessible field-level validation on blur and submit for both `/login` and `/register`.
+     - Email: required, standard regex validation, accepts personal email domains (Gmail, Outlook, Yahoo, etc.), trims whitespace, clear inline errors ("Enter your email address.", "Enter a valid email address.").
+     - Password: required on login ("Enter your password."); min 8 characters on registration ("Password is required.", "Your password must be at least 8 characters.").
+     - Confirm Password: required, matching check ("Confirm your password.", "Passwords do not match.").
+     - `noValidate` on form elements, `aria-invalid`, `aria-describedby`, error border styling, auto-focusing first invalid element on submit.
+     - Mapped auth-wide error messages: 401 invalid credentials, 409 conflict with link to login, 500 server error, network errors.
+  5. *Google Coming Soon & Refresh Token 401 Investigation*:
+     - Verified Google Coming Soon modal intercepts auth clicks without `/api/v1/auth/google` network calls.
+     - Investigated `POST /api/v1/auth/refresh` 401 in Render logs: confirmed expected behavior when unauthenticated visitors visit without existing cookies; confirmed zero retry loops or infinite refresh storms.
+- **Files Created/Modified**:
+  - `apps/web/app/(marketing)/page.tsx` (modified)
+  - `apps/web/components/marketing/Footer.tsx` (modified)
+  - `apps/web/app/(auth)/login/page.tsx` (modified)
+  - `apps/web/app/(auth)/register/page.tsx` (modified)
+  - `apps/web/test/loading-and-404-experience.test.ts` (modified)
+  - `PROGRESS.md` (modified)
+- **Verification**:
+  - `pnpm --filter @lernivox/web test`: All 41 tests passing across 4 test suites.
+  - `pnpm --filter @lernivox/api test`: All 175 tests passing across 14 test suites.
+  - `pnpm type-check`: 11/11 tasks passing with 0 TypeScript errors across the entire monorepo.
+  - `pnpm --filter @lernivox/web build`: Production build succeeded (`next build`), compiling 17/17 routes.
+  - Process & Port Audit: `ss -tulpn` verified clean (0 lingering processes, 0 open ports).
+- **Known Issues / Blockers**: None.
+- **Next Recommended Action**: Execute live production deployment on Render and Vercel, confirming automated migration deployment via `render.yaml` (`startCommand: pnpm db:migrate && pnpm --filter @lernivox/api start`).
      - Removed `Free Student Plan • Instant Setup` badge pill from marketing CTA banner.
   7. *Verification & Tests*:
      - All 36 `@lernivox/web` tests passing.
@@ -888,6 +898,24 @@ Deploy the updated API and Web application to Render and Vercel, and verify that
     - Simplified text under all public section headings: Shortened descriptions to 1 short sentence (14–16px typography hierarchy) across Lesson Preview, Retention, Readiness, Study Groups, Pricing, and CTA banner.
     - Removed decorative tags and labels: Removed `Interactive Showcase` and `Interactive Preview` from `HeroUpload.tsx`, `Interactive Lesson Preview` and `Curated Demonstration` from `GuidedLearningPreview.tsx`, and `Free Student Plan • Instant Setup` from CTA banner.
     - Verified test suites: Web tests (36/36 passed), API tests (175/175 passed), monorepo type-check (11/11 tasks passed), and full production build (7/7 packages, 17/17 Next.js static/dynamic routes passed). Port audit verified clean (0 lingering processes).
+
+  - Completed Branded Google Sign-In Coming Soon, Custom 404 & Responsive Loading Experience:
+    - Custom Google Sign-In Coming Soon Modal (`GoogleComingSoonModal.tsx`): Intercepts the Google auth trigger on both `/login` and `/register`, completely avoiding broken OAuth redirects or unneeded API requests. Built accessible dialog with `role="dialog"`, `aria-modal="true"`, `aria-labelledby`, `aria-describedby`, Escape key listener, and `document.body.style.overflow = 'hidden'` scroll locking. Provides context-aware actions: Login mode prompts "Log in with email" (closes dialog, focuses `#email`) and "Need an account? Create one" (`/register`); Register mode prompts "Create account with email" (closes dialog, focuses `#name` or `#email`) and "Already have an account? Log in" (`/login`). Renders as an accessible bottom-sheet on small mobile screens and a centered tactile card on desktop.
+    - Custom Branded 404 Page (`apps/web/app/not-found.tsx`): Created dedicated Next.js App Router 404 page styled with Lernivox's aesthetic (`#F4F0E5`, `#FAF8F4`, `#14261D`, `#E8722C`, Bricolage Grotesque, Instrument Sans). Features custom open-book / lost bookmark illustration motif, clear human copy ("This chapter seems to be missing."), and context-aware action routing: primary "Back to Home" (`/`) plus dynamic secondary action ("Go to My Books" `/dashboard` if authenticated, or "Sign In" `/login` if unauthenticated) leveraging `useAuth()`.
+    - Responsive Loading Skeletons (`apps/web/components/ui/loading.tsx`): Built accessible loading primitives (`Skeleton`, `InlineLoader`, `BookCardSkeleton`, `DashboardSkeleton`, `WorkspaceSkeleton`) respecting `motion-reduce:animate-none`.
+    - Dashboard & Workspace Loading Integration: Wired `DashboardSkeleton` into `apps/web/app/(workspace)/dashboard/loading.tsx` and `BookCardSkeleton` 5-column grid into `apps/web/app/(workspace)/dashboard/page.tsx` (eliminating cumulative layout shifts). Wired `WorkspaceSkeleton` into `apps/web/app/(workspace)/dashboard/workspaces/[workspaceId]/loading.tsx` and `page.tsx` during `loadingWorkspace`, accurately previewing the 3-zone header, desktop outline and copilot sidebars, natural book page canvas, and mobile bottom dock.
+    - Authoring Invariant Tests (`apps/web/test/loading-and-404-experience.test.ts`): Authored 3 comprehensive architectural tests validating modal accessibility, OAuth interception, context-aware 404 routing, and skeleton layout mirroring.
+    - Verified test suites: Web tests (39/39 passed across 4 suites), monorepo type-check (11/11 package tasks passed with 0 errors), Next.js production build (`next build` 17/17 routes passed including `/_not-found`), and port audit verified clean (`ss -tulpn` 0 lingering processes).
+
+  - Completed Freemium Pricing Restoration, CTA / Footer Copy Polish & Accessible Authentication Validation:
+    - Restored Freemium Pricing Display (`apps/web/app/(marketing)/page.tsx`): Restored visible plan name "Freemium" and displayed price "999 Birr per month" on the right pricing card; removed the unintended "0 Birr" / "during preview" and "Free preview" badge; preserved the clean two-card contrast layout and all feature bullets.
+    - Improved CTA / Callout Section (`apps/web/app/(marketing)/page.tsx`): Updated headline to "Your next book is ready to be understood.", description to "Bring your books or notes. Read, ask questions, and learn at your own pace.", primary button to "Get started" (`/register`), secondary button to "Upload a book or notes" (`#how-it-works`), and micro indicator to "Private book storage. Instant setup."
+    - Improved Footer Copy (`apps/web/components/marketing/Footer.tsx`): Added concise descriptive copy under the brand wordmark ("Bring your books and notes. Read, ask your AI tutor questions, and understand more as you learn.") and updated bottom attribution to "Turn textbooks into real understanding" while preserving all navigation destinations and responsive behavior.
+    - Accessible Frontend Validation & Custom Error UI (`apps/web/app/(auth)/login/page.tsx` & `register/page.tsx`): Added field-level blur and submit validation for email, password, and confirm password with clear inline errors, error borders, `noValidate`, `aria-invalid`, `aria-describedby`, and focus trapping to the first invalid field. Mapped auth-wide error messages (401 credentials, 409 conflict with login link, 500 server error, network errors).
+    - Production Database & 401 Investigation: Confirmed missing `public.users` table is resolved via `render.yaml` automated migration command (`pnpm db:migrate && pnpm --filter @lernivox/api start`). Confirmed `POST /api/v1/auth/refresh` 401 response is standard unauthenticated session-check behavior with zero retry loops.
+    - Verified all test suites: Web tests (41/41 passing across 4 suites), API tests (175/175 passing across 14 suites), full monorepo type-check (11/11 package tasks passing with 0 errors), and Next.js 15 production build (`next build` 17/17 routes).
+
+
 
 
 

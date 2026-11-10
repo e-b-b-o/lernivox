@@ -7,6 +7,7 @@ import { AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { api, ApiError } from '../../../lib/api';
 import { AuthShowcase } from '../../../components/auth/AuthShowcase';
+import { GoogleComingSoonModal } from '../../../components/auth/GoogleComingSoonModal';
 
 function RegisterForm() {
   const router = useRouter();
@@ -23,6 +24,49 @@ function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isConflict, setIsConflict] = useState(false);
+  const [showGoogleModal, setShowGoogleModal] = useState(false);
+
+  // Field-level error & touched states
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
+  const [confirmPasswordTouched, setConfirmPasswordTouched] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
+
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const validateEmail = (val: string): string | null => {
+    const trimmed = val.trim();
+    if (!trimmed) {
+      return 'Enter your email address.';
+    }
+    if (!EMAIL_REGEX.test(trimmed)) {
+      return 'Enter a valid email address.';
+    }
+    return null;
+  };
+
+  const validatePassword = (val: string): string | null => {
+    if (!val) {
+      return 'Password is required.';
+    }
+    if (val.length < 8) {
+      return 'Your password must be at least 8 characters.';
+    }
+    return null;
+  };
+
+  const validateConfirmPassword = (val: string, pass: string): string | null => {
+    if (!val) {
+      return 'Confirm your password.';
+    }
+    if (val !== pass) {
+      return 'Passwords do not match.';
+    }
+    return null;
+  };
 
   // If already authenticated, redirect to destination
   useEffect(() => {
@@ -34,19 +78,33 @@ function RegisterForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+    setIsConflict(false);
 
-    if (!email.trim() || !password) {
-      setErrorMessage('Please provide a valid email and password.');
+    // Mark all fields touched
+    setEmailTouched(true);
+    setPasswordTouched(true);
+    setConfirmPasswordTouched(true);
+
+    const emailErr = validateEmail(email);
+    const passErr = validatePassword(password);
+    const confErr = validateConfirmPassword(confirmPassword, password);
+
+    setEmailError(emailErr);
+    setPasswordError(passErr);
+    setConfirmPasswordError(confErr);
+
+    if (emailErr) {
+      document.getElementById('email')?.focus();
       return;
     }
 
-    if (password.length < 8) {
-      setErrorMessage('Password must be at least 8 characters long.');
+    if (passErr) {
+      document.getElementById('password')?.focus();
       return;
     }
 
-    if (password !== confirmPassword) {
-      setErrorMessage('Passwords do not match. Please verify your password confirmation.');
+    if (confErr) {
+      document.getElementById('confirmPassword')?.focus();
       return;
     }
 
@@ -60,9 +118,39 @@ function RegisterForm() {
       router.push(redirectUrl);
     } catch (err: unknown) {
       if (err instanceof ApiError) {
-        setErrorMessage(err.message);
+        if (
+          err.statusCode === 409 ||
+          err.message?.toLowerCase().includes('already exists')
+        ) {
+          setIsConflict(true);
+          setErrorMessage(
+            'An account with this email already exists. Try logging in instead.'
+          );
+        } else if (err.statusCode >= 500) {
+          setErrorMessage(
+            'Something went wrong on our side. Please try again shortly.'
+          );
+        } else if (
+          err.statusCode === 0 ||
+          err.message?.toLowerCase().includes('network') ||
+          err.message?.toLowerCase().includes('failed to fetch')
+        ) {
+          setErrorMessage(
+            "We couldn't connect. Check your internet connection and try again."
+          );
+        } else {
+          setErrorMessage(
+            err.message || "Your account couldn't be created. Please try again."
+          );
+        }
+      } else if (err instanceof TypeError || String(err).includes('fetch')) {
+        setErrorMessage(
+          "We couldn't connect. Check your internet connection and try again."
+        );
       } else {
-        setErrorMessage('Failed to create account. Please check your network and try again.');
+        setErrorMessage(
+          "Your account couldn't be created. Please try again."
+        );
       }
     } finally {
       setIsSubmitting(false);
@@ -70,7 +158,14 @@ function RegisterForm() {
   };
 
   const handleGoogleSignIn = () => {
-    window.location.href = api.auth.getGoogleAuthUrl();
+    setShowGoogleModal(true);
+  };
+
+  const handleEmailAuth = () => {
+    setShowGoogleModal(false);
+    setTimeout(() => {
+      (document.getElementById('name') || document.getElementById('email'))?.focus();
+    }, 50);
   };
 
   return (
@@ -139,19 +234,31 @@ function RegisterForm() {
         <div className="flex-grow border-t border-[#14261D]/15" />
       </div>
 
-      {/* Error Alert */}
+      {/* Error Alert with context-aware action */}
       {errorMessage && (
         <div
           role="alert"
           className="mb-5 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50/90 p-4 text-sm text-red-800 animate-fadeIn"
         >
           <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
-          <span className="flex-1 leading-relaxed">{errorMessage}</span>
+          <div className="flex-1 leading-relaxed">
+            <span>{errorMessage}</span>
+            {isConflict && (
+              <div className="mt-1.5">
+                <Link
+                  href={`/login${redirectUrl !== '/dashboard' ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`}
+                  className="font-bold text-[#E8722C] hover:underline inline-flex items-center gap-1"
+                >
+                  Log in to your account →
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
       {/* Form Fields */}
-      <form onSubmit={handleSubmit} className="space-y-3.5">
+      <form onSubmit={handleSubmit} noValidate className="space-y-3.5">
         <div>
           <label
             htmlFor="name"
@@ -184,13 +291,37 @@ function RegisterForm() {
             name="email"
             type="email"
             autoComplete="email"
-            required
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (emailTouched) {
+                setEmailError(validateEmail(e.target.value));
+              }
+            }}
+            onBlur={() => {
+              setEmailTouched(true);
+              setEmailError(validateEmail(email));
+            }}
             placeholder="you@example.com"
             disabled={isSubmitting}
-            className="w-full bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/20 rounded-2xl px-4 py-3 text-sm text-[#14261D] placeholder-[#14261D]/40 focus:outline-none focus:border-[#497E64] focus:ring-2 focus:ring-[#497E64]/20 shadow-sm transition-all disabled:opacity-50"
+            aria-invalid={Boolean(emailTouched && emailError)}
+            aria-describedby={emailTouched && emailError ? 'register-email-error' : undefined}
+            className={`w-full bg-[#FAF8F4] border-[1.5px] rounded-2xl px-4 py-3 text-sm text-[#14261D] placeholder-[#14261D]/40 focus:outline-none shadow-sm transition-all disabled:opacity-50 ${
+              emailTouched && emailError
+                ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200'
+                : 'border-[#1B3428]/20 focus:border-[#497E64] focus:ring-2 focus:ring-[#497E64]/20'
+            }`}
           />
+          {emailTouched && emailError && (
+            <p
+              id="register-email-error"
+              role="alert"
+              className="text-xs text-red-600 mt-1 flex items-center gap-1 font-sans animate-fadeIn"
+            >
+              <AlertCircle className="w-3.5 h-3.5 shrink-0 text-red-500" />
+              <span>{emailError}</span>
+            </p>
+          )}
         </div>
 
         <div>
@@ -206,12 +337,30 @@ function RegisterForm() {
               name="password"
               type={showPassword ? 'text' : 'password'}
               autoComplete="new-password"
-              required
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                const newPass = e.target.value;
+                setPassword(newPass);
+                if (passwordTouched) {
+                  setPasswordError(validatePassword(newPass));
+                }
+                if (confirmPasswordTouched) {
+                  setConfirmPasswordError(validateConfirmPassword(confirmPassword, newPass));
+                }
+              }}
+              onBlur={() => {
+                setPasswordTouched(true);
+                setPasswordError(validatePassword(password));
+              }}
               placeholder="••••••••"
               disabled={isSubmitting}
-              className="w-full bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/20 rounded-2xl px-4 py-3 pr-11 text-sm text-[#14261D] placeholder-[#14261D]/40 focus:outline-none focus:border-[#497E64] focus:ring-2 focus:ring-[#497E64]/20 shadow-sm transition-all disabled:opacity-50"
+              aria-invalid={Boolean(passwordTouched && passwordError)}
+              aria-describedby={passwordTouched && passwordError ? 'register-password-error' : undefined}
+              className={`w-full bg-[#FAF8F4] border-[1.5px] rounded-2xl px-4 py-3 pr-11 text-sm text-[#14261D] placeholder-[#14261D]/40 focus:outline-none shadow-sm transition-all disabled:opacity-50 ${
+                passwordTouched && passwordError
+                  ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200'
+                  : 'border-[#1B3428]/20 focus:border-[#497E64] focus:ring-2 focus:ring-[#497E64]/20'
+              }`}
             />
             <button
               type="button"
@@ -222,6 +371,16 @@ function RegisterForm() {
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
+          {passwordTouched && passwordError && (
+            <p
+              id="register-password-error"
+              role="alert"
+              className="text-xs text-red-600 mt-1 flex items-center gap-1 font-sans animate-fadeIn"
+            >
+              <AlertCircle className="w-3.5 h-3.5 shrink-0 text-red-500" />
+              <span>{passwordError}</span>
+            </p>
+          )}
         </div>
 
         <div>
@@ -237,12 +396,31 @@ function RegisterForm() {
               name="confirmPassword"
               type={showConfirmPassword ? 'text' : 'password'}
               autoComplete="new-password"
-              required
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={(e) => {
+                const newConf = e.target.value;
+                setConfirmPassword(newConf);
+                if (confirmPasswordTouched) {
+                  setConfirmPasswordError(validateConfirmPassword(newConf, password));
+                }
+              }}
+              onBlur={() => {
+                setConfirmPasswordTouched(true);
+                setConfirmPasswordError(validateConfirmPassword(confirmPassword, password));
+              }}
               placeholder="••••••••"
               disabled={isSubmitting}
-              className="w-full bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/20 rounded-2xl px-4 py-3 pr-11 text-sm text-[#14261D] placeholder-[#14261D]/40 focus:outline-none focus:border-[#497E64] focus:ring-2 focus:ring-[#497E64]/20 shadow-sm transition-all disabled:opacity-50"
+              aria-invalid={Boolean(confirmPasswordTouched && confirmPasswordError)}
+              aria-describedby={
+                confirmPasswordTouched && confirmPasswordError
+                  ? 'register-confirm-password-error'
+                  : undefined
+              }
+              className={`w-full bg-[#FAF8F4] border-[1.5px] rounded-2xl px-4 py-3 pr-11 text-sm text-[#14261D] placeholder-[#14261D]/40 focus:outline-none shadow-sm transition-all disabled:opacity-50 ${
+                confirmPasswordTouched && confirmPasswordError
+                  ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200'
+                  : 'border-[#1B3428]/20 focus:border-[#497E64] focus:ring-2 focus:ring-[#497E64]/20'
+              }`}
             />
             <button
               type="button"
@@ -253,6 +431,16 @@ function RegisterForm() {
               {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
+          {confirmPasswordTouched && confirmPasswordError && (
+            <p
+              id="register-confirm-password-error"
+              role="alert"
+              className="text-xs text-red-600 mt-1 flex items-center gap-1 font-sans animate-fadeIn"
+            >
+              <AlertCircle className="w-3.5 h-3.5 shrink-0 text-red-500" />
+              <span>{confirmPasswordError}</span>
+            </p>
+          )}
         </div>
 
         {/* Tactile Terracotta Sign Up Button */}
@@ -284,6 +472,13 @@ function RegisterForm() {
           </Link>
         </p>
       </div>
+
+      <GoogleComingSoonModal
+        isOpen={showGoogleModal}
+        onClose={() => setShowGoogleModal(false)}
+        mode="register"
+        onEmailAuth={handleEmailAuth}
+      />
     </div>
   );
 }

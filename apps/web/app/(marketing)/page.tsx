@@ -763,26 +763,26 @@ export default function MarketingPage() {
             </div>
           </ScrollReveal>
 
-          {/* Right Card: Dark Forest Green Card (Study Groups) */}
+          {/* Right Card: Dark Forest Green Card (Freemium Plan) */}
           <ScrollReveal id="pricing-pro" delay={0.32} className="h-full">
             <div className="bg-[#1B3428] border-[1.5px] border-[#14261D] rounded-[24px] sm:rounded-[28px] p-5 sm:p-8 md:p-10 shadow-[0_6px_0_0_#14261D] flex flex-col justify-between relative overflow-hidden h-full">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-display text-xl font-bold text-white">Study Groups</h3>
+                  <h3 className="font-display text-xl font-bold text-white">Freemium</h3>
                   <span className="bg-[#E8722C] text-white font-sans text-xs font-bold px-3.5 py-1.5 rounded-full shadow-sm">
-                    Free preview
+                    Popular
                   </span>
                 </div>
 
                 <div className="flex items-baseline gap-2 mb-4">
                   <span className="font-display font-extrabold text-4xl xs:text-5xl md:text-6xl text-white tracking-tight">
-                    0 Birr
+                    999 Birr
                   </span>
-                  <span className="font-sans text-sm sm:text-base text-white/60 font-medium">/ during preview</span>
+                  <span className="font-sans text-sm sm:text-base text-white/60 font-medium">per month</span>
                 </div>
 
                 <p className="font-sans text-sm text-white/75 mb-6">
-                  Collaborate with classmates around shared books and course materials.
+                  For students managing full course loads, research papers, and collaborative study.
                 </p>
 
                 <hr className="border-t border-white/15 my-6" />
@@ -817,9 +817,9 @@ export default function MarketingPage() {
 
               <Link
                 href="/register"
-                className="w-full mt-8 flex items-center justify-center py-3.5 px-6 rounded-full bg-[#497E64] text-white font-display font-bold text-base shadow-[0_4px_0_0_#14261D] hover:bg-[#3D6B55] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#14261D] active:translate-y-1 active:shadow-[0_1px_0_0_#14261D] transition-all text-center"
+                className="w-full mt-8 flex items-center justify-center py-3.5 px-6 rounded-full bg-[#E8722C] text-white font-display font-bold text-base shadow-[0_4px_0_0_#14261D] hover:bg-[#D65E1E] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#14261D] active:translate-y-1 active:shadow-[0_1px_0_0_#14261D] transition-all text-center"
               >
-                Start a study group
+                Get started
               </Link>
             </div>
           </ScrollReveal>
@@ -1034,9 +1034,8 @@ export default function MarketingPage() {
 
           <ScrollReveal id="cta-headline" delay={0.15}>
             <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-5xl lg:text-[68px] text-[#14261D] tracking-tight leading-[1.08] mb-5">
-              Ready to study with{' '}
+              Your next book is ready to be{' '}
               <br className="hidden sm:inline" />
-              verified{' '}
               <span
                 className="relative inline-block text-[#497E64] ml-1 select-none"
                 style={{
@@ -1045,7 +1044,7 @@ export default function MarketingPage() {
                   display: 'inline-block'
                 }}
               >
-                certainty?
+                understood.
 
                 {/* Multi-Stroke Hand-Drawn Marker Underline */}
                 <svg
@@ -1074,7 +1073,7 @@ export default function MarketingPage() {
             </h2>
 
             <p className="font-sans text-sm sm:text-base text-[#14261D]/75 max-w-xl mx-auto leading-relaxed mb-8">
-              Bring your first book or notes and start learning with your private AI tutor.
+              Bring your books or notes. Read, ask questions, and learn at your own pace.
             </p>
           </ScrollReveal>
 
@@ -1086,7 +1085,7 @@ export default function MarketingPage() {
                 href="/register"
                 className="w-full sm:w-auto h-[50px] sm:h-[52px] px-6 sm:px-8 rounded-full bg-[#E8722C] text-white font-display font-bold text-sm sm:text-base shadow-[0_4px_0_0_#B26E45] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#B26E45] active:translate-y-1 active:shadow-[0_1px_0_0_#B26E45] transition-all flex items-center justify-center text-center"
               >
-                Create your free account
+                Get started
               </Link>
 
               {/* Secondary Light 3D Button */}
@@ -1094,13 +1093,13 @@ export default function MarketingPage() {
                 href="#how-it-works"
                 className="w-full sm:w-auto h-[50px] sm:h-[52px] px-6 sm:px-8 rounded-full bg-[#FAF8F4] text-[#14261D] font-display font-bold text-sm sm:text-base border-[2px] border-[#1B3428] shadow-[0_4px_0_0_#1B3428] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#1B3428] active:translate-y-1 active:shadow-[0_1px_0_0_#1B3428] transition-all flex items-center justify-center text-center"
               >
-                Upload Document Now
+                Upload a book or notes
               </a>
             </div>
 
             {/* Micro Trust Indicators */}
             <p className="font-sans text-xs text-[#14261D]/60 tracking-wide">
-              Free plan. Private book storage. Instant setup.
+              Private book storage. Instant setup.
             </p>
           </ScrollReveal>
         </div>
