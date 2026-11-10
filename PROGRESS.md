@@ -87,57 +87,71 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 
 ## 6. Current Task Record
 
-- **Task**: Fix Production Authentication Failures and Remove Auth-Page Branding
+- **Task**: Fix Production Registration Failure (Prisma P2021) and Simplify Public Website Experience
 - **Status**: **Complete**
 - **Objective**:
-  1. *Diagnose Reported Production Errors*:
-     - `401 Unauthorized`: Investigate whether 401 on `/api/v1/auth/refresh` is expected for unauthenticated sessions or caused by browser cross-site cookie blocking between `*.vercel.app` and `*.onrender.com`.
-     - `500 Internal Server Error`: Isolate the backend exception thrown on `POST /api/v1/auth/login` (database connectivity/unmigrated schema, environment variable types, SSL requirements, Argon2 verification, or session creation).
-     - `Could not establish connection. Receiving end does not exist`: Determine whether this stems from application code or injected browser extension content scripts.
-  2. *Cross-Origin Cookie Architecture*: Implement dynamic `getCookieOptions()` in `AuthController` supporting `SameSite=None; Secure=true` for cross-site Vercel/Render deployments, with fallback to `SameSite=Lax` in development and customizable `COOKIE_SAME_SITE`, `COOKIE_SECURE`, and `COOKIE_DOMAIN` environment overrides.
-  3. *Configuration & CORS Robustness*: Strip trailing slashes from `CORS_ORIGIN` entries in `main.ts`, robustly sanitize `REFRESH_TOKEN_EXPIRES_IN_DAYS` against string formats (e.g. `'7'`, `'7d'`), and add diagnostic error hints for Prisma database error codes (`P2021`, `P1001`) in `AllExceptionsFilter`.
-  4. *Auth-Page Branding Removal*: Remove visible Lernivox wordmarks, brand logos, and brand-name strings from `/login`, `/register`, and `AuthShowcase` while preserving all input fields, validation, responsive layout balance, and navigation.
-
-- **Work Completed**:
-  - **Cross-Origin Cookie Support (`apps/api/src/auth/auth.controller.ts`)**:
-    - Replaced hardcoded `sameSite: 'lax'` with intelligent `getCookieOptions()` helper.
-    - In production cross-site contexts (`*.vercel.app` to `*.onrender.com`), defaults to `sameSite: 'none'` and `secure: true` as mandated by RFC 6265bis for cross-site credentialed fetch requests.
-    - In development (`http://localhost`), safely defaults to `sameSite: 'lax'` and `secure: false`.
-    - Added support for explicit `COOKIE_SAME_SITE` (`lax` | `strict` | `none`), `COOKIE_SECURE`, and sanitized `COOKIE_DOMAIN` (stripping protocols, ports, and trailing slashes).
-    - Applied unified cookie options across both `setRefreshTokenCookie()` and `clearRefreshTokenCookie()`.
-  - **Token Expiry Hardening (`apps/api/src/auth/auth.service.ts`)**:
-    - Added resilient numeric parsing for `REFRESH_TOKEN_EXPIRES_IN_DAYS` using `Number(String(daysRaw).replace(/[^0-9]/g, '')) || 7`, preventing `NaN` and `Invalid Date` crashes if formatted strings are passed.
-  - **CORS Normalization (`apps/api/src/main.ts`)**:
-    - Normalized `CORS_ORIGIN` items by trimming whitespace and stripping trailing slashes (`.replace(/\/+$/, '')`), eliminating CORS rejections caused by trailing slashes on Vercel deployment URLs.
-  - **Prisma Diagnostic Exception Logging (`apps/api/src/common/filters/http-exception.filter.ts`)**:
-    - Added specific diagnostic logging for Prisma database errors (`[Database/Prisma Exception ${code}]`), immediately flagging unapplied migrations (`P2021`) or connectivity issues (`P1001`) in server logs.
-  - **Environment Schema & Blueprint Updates (`env.validation.ts`, `render.yaml`, `DEPLOYMENT_GUIDE.md`)**:
-    - Added `COOKIE_SAME_SITE` and `COOKIE_SECURE` to `EnvironmentVariables` in `apps/api/src/config/env.validation.ts`.
-    - Added `COOKIE_SAME_SITE: none` and `COOKIE_SECURE: "true"` to `render.yaml` for `lernivox-api`.
-    - Updated `docs/DEPLOYMENT_GUIDE.md` environment inventory and cross-domain authentication documentation.
-  - **Auth-Page Branding Removal (`apps/web`)**:
-    - Removed Brand Logo and Lernivox wordmark pill from `apps/web/app/(auth)/login/page.tsx` and `apps/web/app/(auth)/register/page.tsx`, elevating the editorial headings ("Welcome back." / "Create your account.") as natural visual anchors with balanced top padding (`pt-2 sm:pt-4`).
-    - Changed "New to Lernivox?" to "Don't have an account?" on the login page.
-    - Replaced "Lernivox explained my hardest course topics..." with "This platform explained my hardest course topics..." in `AuthShowcase.tsx`.
-    - Retained the clean top-left "Back to homepage" navigation link on both pages.
-    - Updated network error message in `apps/web/lib/api.ts` to generic connection guidance without mentioning local port 4000.
-  - **Automated Test Suites**:
-    - Added tests in `apps/api/src/auth/auth.controller.spec.ts` for production cross-origin cookies (`sameSite: 'none'`, `secure: true`), `COOKIE_SAME_SITE` overrides, and `COOKIE_DOMAIN` sanitization.
-    - Added test in `apps/api/src/auth/auth.service.spec.ts` for formatted `REFRESH_TOKEN_EXPIRES_IN_DAYS` parsing.
-    - Added tests in `apps/web/test/api-refresh.test.ts` for HTTP 500 error propagation and production connection error messages.
+  1. *Diagnose and Automate Database Migrations (Render + Neon)*:
+     - Root cause of `POST /api/v1/auth/register` returning HTTP 500: Prisma exception `P2021: The table public.users does not exist in the current database`. The Neon PostgreSQL database had zero migrations applied because `prisma migrate deploy` was not in Render's build or start commands.
+     - Automate migrations via `preDeployCommand: pnpm db:migrate` and `startCommand: pnpm db:migrate && pnpm --filter @lernivox/api start` in `render.yaml`.
+     - Add startup database table existence check in `PrismaService.onModuleInit()`.
+  2. *Remove University Email Restrictions Across Monorepo*:
+     - Update all login and registration email field labels from "University email" to "Email address".
+     - Update email placeholders to `you@example.com` (replacing `student@university.edu` and `alex@university.edu`).
+     - Update Swagger DTO examples in `RegisterDto`, `LoginDto`, and `UserResponseDto`.
+     - Confirm ordinary email providers (Gmail, Outlook, Yahoo, Proton, custom domains) are 100% accepted by backend validation.
+  3. *Simplify Login and Registration Pages*:
+     - Login: Keep "Welcome back" heading; simplify supporting text to "Sign in to continue learning with your books."
+     - Register: Set clear heading "Create your account"; simplify supporting text to "Enter your details to get started."
+     - Right-side showcase (`AuthShowcase.tsx`):
+       - Login: "Your learning continues here." / "Open your books, ask questions, and pick up where you left off."
+       - Register: "Make every book easier to understand." / "Bring your books or notes and learn at your own pace."
+       - Testimonial: simplified attribution to "Second-year student".
+  4. *Rewrite Free Plan Section*:
+     - Replace technical/industry term "Freemium" with "Free plan" (0 Birr / forever).
+     - Rewrite plan description in one short sentence: "Everything you need to study your books with a personal AI tutor."
+     - Accurately state real features and limits in plain English (1 MB upload limit for PDF, DOCX, TXT; grounded page citations; chapter quizzes and flashcards).
+     - Replace Pro Scholar tier with "Study Groups" (0 Birr / free preview) reflecting real monorepo group workspace features, eliminating technical jargon (vector indexing, OCR pipelines, worker queueing).
+  5. *Simplify Text Under Headings Across Public Marketing Homepage*:
+     - Shorten descriptions under every public section heading to 1 short sentence (max 2) with 14–16px typography hierarchy (`text-sm sm:text-base text-[#14261D]/75`).
+     - Remove technical jargon ("zero hallucination", "asymmetric retention", "worked derivations").
+  6. *Remove Decorative Section Tags & Badges*:
+     - Removed `Interactive Showcase` badge from `HeroUpload.tsx`.
+     - Removed `Interactive Preview` badge from `HeroUpload.tsx`.
+     - Removed `Interactive Lesson Preview` badge and `Curated Demonstration` tag from `GuidedLearningPreview.tsx`.
+     - Removed `Free Student Plan • Instant Setup` badge pill from marketing CTA banner.
+  7. *Verification & Tests*:
+     - All 36 `@lernivox/web` tests passing.
+     - All 175 `@lernivox/api` tests passing (including new unit tests for ordinary email domains and duplicate account rejections).
+     - All 11/11 type-check tasks passing.
+     - Full monorepo production build (`pnpm build`) passing across all 7 packages and 17 Next.js static/dynamic routes.
+     - Port audit verified clean (0 lingering processes).
 
 - **Files Created/Modified**:
-  - `apps/api/src/auth/auth.controller.ts` — Added `getCookieOptions()` with dynamic `SameSite=None` for cross-site production.
-  - `apps/api/src/auth/auth.controller.spec.ts` — Added cross-origin cookie and domain sanitization unit tests.
-  - `apps/api/src/auth/auth.service.ts` — Added resilient numeric parsing for `REFRESH_TOKEN_EXPIRES_IN_DAYS`.
-  - `apps/api/src/auth/auth.service.spec.ts` — Added unit test for formatted `REFRESH_TOKEN_EXPIRES_IN_DAYS` parsing.
-  - `apps/api/src/config/env.validation.ts` — Added `COOKIE_SAME_SITE` and `COOKIE_SECURE` variables.
-  - `apps/api/src/main.ts` — Normalized CORS origin strings by stripping trailing slashes.
-  - `apps/api/src/common/filters/http-exception.filter.ts` — Added Prisma database exception logging.
-  - `apps/web/app/(auth)/login/page.tsx` — Removed brand logo/wordmark, updated switch copy, balanced layout.
-  - `apps/web/app/(auth)/register/page.tsx` — Removed brand logo/wordmark, balanced layout.
-  - `apps/web/components/auth/AuthShowcase.tsx` — Removed brand name from student testimonial.
-  - `apps/web/lib/api.ts` — Polished network connection error message.
+  - `render.yaml` — Added `preDeployCommand: pnpm db:migrate` and updated `startCommand: pnpm db:migrate && pnpm --filter @lernivox/api start`.
+  - `apps/api/src/common/prisma/prisma.service.ts` — Added database schema startup check for `public.users`.
+  - `apps/api/src/auth/dto/register.dto.ts` — Replaced university email example with `you@example.com`.
+  - `apps/api/src/auth/dto/login.dto.ts` — Replaced university email example with `you@example.com`.
+  - `apps/api/src/auth/dto/auth-response.dto.ts` — Replaced university email example with `you@example.com`.
+  - `apps/api/src/auth/auth.service.spec.ts` — Added unit test verifying ordinary consumer email registration.
+  - `apps/web/app/(auth)/login/page.tsx` — Simplified supporting copy, updated label to "Email address" and placeholder to `you@example.com`, set `mode="login"` on `AuthShowcase`.
+  - `apps/web/app/(auth)/register/page.tsx` — Simplified supporting copy, updated label to "Email address" and placeholder to `you@example.com`, set `mode="register"` on `AuthShowcase`.
+  - `apps/web/components/auth/AuthShowcase.tsx` — Added mode-aware headline/subheadline for login and register with simple, natural language.
+  - `apps/web/app/(marketing)/page.tsx` — Replaced "Freemium" with "Free plan", simplified descriptions under all section headings to 1 short sentence (14–16px), removed decorative CTA pill.
+  - `apps/web/components/marketing/HeroUpload.tsx` — Removed `Interactive Showcase` and `Interactive Preview` decorative tags.
+  - `apps/web/components/marketing/GuidedLearningPreview.tsx` — Removed `Interactive Lesson Preview` and `Curated Demonstration` tags.
+  - `apps/web/test/api-refresh.test.ts` — Added test cases for ordinary email registrations and duplicate 409 conflict handling.
+  - `docs/DEPLOYMENT_GUIDE.md` — Documented automated migration execution in Render pipeline and manual local command.
+  - `PROGRESS.md` — Updated task record and roadmap.
+
+- **Verification Results**:
+  - `pnpm --filter @lernivox/web test`: 36/36 tests passed (0 failed).
+  - `pnpm --filter @lernivox/api test`: 175/175 tests passed (14 suites, 0 failed).
+  - `pnpm type-check`: 11/11 tasks passed with 0 TypeScript errors.
+  - `pnpm build`: 7/7 package builds passed, 17/17 Next.js static/dynamic routes compiled.
+  - `ss -tulpn`: Clean, zero lingering background ports.
+
+- **Next Recommended Action**:
+  - Trigger a redeploy on Render or run `pnpm db:migrate` against Neon so that `public.users` and the 13 schema migrations are created in the production database, and verify end-to-end user registration on the live deployed URL.
   - `apps/web/test/api-refresh.test.ts` — Added tests for 500 propagation and clean network error messages.
   - `render.yaml` — Configured `COOKIE_SAME_SITE: none` and `COOKIE_SECURE: "true"`.
   - `docs/DEPLOYMENT_GUIDE.md` — Documented `COOKIE_SAME_SITE` and cross-origin troubleshooting.
@@ -863,6 +877,17 @@ Deploy the updated API and Web application to Render and Vercel, and verify that
     - Removed visible Lernivox branding from `/login`, `/register`, and `AuthShowcase`: Removed the brand logo and wordmark header block while preserving the editorial headings ("Welcome back.", "Create your account."), all input fields, validation logic, responsive 44px buttons, and top-left "Back to homepage" navigation.
     - Polished frontend API connection error messages in `api.ts` to remove dev-only port references.
     - Verified all test suites across monorepo: API (174/174), Web (34/34), Worker (21/21), AI-core (25/25), full monorepo type-check (11/11 tasks), and production build (7/7 tasks).
+
+  - Fixed Production Registration Failure (Prisma P2021) & Simplified Public Website:
+    - Root-cause isolated the production registration 500 from Render logs: `PrismaClientKnownRequestError: The table public.users does not exist in the current database (P2021)`. Render was deploying `lernivox-api` without running `prisma migrate deploy`, leaving the Neon PostgreSQL database unmigrated with zero tables.
+    - Automated migrations in Render: Added `preDeployCommand: pnpm db:migrate` and updated `startCommand: pnpm db:migrate && pnpm --filter @lernivox/api start` in `render.yaml`. Added startup table existence check in `PrismaService.onModuleInit()`.
+    - Removed all university email restrictions: Changed labels to "Email address", updated placeholders to `you@example.com`, updated Swagger DTOs, and confirmed ordinary consumer domains (Gmail, Outlook, Yahoo, Proton, custom domains) are accepted.
+    - Simplified login and registration copy: Heading "Welcome back" with "Sign in to continue learning with your books."; heading "Create your account" with "Enter your details to get started."
+    - Mode-aware `AuthShowcase`: Login shows "Your learning continues here." / "Open your books, ask questions, and pick up where you left off."; Register shows "Make every book easier to understand." / "Bring your books or notes and learn at your own pace."
+    - Rewrote Free Plan section: Replaced "Freemium" with "Free plan" (0 Birr / forever), accurately described 1 MB PDF/DOCX/TXT uploads and grounded citations; replaced Pro Scholar tier with "Study Groups" (0 Birr / free preview), eliminating all technical jargon (vector indexing, worker queueing, OCR pipelines).
+    - Simplified text under all public section headings: Shortened descriptions to 1 short sentence (14–16px typography hierarchy) across Lesson Preview, Retention, Readiness, Study Groups, Pricing, and CTA banner.
+    - Removed decorative tags and labels: Removed `Interactive Showcase` and `Interactive Preview` from `HeroUpload.tsx`, `Interactive Lesson Preview` and `Curated Demonstration` from `GuidedLearningPreview.tsx`, and `Free Student Plan • Instant Setup` from CTA banner.
+    - Verified test suites: Web tests (36/36 passed), API tests (175/175 passed), monorepo type-check (11/11 tasks passed), and full production build (7/7 packages, 17/17 Next.js static/dynamic routes passed). Port audit verified clean (0 lingering processes).
 
 
 

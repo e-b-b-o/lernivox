@@ -29,19 +29,10 @@ export function GuidedLearningPreview() {
   return (
     <div className="bg-[#FAF8F4] border-[2px] border-[#1B3428] rounded-[24px] sm:rounded-[32px] p-4 sm:p-6 md:p-10 shadow-[0_4px_0_0_#1B3428] sm:shadow-[0_6px_0_0_#1B3428] max-w-5xl mx-auto mb-16 sm:mb-28 w-full max-w-full overflow-hidden">
       {/* Card Header Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#1B3428]/15 pb-5 sm:pb-6 mb-6 sm:mb-8">
-        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-          <span className="bg-[#F9D8C0] text-[#14261D] text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-full border border-[#1B3428]/15 inline-flex items-center gap-1.5 select-none">
-            <span>⚡</span>
-            <span>Interactive Lesson Preview</span>
-          </span>
-          <span className="font-sans text-xs sm:text-sm font-semibold text-[#14261D]">
-            Calculus I • Chapter 2.5: The Chain Rule
-          </span>
-        </div>
-        <div className="bg-[#EAE4D3] text-[#14261D]/70 text-[11px] sm:text-xs font-semibold px-3 py-1 rounded-full border border-[#1B3428]/10 select-none">
-          Curated Demonstration
-        </div>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#1B3428]/15 pb-4 sm:pb-5 mb-6 sm:mb-8">
+        <span className="font-display text-sm sm:text-base font-bold text-[#14261D]">
+          Calculus I • Chapter 2.5: The Chain Rule
+        </span>
       </div>
 
       <div className="space-y-6">

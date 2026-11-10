@@ -122,6 +122,40 @@ describe('AuthService', () => {
         }),
       ).rejects.toThrow(ConflictException);
     });
+
+    it('should register users with ordinary email providers (Gmail, Outlook, Yahoo, Proton)', async () => {
+      const providers = [
+        'student.user@gmail.com',
+        'reader.book@outlook.com',
+        'scholar@yahoo.com',
+        'learner@proton.me',
+      ];
+
+      for (const email of providers) {
+        mockPrisma.user.findUnique.mockResolvedValue(null);
+        mockPrisma.user.create.mockResolvedValue({
+          id: `user-${email}`,
+          email,
+          name: 'Ordinary User',
+          role: 'USER',
+          planTier: 'FREE',
+          isActive: true,
+          createdAt: new Date(),
+        });
+        mockPrisma.userIdentity.create.mockResolvedValue({ id: 'ident-new' });
+        mockPrisma.userPreference.create.mockResolvedValue({ id: 'pref-new' });
+        mockPrisma.userSession.create.mockResolvedValue({ id: 'session-new' });
+
+        const result = await authService.register({
+          email,
+          password: 'Password123!',
+          name: 'Ordinary User',
+        });
+
+        expect(result.user.email).toBe(email);
+        expect(result.accessToken).toBe('mock-jwt-token');
+      }
+    });
   });
 
   describe('User Login', () => {

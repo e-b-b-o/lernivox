@@ -10,6 +10,15 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     try {
       await this.client.$connect();
       this.logger.log('Prisma connected to PostgreSQL successfully');
+
+      const check = await this.client.$queryRawUnsafe<Array<{ exists: boolean }>>(
+        "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'users');",
+      );
+      if (!check?.[0]?.exists) {
+        this.logger.warn(
+          'DATABASE SCHEMA WARNING: The table "public.users" does not exist in the connected database. Run "pnpm db:migrate" to apply migrations.',
+        );
+      }
     } catch (err) {
       this.logger.error('Failed to connect to PostgreSQL via Prisma', err);
     }

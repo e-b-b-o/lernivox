@@ -256,4 +256,80 @@ describe('Centralized API Silent Refresh & Concurrency Guard', () => {
       },
     );
   });
+
+  describe('Ordinary Email Registration and Login Support', () => {
+    test('successfully registers with ordinary consumer email domains (Gmail, Outlook, Yahoo)', async () => {
+      const testEmails = [
+        'student@gmail.com',
+        'reader@outlook.com',
+        'scholar@yahoo.com',
+        'learner@proton.me',
+      ];
+
+      for (const email of testEmails) {
+        globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+          const url = typeof input === 'string' ? input : input.toString();
+          assert(url.includes('/auth/register'));
+          const body = JSON.parse(init?.body as string);
+          assert.equal(body.email, email);
+
+          return new Response(
+            JSON.stringify({
+              accessToken: `token-for-${email}`,
+              user: {
+                id: `u-${email}`,
+                email,
+                name: 'Test Learner',
+                role: 'USER',
+                planTier: 'FREE',
+              },
+            }),
+            {
+              status: 201,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          );
+        };
+
+        const result = await api.auth.register({
+          email,
+          password: 'SecurePassword123!',
+          name: 'Test Learner',
+        });
+
+        assert.equal(result.user.email, email);
+        assert.equal(result.accessToken, `token-for-${email}`);
+      }
+    });
+
+    test('rejects duplicate registration with 409 Conflict', async () => {
+      globalThis.fetch = async () => {
+        return new Response(
+          JSON.stringify({
+            statusCode: 409,
+            error: { message: 'An account with this email address already exists.' },
+          }),
+          {
+            status: 409,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        );
+      };
+
+      await assert.rejects(
+        async () => {
+          await api.auth.register({
+            email: 'existing@gmail.com',
+            password: 'Password123!',
+          });
+        },
+        (err: any) => {
+          assert(err instanceof ApiError);
+          assert.equal(err.statusCode, 409);
+          assert(err.message.includes('already exists'));
+          return true;
+        },
+      );
+    });
+  });
 });

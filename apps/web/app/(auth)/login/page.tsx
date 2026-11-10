@@ -92,7 +92,7 @@ function LoginForm() {
         </span>
       </h1>
       <p className="font-sans text-sm text-[#14261D]/70 leading-relaxed mb-8">
-        Turn dense textbooks, lecture slides, and syllabi into active recall and verifiable mastery.
+        Sign in to continue learning with your books.
       </p>
 
       {/* Google Continue Button */}
@@ -149,7 +149,7 @@ function LoginForm() {
             htmlFor="email"
             className="block text-xs font-bold text-[#14261D] uppercase tracking-wider mb-1.5"
           >
-            Email Address
+            Email address
           </label>
           <input
             id="email"
@@ -159,7 +159,7 @@ function LoginForm() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="student@university.edu"
+            placeholder="you@example.com"
             disabled={isSubmitting}
             className="w-full bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/20 rounded-2xl px-4 py-3.5 text-sm text-[#14261D] placeholder-[#14261D]/40 focus:outline-none focus:border-[#497E64] focus:ring-2 focus:ring-[#497E64]/20 shadow-sm transition-all disabled:opacity-50"
           />
@@ -259,7 +259,7 @@ export default function LoginPage() {
       </div>
 
       {/* Right Column: Cleaned & Decluttered Visual Showcase */}
-      <AuthShowcase />
+      <AuthShowcase mode="login" />
     </div>
   );
 }

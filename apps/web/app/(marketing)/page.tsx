@@ -225,8 +225,8 @@ export default function MarketingPage() {
               See how Lernivox deconstructs{' '}
               <span className="text-[#497E64]">difficult topics.</span>
             </h2>
-            <p className="font-sans text-base sm:text-lg md:text-xl text-[#14261D]/75 max-w-2xl mx-auto leading-relaxed">
-              Rather than generic summaries, Lernivox presents structured learning objectives, intuitive mental models, worked derivations, and instant comprehension checks.
+            <p className="font-sans text-sm sm:text-base text-[#14261D]/75 max-w-xl mx-auto leading-relaxed">
+              Get clear explanations, worked examples, and quick checks to make sure you understand.
             </p>
           </div>
         </ScrollReveal>
@@ -283,8 +283,8 @@ export default function MarketingPage() {
                   </svg>
                 </span>
               </h3>
-              <p className="font-sans text-sm md:text-base text-[#14261D]/75 leading-relaxed max-w-md">
-                Every feature is purposefully designed to bridge the gap between heavy textbooks and active recall.
+              <p className="font-sans text-sm sm:text-base text-[#14261D]/75 leading-relaxed max-w-md">
+                Practice with questions and flashcards directly connected to the chapters you are reading.
               </p>
             </div>
 
@@ -305,7 +305,7 @@ export default function MarketingPage() {
             staggerDelay={0.14}
             className="lg:col-span-7 flex flex-col justify-start py-1"
           >
-            {/* Card 01: Tail dips slightly down */}
+            {/* Card 01 */}
             <div 
               className="bg-white rounded-[26px] p-6 md:p-8 shadow-[0_4px_24px_rgba(20,38,29,0.06)] hover:shadow-[0_8px_32px_rgba(20,38,29,0.1)] transition-all duration-300 flex items-start gap-5 border border-black/[0.04] relative z-10"
               style={{ 
@@ -318,17 +318,16 @@ export default function MarketingPage() {
                 01
               </div>
               <div>
-                <h4 className="font-display text-lg md:text-xl font-bold text-[#14261D] mb-1.5 flex items-baseline gap-2 flex-wrap">
+                <h4 className="font-display text-lg md:text-xl font-bold text-[#14261D] mb-1.5">
                   Guided AI Tutor
-                  <span className="font-sans font-normal text-xs md:text-sm text-[#14261D]/50 italic">— source grounded</span>
                 </h4>
-                <p className="font-sans text-[14px] md:text-[15px] leading-relaxed text-[#14261D]/75">
-                  Answers your questions using solely your professor&apos;s slides and textbook chapters. Never hallucinates arbitrary formulas or ungrounded facts.
+                <p className="font-sans text-sm md:text-[15px] leading-relaxed text-[#14261D]/75">
+                  Ask questions about your book and get clear explanations with exact page citations.
                 </p>
               </div>
             </div>
 
-            {/* Card 02: Tail lifts UP (pinches Card 01 on right), Head dips DOWN (pinches Card 03 on left) */}
+            {/* Card 02 */}
             <div 
               className="bg-white rounded-[26px] p-6 md:p-8 shadow-[0_4px_24px_rgba(20,38,29,0.06)] hover:shadow-[0_8px_32px_rgba(20,38,29,0.1)] transition-all duration-300 flex items-start gap-5 border border-black/[0.04] relative z-20"
               style={{ 
@@ -341,17 +340,16 @@ export default function MarketingPage() {
                 02
               </div>
               <div>
-                <h4 className="font-display text-lg md:text-xl font-bold text-[#14261D] mb-1.5 flex items-baseline gap-2 flex-wrap">
+                <h4 className="font-display text-lg md:text-xl font-bold text-[#14261D] mb-1.5">
                   Step-by-Step Worked Methods
-                  <span className="font-sans font-normal text-xs md:text-sm text-[#14261D]/50 italic">— progressive logic</span>
                 </h4>
-                <p className="font-sans text-[14px] md:text-[15px] leading-relaxed text-[#14261D]/75">
-                  Breaks intricate mathematical derivations, biological cycles, and legal analyses into progressive, digestible sub-steps.
+                <p className="font-sans text-sm md:text-[15px] leading-relaxed text-[#14261D]/75">
+                  Break complex formulas, concepts, and derivations into clear, manageable steps.
                 </p>
               </div>
             </div>
 
-            {/* Card 03: Head lifts UP (pinches Card 02 on left), Tail drops DOWN (opens wide wedge on right) */}
+            {/* Card 03 */}
             <div 
               className="bg-white rounded-[26px] p-6 md:p-8 shadow-[0_4px_24px_rgba(20,38,29,0.06)] hover:shadow-[0_8px_32px_rgba(20,38,29,0.1)] transition-all duration-300 flex items-start gap-5 border border-black/[0.04] relative z-10"
               style={{ 
@@ -363,12 +361,11 @@ export default function MarketingPage() {
                 03
               </div>
               <div>
-                <h4 className="font-display text-lg md:text-xl font-bold text-[#14261D] mb-1.5 flex items-baseline gap-2 flex-wrap">
+                <h4 className="font-display text-lg md:text-xl font-bold text-[#14261D] mb-1.5">
                   Chapter Quizzes & Feedback
-                  <span className="font-sans font-normal text-xs md:text-sm text-[#14261D]/50 italic">— active recall</span>
                 </h4>
-                <p className="font-sans text-[14px] md:text-[15px] leading-relaxed text-[#14261D]/75">
-                  Generates practice questions tied directly to chapter learning objectives, providing instant explanations for wrong options.
+                <p className="font-sans text-sm md:text-[15px] leading-relaxed text-[#14261D]/75">
+                  Practice with questions generated directly from what you read and learn from instant feedback.
                 </p>
               </div>
             </div>
@@ -394,7 +391,7 @@ export default function MarketingPage() {
                   </span>
                 </div>
                 <p className="font-sans text-sm text-[#14261D]/75 leading-relaxed pl-7">
-                  Applies abstract principles to novel problem sets, encouraging conceptual mastery rather than rote memorization.
+                  Practice applying what you learn to new questions and realistic scenarios.
                 </p>
               </div>
 
@@ -411,7 +408,7 @@ export default function MarketingPage() {
                   </span>
                 </div>
                 <p className="font-sans text-sm text-[#14261D]/75 leading-relaxed pl-7">
-                  Condenses dense 50-page textbook chapters into high-yield summaries, formula sheets, and key concept decks.
+                  Review key formulas, concepts, and definitions with clean summary flashcards.
                 </p>
               </div>
 
@@ -428,7 +425,7 @@ export default function MarketingPage() {
                   </span>
                 </div>
                 <p className="font-sans text-sm text-[#14261D]/75 leading-relaxed pl-7">
-                  Click any citation tag to jump directly to the exact textbook page, section number, and theorem.
+                  Click any citation to jump straight to the exact page and paragraph in your book.
                 </p>
               </div>
             </div>
@@ -449,8 +446,8 @@ export default function MarketingPage() {
                   Track exam readiness with verifiable{' '}
                   <span className="text-[#497E64]">certainty.</span>
                 </h2>
-                <p className="mt-4 sm:mt-6 text-base sm:text-lg md:text-xl text-[#14261D]/75 leading-relaxed">
-                  Stop guessing whether you are prepared for test day. Lernivox tracks your chapter progress and quiz scores so you walk into every exam confident.
+                <p className="mt-3 sm:mt-4 text-sm sm:text-base text-[#14261D]/75 leading-relaxed">
+                  See your reading progress and quiz scores in real time so you always know which topics you have mastered.
                 </p>
 
                 <div className="mt-8 sm:mt-10 space-y-5 sm:space-y-6">
@@ -459,9 +456,9 @@ export default function MarketingPage() {
                       ✓
                     </div>
                     <div>
-                      <h4 className="text-base sm:text-lg font-bold text-[#14261D]">Chapter-by-Chapter Progress</h4>
-                      <p className="text-sm sm:text-base text-[#14261D]/70 mt-1">
-                        See exactly which chapters you&apos;ve mastered and which pages still need a quick review.
+                      <h4 className="text-base font-bold text-[#14261D]">Chapter-by-Chapter Progress</h4>
+                      <p className="text-xs sm:text-sm text-[#14261D]/70 mt-1">
+                        See which chapters you have finished and which ones need more practice.
                       </p>
                     </div>
                   </div>
@@ -471,9 +468,9 @@ export default function MarketingPage() {
                       ✓
                     </div>
                     <div>
-                      <h4 className="text-base sm:text-lg font-bold text-[#14261D]">Weak Spot Finder</h4>
-                      <p className="text-sm sm:text-base text-[#14261D]/70 mt-1">
-                        Instantly spot the tricky formulas or concepts where you keep missing practice questions.
+                      <h4 className="text-base font-bold text-[#14261D]">Weak Spot Finder</h4>
+                      <p className="text-xs sm:text-sm text-[#14261D]/70 mt-1">
+                        Spot the specific questions or concepts where you need extra review.
                       </p>
                     </div>
                   </div>
@@ -483,9 +480,9 @@ export default function MarketingPage() {
                       ★
                     </div>
                     <div>
-                      <h4 className="text-base sm:text-lg font-bold text-[#14261D]">Smart Daily Review (Roadmap)</h4>
-                      <p className="text-sm sm:text-base text-[#14261D]/70 mt-1">
-                        Get friendly reminders to review difficult topics right before you&apos;re about to forget them.
+                      <h4 className="text-base font-bold text-[#14261D]">Smart Daily Review</h4>
+                      <p className="text-xs sm:text-sm text-[#14261D]/70 mt-1">
+                        Review difficult concepts before you forget them with spaced practice.
                       </p>
                     </div>
                   </div>
@@ -603,8 +600,8 @@ export default function MarketingPage() {
                   </svg>
                 </span>
               </h2>
-              <p className="font-sans text-lg md:text-xl text-[#14261D]/75 max-w-2xl mx-auto leading-relaxed">
-                Studying is easier together. Share one textbook across your group, challenge friends to quick chapter quizzes, and prep for finals as a team.
+              <p className="font-sans text-sm sm:text-base text-[#14261D]/75 max-w-xl mx-auto leading-relaxed">
+                Share books with classmates, discuss chapters together, and keep your own notes private.
               </p>
             </div>
           </ScrollReveal>
@@ -624,8 +621,8 @@ export default function MarketingPage() {
               <h4 className="font-display text-xl font-bold text-[#14261D] mb-3">
                 One Shared Book
               </h4>
-              <p className="font-sans text-base text-[#14261D]/75 leading-relaxed">
-                One person uploads the textbook or lecture slides, and everyone in your study circle gets instant access to chapter notes and practice questions.
+              <p className="font-sans text-sm text-[#14261D]/75 leading-relaxed">
+                Upload a book once so everyone in your study circle can read and learn together.
               </p>
             </div>
 
@@ -637,8 +634,8 @@ export default function MarketingPage() {
               <h4 className="font-display text-xl font-bold text-[#14261D] mb-3">
                 Shared Group Discussions
               </h4>
-              <p className="font-sans text-base text-[#14261D]/75 leading-relaxed">
-                Discuss complex ideas with group members right on the page, share helpful AI tutor explanations, and keep everyone on the same page.
+              <p className="font-sans text-sm text-[#14261D]/75 leading-relaxed">
+                Ask questions and discuss difficult chapters with your study group in real time.
               </p>
             </div>
 
@@ -650,8 +647,8 @@ export default function MarketingPage() {
               <h4 className="font-display text-xl font-bold text-[#14261D] mb-3">
                 Private Notes & Progress
               </h4>
-              <p className="font-sans text-base text-[#14261D]/75 leading-relaxed">
-                Your private tutor conversations, personal reading progress, and individual practice answers stay completely confidential to you.
+              <p className="font-sans text-sm text-[#14261D]/75 leading-relaxed">
+                Your quiz attempts, reading notes, and tutor conversations remain completely private.
               </p>
             </div>
           </StaggerContainer>
@@ -665,7 +662,7 @@ export default function MarketingPage() {
         {/* Left-Aligned Header Block */}
         <ScrollReveal id="pricing-header" delay={0.1}>
           <div className="max-w-5xl mx-auto mb-10 sm:mb-14 text-left">
-            <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-4xl lg:text-[56px] text-[#14261D] tracking-tight leading-[1.08] mb-4">
+            <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-4xl lg:text-[56px] text-[#14261D] tracking-tight leading-[1.08] mb-3">
               Simple, accessible academic{' '}
               <span
                 className="relative inline-block text-[#497E64] ml-1 select-none"
@@ -702,19 +699,19 @@ export default function MarketingPage() {
                 </svg>
               </span>
             </h2>
-            <p className="font-sans text-sm sm:text-base md:text-lg text-[#14261D]/75 max-w-xl leading-relaxed">
-              Every student gets genuine document grounding for free. Upgrade only when you manage an extensive multi-semester library.
+            <p className="font-sans text-sm sm:text-base text-[#14261D]/75 max-w-xl leading-relaxed">
+              Start for free with your own books and upgrade only if you need more.
             </p>
           </div>
         </ScrollReveal>
 
         {/* Pricing Cards Grid (Light vs Dark Contrast Pair) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-5xl mx-auto items-stretch">
-          {/* Left Card: Light Tactile Card (Free Starter) */}
+          {/* Left Card: Light Tactile Card (Free Plan) */}
           <ScrollReveal id="pricing-free" delay={0.2} className="h-full">
             <div className="bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/20 rounded-[24px] sm:rounded-[28px] p-5 sm:p-8 md:p-10 shadow-[0_4px_0_0_#1B3428] flex flex-col justify-between h-full">
               <div>
-                <h3 className="font-display text-xl font-bold text-[#14261D] mb-2">Free Starter</h3>
+                <h3 className="font-display text-xl font-bold text-[#14261D] mb-2">Free plan</h3>
                 
                 <div className="flex items-baseline gap-2 mb-4">
                   <span className="font-display font-extrabold text-4xl xs:text-5xl md:text-6xl text-[#14261D] tracking-tight">
@@ -724,7 +721,7 @@ export default function MarketingPage() {
                 </div>
 
                 <p className="font-sans text-sm text-[#14261D]/75 mb-6">
-                  Ideal for students focusing on a core class or midterm syllabus this term.
+                  Everything you need to study your books with a personal AI tutor.
                 </p>
 
                 <hr className="border-t border-[#14261D]/15 my-6" />
@@ -734,25 +731,25 @@ export default function MarketingPage() {
                     <div className="w-5 h-5 rounded-full bg-[#497E64] text-white flex items-center justify-center shrink-0 text-xs font-bold">
                       ✓
                     </div>
-                    <span>Upload books, notes, articles, or lecture files</span>
+                    <span>Upload books, notes, and lecture slides (up to 1 MB)</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full bg-[#497E64] text-white flex items-center justify-center shrink-0 text-xs font-bold">
                       ✓
                     </div>
-                    <span>Files up to 1 MB (PDF, DOCX, TXT)</span>
+                    <span>Works with PDF, Word documents, and text files</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full bg-[#497E64] text-white flex items-center justify-center shrink-0 text-xs font-bold">
                       ✓
                     </div>
-                    <span>Fast, secure background preparation</span>
+                    <span>Ask questions with direct page citations from your book</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full bg-[#497E64] text-white flex items-center justify-center shrink-0 text-xs font-bold">
                       ✓
                     </div>
-                    <span>Direct page citations, AI tutor & practice quizzes</span>
+                    <span>Chapter practice quizzes and review flashcards</span>
                   </li>
                 </ul>
               </div>
@@ -761,31 +758,31 @@ export default function MarketingPage() {
                 href="/register"
                 className="w-full mt-8 flex items-center justify-center py-3.5 px-6 rounded-full bg-[#FAF8F4] text-[#14261D] font-display font-bold text-base border-[2px] border-[#14261D] shadow-[0_4px_0_0_#14261D] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#14261D] active:translate-y-1 active:shadow-[0_1px_0_0_#14261D] transition-all text-center"
               >
-                Start Learning Free
+                Start learning free
               </Link>
             </div>
           </ScrollReveal>
 
-          {/* Right Card: Dark Forest Green Card (Freemium Tier) */}
+          {/* Right Card: Dark Forest Green Card (Study Groups) */}
           <ScrollReveal id="pricing-pro" delay={0.32} className="h-full">
             <div className="bg-[#1B3428] border-[1.5px] border-[#14261D] rounded-[24px] sm:rounded-[28px] p-5 sm:p-8 md:p-10 shadow-[0_6px_0_0_#14261D] flex flex-col justify-between relative overflow-hidden h-full">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-display text-xl font-bold text-white">Pro Scholar</h3>
-                  <span className="bg-[#E8722C] text-white font-sans text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full shadow-sm">
-                    Popular
+                  <h3 className="font-display text-xl font-bold text-white">Study Groups</h3>
+                  <span className="bg-[#E8722C] text-white font-sans text-xs font-bold px-3.5 py-1.5 rounded-full shadow-sm">
+                    Free preview
                   </span>
                 </div>
 
                 <div className="flex items-baseline gap-2 mb-4">
                   <span className="font-display font-extrabold text-4xl xs:text-5xl md:text-6xl text-white tracking-tight">
-                    Freemium
+                    0 Birr
                   </span>
-                  <span className="font-sans text-sm sm:text-base text-white/60 font-medium">/ tier</span>
+                  <span className="font-sans text-sm sm:text-base text-white/60 font-medium">/ during preview</span>
                 </div>
 
                 <p className="font-sans text-sm text-white/75 mb-6">
-                  For university students managing full course loads, research papers, and thesis materials.
+                  Collaborate with classmates around shared books and course materials.
                 </p>
 
                 <hr className="border-t border-white/15 my-6" />
@@ -795,25 +792,25 @@ export default function MarketingPage() {
                     <div className="w-5 h-5 rounded-full bg-[#497E64]/30 border border-[#497E64] text-[#86EFAC] flex items-center justify-center shrink-0 text-xs font-bold">
                       ✓
                     </div>
-                    <span>Unlimited document uploads and course libraries</span>
+                    <span>Everything in the Free plan</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full bg-[#497E64]/30 border border-[#497E64] text-[#86EFAC] flex items-center justify-center shrink-0 text-xs font-bold">
                       ✓
                     </div>
-                    <span>Priority background worker queueing</span>
+                    <span>Shared book workspaces for your study circle</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full bg-[#497E64]/30 border border-[#497E64] text-[#86EFAC] flex items-center justify-center shrink-0 text-xs font-bold">
                       ✓
                     </div>
-                    <span>Comprehensive multi-chapter vector indexing</span>
+                    <span>Chapter discussion channels for group study</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full bg-[#497E64]/30 border border-[#497E64] text-[#86EFAC] flex items-center justify-center shrink-0 text-xs font-bold">
                       ✓
                     </div>
-                    <span>Early access to study rooms and OCR pipelines</span>
+                    <span>Private AI tutor conversations and individual quiz scores</span>
                   </li>
                 </ul>
               </div>
@@ -822,7 +819,7 @@ export default function MarketingPage() {
                 href="/register"
                 className="w-full mt-8 flex items-center justify-center py-3.5 px-6 rounded-full bg-[#497E64] text-white font-display font-bold text-base shadow-[0_4px_0_0_#14261D] hover:bg-[#3D6B55] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#14261D] active:translate-y-1 active:shadow-[0_1px_0_0_#14261D] transition-all text-center"
               >
-                Register for Free Access
+                Start a study group
               </Link>
             </div>
           </ScrollReveal>
@@ -1033,14 +1030,6 @@ export default function MarketingPage() {
                 </div>
               </div>
             </ScrollReveal>
-
-            {/* Intro Badge Pill */}
-            <ScrollReveal id="cta-badge" delay={0.1}>
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 border border-[#14261D]/15 text-xs text-[#14261D] font-medium shadow-sm backdrop-blur-sm select-none">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#E8722C]" />
-                Free Student Plan • Instant Setup
-              </div>
-            </ScrollReveal>
           </div>
 
           <ScrollReveal id="cta-headline" delay={0.15}>
@@ -1084,8 +1073,8 @@ export default function MarketingPage() {
               </span>
             </h2>
 
-            <p className="font-sans text-xs xs:text-sm sm:text-base md:text-[17px] text-[#14261D]/75 max-w-xl mx-auto leading-relaxed mb-8">
-              Upload your first textbook chapter and experience learning grounded in real citations and zero hallucination.
+            <p className="font-sans text-sm sm:text-base text-[#14261D]/75 max-w-xl mx-auto leading-relaxed mb-8">
+              Bring your first book or notes and start learning with your private AI tutor.
             </p>
           </ScrollReveal>
 
@@ -1097,7 +1086,7 @@ export default function MarketingPage() {
                 href="/register"
                 className="w-full sm:w-auto h-[50px] sm:h-[52px] px-6 sm:px-8 rounded-full bg-[#E8722C] text-white font-display font-bold text-sm sm:text-base shadow-[0_4px_0_0_#B26E45] hover:-translate-y-0.5 hover:shadow-[0_6px_0_0_#B26E45] active:translate-y-1 active:shadow-[0_1px_0_0_#B26E45] transition-all flex items-center justify-center text-center"
               >
-                Create Free Student Account →
+                Create your free account
               </Link>
 
               {/* Secondary Light 3D Button */}
@@ -1111,7 +1100,7 @@ export default function MarketingPage() {
 
             {/* Micro Trust Indicators */}
             <p className="font-sans text-xs text-[#14261D]/60 tracking-wide">
-              Free student plan • Strict private textbook storage • Instant setup
+              Free plan. Private book storage. Instant setup.
             </p>
           </ScrollReveal>
         </div>

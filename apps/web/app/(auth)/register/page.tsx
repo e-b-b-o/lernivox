@@ -100,7 +100,7 @@ function RegisterForm() {
         </span>
       </h1>
       <p className="font-sans text-sm text-[#14261D]/70 leading-relaxed mb-6">
-        Turn dense textbooks, lecture slides, and syllabi into active recall and verifiable mastery.
+        Enter your details to get started.
       </p>
 
       {/* Google Continue Button */}
@@ -157,7 +157,7 @@ function RegisterForm() {
             htmlFor="name"
             className="block text-xs font-bold text-[#14261D] uppercase tracking-wider mb-1"
           >
-            Full Name (Optional)
+            Full name (optional)
           </label>
           <input
             id="name"
@@ -177,7 +177,7 @@ function RegisterForm() {
             htmlFor="email"
             className="block text-xs font-bold text-[#14261D] uppercase tracking-wider mb-1"
           >
-            University Email
+            Email address
           </label>
           <input
             id="email"
@@ -187,7 +187,7 @@ function RegisterForm() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="alex@university.edu"
+            placeholder="you@example.com"
             disabled={isSubmitting}
             className="w-full bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/20 rounded-2xl px-4 py-3 text-sm text-[#14261D] placeholder-[#14261D]/40 focus:outline-none focus:border-[#497E64] focus:ring-2 focus:ring-[#497E64]/20 shadow-sm transition-all disabled:opacity-50"
           />
@@ -316,7 +316,7 @@ export default function RegisterPage() {
       </div>
 
       {/* Right Column: Cleaned & Decluttered Visual Showcase */}
-      <AuthShowcase />
+      <AuthShowcase mode="register" />
     </div>
   );
 }

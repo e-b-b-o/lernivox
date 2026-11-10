@@ -277,13 +277,23 @@ If configuring manually via the Render UI:
 - **Health Check Path**: `/healthz`
 - **Environment Variables**: Add variables from Section 5.3. Set `WORKER_WAKE_SECRET` to the exact same string set on `lernivox-api`.
 
-### 4.5 PostgreSQL Database Release Step (Run Once on Schema Changes)
+### 4.5 PostgreSQL Database Release Step (Automated in Render Pipeline)
 
-Database migrations must run as an isolated **Job** or terminal command before the API starts:
+Database migrations run automatically in the Render deployment pipeline via `preDeployCommand` and `startCommand`:
 
 ```bash
+# Defined in render.yaml and root package.json:
+pnpm db:migrate
+# Which executes:
 pnpm --filter @lernivox/database exec prisma migrate deploy
 ```
+
+> [!TIP]
+> In `render.yaml`, `lernivox-api` is configured with:
+> - `preDeployCommand: pnpm db:migrate`
+> - `startCommand: pnpm db:migrate && pnpm --filter @lernivox/api start`
+>
+> This guarantees that whenever Render builds or deploys a new release, pending Prisma migrations are automatically executed against Neon PostgreSQL before the API opens its listening port. If all migrations are already applied, `prisma migrate deploy` verifies schema state in <300ms and exits cleanly with 0.
 
 > [!CAUTION]
 > **Never Run `prisma db push` or `prisma migrate reset` in Production**:
@@ -420,9 +430,10 @@ Follow these 20 steps in sequential order. Do not skip ahead.
 ### Phase 2: Database Migration Release Step
 
 5. **Apply Prisma Database Migrations**:
-   - From your local machine terminal (or a one-off Northflank deployment job), run:
+   - **Automated**: `render.yaml` automatically executes `pnpm db:migrate` in `preDeployCommand` and `startCommand` on Render.
+   - **Manual or One-Time Local Migration**: If deploying manually from the dashboard or testing Neon connectivity locally:
      ```bash
-     DATABASE_URL="postgresql://[user]:[pass]@[neon-host]/lernivox?sslmode=require&schema=public" pnpm --filter @lernivox/database exec prisma migrate deploy
+     DATABASE_URL="postgresql://[user]:[pass]@[neon-host]/lernivox?sslmode=require&schema=public" pnpm db:migrate
      ```
    - Verify output: `No pending migrations to apply` or `All migrations have been successfully applied`.
 

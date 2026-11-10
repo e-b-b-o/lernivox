@@ -4,7 +4,7 @@ import type { LoginRequestDto } from '@lernivox/contracts';
 
 export class LoginDto implements LoginRequestDto {
   @ApiProperty({
-    example: 'student@university.edu',
+    example: 'you@example.com',
     description: 'Registered user email address',
   })
   @IsEmail({}, { message: 'A valid email address is required' })

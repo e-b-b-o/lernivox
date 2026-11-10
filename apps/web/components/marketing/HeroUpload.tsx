@@ -134,10 +134,6 @@ export function HeroUpload() {
           {/* Left Side (5 Columns) — Editorial Narrative & 3-Step Flow */}
           <div className="lg:col-span-5 text-left">
             <ScrollReveal id="workspace-heading" delay={0.1}>
-              <span className="bg-[#F9D8C0] text-[#14261D] font-sans text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full inline-block mb-4 shadow-sm">
-                Interactive Showcase
-              </span>
-
               <h2 className="font-display font-extrabold text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-[54px] text-[#14261D] tracking-tight leading-[1.08] mb-8">
                 From dense reading to clear, guided{' '}
                 <span
@@ -218,18 +214,13 @@ export function HeroUpload() {
               className="w-full max-w-full bg-[#FAF8F4] border-[2px] border-[#1B3428] rounded-[24px] sm:rounded-[32px] shadow-[0_4px_0_0_#1B3428] sm:shadow-[0_6px_0_0_#1B3428] p-5 sm:p-7 md:p-8 transition-all duration-200"
             >
               {/* Section Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-[#1B3428]/10">
-                <div>
-                  <h3 className="font-display font-bold text-base sm:text-lg text-[#14261D]">
-                    See how Lernivox helps you understand a book
-                  </h3>
-                  <p className="text-xs text-[#14261D]/70 font-sans mt-0.5">
-                    Select a sample material below to preview reading and tutoring:
-                  </p>
-                </div>
-                <span className="self-start sm:self-auto px-2.5 py-1 rounded-full bg-[#E2EBD8] text-[#497E64] font-mono font-bold text-[11px] uppercase tracking-wider border border-[#497E64]/20 shrink-0">
-                  Interactive Preview
-                </span>
+              <div className="mb-5 pb-4 border-b border-[#1B3428]/10">
+                <h3 className="font-display font-bold text-base sm:text-lg text-[#14261D]">
+                  See how Lernivox helps you understand a book
+                </h3>
+                <p className="text-xs text-[#14261D]/70 font-sans mt-0.5">
+                  Select a sample material below to preview reading and tutoring:
+                </p>
               </div>
 
               {/* 4 Interactive Sample Selector Pills — 2x2 grid on mobile/narrow, 4-column on desktop (zero 3+1 wrap) */}
