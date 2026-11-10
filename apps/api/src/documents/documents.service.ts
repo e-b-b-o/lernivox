@@ -7,6 +7,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectQueue } from '@nestjs/bullmq';
@@ -32,6 +33,7 @@ import {
 } from '@lernivox/contracts';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { STORAGE_SERVICE_TOKEN } from '../common/storage/storage.module';
+import { WorkerWakeService } from '../common/worker-wake/worker-wake.service';
 import { WorkspacesService } from '../workspaces/workspaces.service';
 import { CreatePastedTextRequestDto } from './dto/create-pasted-text.dto';
 import {
@@ -61,6 +63,8 @@ export class DocumentsService {
     @InjectQueue(QueueName.DOCUMENT_INGESTION)
     private readonly ingestionQueue: Queue<DocumentIngestionJobPayload>,
     private readonly configService: ConfigService,
+    @Optional()
+    private readonly workerWakeService?: WorkerWakeService,
   ) {
     this.maxUploadSizeBytes = this.configService.get<number>(
       'MAX_UPLOAD_SIZE_BYTES',
@@ -276,6 +280,7 @@ export class DocumentsService {
         },
       );
       this.logger.log(`Enqueued ingestion job for document ${document.id}`);
+      this.workerWakeService?.wake('document-upload');
     } catch (err) {
       this.logger.error(`Failed to enqueue ingestion job for document ${document.id}`, err);
       // Even if queue dispatch fails temporarily, document is safely recorded as UPLOADED
@@ -361,6 +366,8 @@ export class DocumentsService {
           removeOnComplete: true,
         },
       );
+      this.logger.log(`Enqueued ingestion job for pasted text document ${document.id}`);
+      this.workerWakeService?.wake('pasted-text-upload');
     } catch (err) {
       this.logger.error(`Failed to enqueue text ingestion job for document ${document.id}`, err);
     }
@@ -391,6 +398,12 @@ export class DocumentsService {
     const { document } = await this.workspacesService.verifyDocumentAccess(userId, documentId);
     const isComplete = document.status === 'READY';
     const isFailed = document.status === 'FAILED';
+
+    // If document is in an incomplete ingestion state, trigger a throttled wake attempt
+    if (!isComplete && !isFailed) {
+      this.workerWakeService?.wakeThrottled('document-status-poll');
+    }
+
     return {
       documentId: document.id,
       status: document.status as DocumentStatusDto['status'],

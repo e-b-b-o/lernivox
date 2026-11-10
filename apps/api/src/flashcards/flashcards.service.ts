@@ -30,6 +30,7 @@ import {
   type SourcePassageForFlashcard,
 } from '@lernivox/ai-core';
 import { PrismaService } from '../common/prisma/prisma.service';
+import { WorkerWakeService } from '../common/worker-wake/worker-wake.service';
 import {
   CreateFlashcardDeckDto,
   GenerateFlashcardsDto,
@@ -97,6 +98,7 @@ export class FlashcardsService {
     @InjectQueue(QueueName.AI_ORCHESTRATION)
     private readonly aiQueue: Queue<GenerateFlashcardsJobPayload>,
     @Optional() private readonly config?: ConfigService,
+    @Optional() private readonly workerWakeService?: WorkerWakeService,
   ) {
     const aiProviderType = this.config?.get<string>('AI_PROVIDER', 'gemini');
     const geminiApiKey = this.config?.get<string>('GEMINI_API_KEY');
@@ -341,6 +343,7 @@ export class FlashcardsService {
     );
 
     this.logger.log(`Enqueued flashcard generation job for deck ${deck.id}`);
+    this.workerWakeService?.wake('flashcard-generate');
 
     return {
       id: deck.id,

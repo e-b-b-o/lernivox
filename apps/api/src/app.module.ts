@@ -6,7 +6,9 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './common/prisma/prisma.module';
 import { StorageModule } from './common/storage/storage.module';
+import { WorkerWakeModule } from './common/worker-wake/worker-wake.module';
 import { validate } from './config/env.validation';
+import { buildRedisConnectionOptions } from './config/redis.config';
 import { DocumentsModule } from './documents/documents.module';
 import { HealthModule } from './health/health.module';
 import { TutorModule } from './tutor/tutor.module';
@@ -31,14 +33,12 @@ import { LearningPlansModule } from './learning-plans/learning-plans.module';
     BullModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
-        connection: {
-          host: configService.get<string>('REDIS_HOST', 'localhost'),
-          port: configService.get<number>('REDIS_PORT', 6379),
-        },
+        connection: buildRedisConnectionOptions(configService),
       }),
       inject: [ConfigService],
     }),
     PrismaModule,
+    WorkerWakeModule,
     StorageModule,
     AuthModule,
     DocumentsModule,

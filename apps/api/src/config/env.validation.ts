@@ -66,6 +66,30 @@ export class EnvironmentVariables {
 
   @IsString()
   @IsOptional()
+  REDIS_URL?: string;
+
+  @IsString()
+  @IsOptional()
+  REDIS_PASSWORD?: string;
+
+  @IsString()
+  @IsOptional()
+  REDIS_USERNAME?: string;
+
+  @IsString()
+  @IsOptional()
+  REDIS_TLS?: string;
+
+  @IsString()
+  @IsOptional()
+  WORKER_BASE_URL?: string;
+
+  @IsString()
+  @IsOptional()
+  WORKER_WAKE_SECRET?: string;
+
+  @IsString()
+  @IsOptional()
   STORAGE_DRIVER: string = 'local';
 
   @IsString()

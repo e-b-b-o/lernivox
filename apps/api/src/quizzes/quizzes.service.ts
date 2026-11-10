@@ -5,6 +5,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { ConfigService } from '@nestjs/config';
@@ -33,6 +34,7 @@ import {
   type AiProvider,
 } from '@lernivox/ai-core';
 import { PrismaService } from '../common/prisma/prisma.service';
+import { WorkerWakeService } from '../common/worker-wake/worker-wake.service';
 import { CreateQuizDto } from './dto/quizzes.dto';
 
 @Injectable()
@@ -45,6 +47,8 @@ export class QuizzesService {
     private readonly config: ConfigService,
     @InjectQueue(QueueName.AI_ORCHESTRATION)
     private readonly aiQueue: Queue<GenerateQuizJobPayload>,
+    @Optional()
+    private readonly workerWakeService?: WorkerWakeService,
   ) {
     const aiProviderType = this.config.get<string>('AI_PROVIDER', 'gemini');
     const geminiApiKey = this.config.get<string>('GEMINI_API_KEY');
@@ -155,6 +159,7 @@ export class QuizzesService {
     );
 
     this.logger.log(`Enqueued quiz generation job for quiz ${quiz.id} (user ${userId})`);
+    this.workerWakeService?.wake('quiz-generate');
 
     return {
       id: quiz.id,
@@ -882,6 +887,7 @@ export class QuizzesService {
     );
 
     this.logger.log(`Retrying quiz generation job for quiz ${quiz.id} (user ${userId})`);
+    this.workerWakeService?.wake('quiz-retry');
 
     return {
       id: updated.id,
