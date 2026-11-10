@@ -9,6 +9,7 @@ export * from './tutor';
 export * from './quizzes';
 export * from './flashcards';
 export * from './progress';
+export * from './learning-plan';
 
 export enum QueueName {
   DOCUMENT_INGESTION = 'document-ingestion',

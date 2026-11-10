@@ -2,6 +2,11 @@
  * Document and Ingestion Contracts for Lernivox
  */
 
+export const MAX_UPLOAD_SIZE_BYTES = 1048576; // 1 MiB (1,048,576 bytes)
+export const MAX_UPLOAD_SIZE_LABEL = '1 MB';
+export const UPLOAD_SIZE_ERROR_MESSAGE =
+  'This file is larger than the 1 MB upload limit. Choose a smaller file.';
+
 export type DocumentProcessingStatus =
   | 'UPLOADED'
   | 'PROCESSING'
@@ -27,6 +32,11 @@ export interface DocumentDto {
   errorMessage: string | null;
   pageCount: number | null;
   totalTokens: number | null;
+  processingProgress?: number | null;
+  processingStage?: string | null;
+  processingMessage?: string | null;
+  completedUnits?: number | null;
+  totalUnits?: number | null;
   processingStartedAt: string | null;
   processingCompletedAt: string | null;
   createdAt: string;
@@ -55,6 +65,19 @@ export interface CreatePastedTextDto {
 export interface DocumentUploadResponseDto {
   document: DocumentDto;
   message: string;
+}
+
+export interface DocumentStatusDto {
+  documentId: string;
+  status: DocumentProcessingStatus;
+  progress: number;
+  stage: string;
+  message: string;
+  completedUnits?: number | null;
+  totalUnits?: number | null;
+  isComplete: boolean;
+  isFailed: boolean;
+  errorCode?: string | null;
 }
 
 export interface DocumentOutlineItemDto {

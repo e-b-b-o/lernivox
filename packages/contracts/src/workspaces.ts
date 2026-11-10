@@ -29,6 +29,7 @@ export interface WorkspaceDto {
   members: WorkspaceMemberDto[];
   myRole: WorkspaceRole;
   myReadingProgress?: DocumentReadingProgressDto | null;
+  unreadDiscussionCount?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -42,13 +43,27 @@ export interface WorkspaceListItemDto {
   document: DocumentDto;
   myReadingProgress?: DocumentReadingProgressDto | null;
   memberCount: number;
+  unreadDiscussionCount?: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface PendingInvitationDto {
+  id: string;
+  workspaceId: string;
+  workspaceTitle: string;
+  inviterName: string;
+  role: WorkspaceRole;
+  expiresAt: string;
+  createdAt: string;
+  status: 'PENDING';
 }
 
 export interface WorkspacesListResponseDto {
   myBooks: WorkspaceListItemDto[];
   sharedWithMe: WorkspaceListItemDto[];
+  pendingInvites?: PendingInvitationDto[];
+  sharedWorkspaces?: WorkspaceListItemDto[];
 }
 
 export interface CreateWorkspaceDto {
@@ -79,6 +94,7 @@ export interface WorkspaceInvitationDto {
   expiresAt: string;
   acceptedAt?: string | null;
   revokedAt?: string | null;
+  declinedAt?: string | null;
   inviteToken?: string;
   inviteUrl?: string;
   createdByName?: string | null;
@@ -128,6 +144,23 @@ export interface DiscussionMessageDto {
 export interface DiscussionMessagesListResponseDto {
   messages: DiscussionMessageDto[];
   total: number;
+}
+
+export interface WorkspaceDiscussionUnreadDto {
+  workspaceId: string;
+  unreadCount: number;
+  lastReadAt?: string | null;
+}
+
+export interface MarkDiscussionReadDto {
+  lastReadMessageId?: string;
+}
+
+export interface MarkDiscussionReadResponseDto {
+  success: boolean;
+  workspaceId: string;
+  unreadCount: number;
+  lastReadAt: string;
 }
 
 // -------------------------------------------------------------
