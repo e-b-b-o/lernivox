@@ -181,14 +181,15 @@ export function BookCard({
             <span className="truncate">{doc.pageCount ? `${doc.pageCount} Pages` : 'Document'}</span>
             {isProcessing && (
               <span className="inline-flex items-center gap-1 text-[8px] sm:text-[9px] font-bold text-amber-300 shrink-0">
-                <Loader2 className="w-2 sm:w-2.5 h-2 sm:h-2.5 animate-spin" /> Ingesting
+                <Loader2 className="w-2 sm:w-2.5 h-2 sm:h-2.5 animate-spin" />
+                <span>Preparing</span>
               </span>
             )}
             {isReady && <span className="text-[#A3E635] font-bold shrink-0">Ready</span>}
             {isFailed && <span className="text-rose-300 font-bold shrink-0">Failed</span>}
           </div>
 
-          {/* Persistent Reading Progress Bar inside cover */}
+          {/* Persistent Reading Progress Bar inside cover for ready documents */}
           {isReady && (
             <div className="w-full bg-black/25 rounded-full h-1 overflow-hidden mt-0.5">
               <div
@@ -200,7 +201,7 @@ export function BookCard({
         </div>
       </Link>
 
-      {/* 2. EXTERNAL TITLE & READING PROGRESS DETAILS BELOW COVER */}
+      {/* 2. EXTERNAL TITLE & READING/INGESTION PROGRESS DETAILS BELOW COVER */}
       <div className="mt-2.5 px-0.5 min-w-0 w-full space-y-1">
         <h4
           title={doc.title}
@@ -209,24 +210,56 @@ export function BookCard({
           {doc.title}
         </h4>
 
-        {/* Persisted Reading Progress Label */}
-        <div className="flex items-center justify-between text-[10px] font-mono text-[#14261D]/70">
-          <span>
-            {currentPage && totalPages ? (
-              <span className="font-bold text-[#1B3428]">
-                Page {currentPage}/{totalPages} ({progressPercent}%)
+        {isProcessing ? (
+          <div className="space-y-1 pt-0.5">
+            <div className="flex items-center justify-between text-[10px] font-mono">
+              <span className="font-semibold text-[#14261D] truncate flex items-center gap-1">
+                <Loader2 className="w-2.5 h-2.5 animate-spin text-[#E8722C] shrink-0" />
+                <span className="truncate">{doc.processingStage || 'Preparing your material...'}</span>
               </span>
-            ) : (
-              <span className="text-[#14261D]/50">Unread</span>
-            )}
-          </span>
-          {lastAccessed && (
-            <span className="flex items-center gap-0.5 text-[9px] text-[#14261D]/50 truncate">
-              <Clock className="w-2.5 h-2.5 shrink-0" />
-              <span>{lastAccessed}</span>
+              <span className="font-bold text-[#E8722C] shrink-0 ml-1">{doc.processingProgress ?? 0}%</span>
+            </div>
+            <div className="h-2 w-full rounded-full bg-[#1B3428]/10 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-[#E8722C] transition-all duration-300"
+                style={{ width: `${Math.max(4, Math.min(100, doc.processingProgress ?? 0))}%` }}
+              />
+            </div>
+            <p className="text-[9px] font-mono text-[#14261D]/60 truncate">
+              {doc.completedUnits != null && doc.totalUnits != null
+                ? `${doc.completedUnits} of ${doc.totalUnits} completed`
+                : doc.processingMessage || 'Preparing text and chapters...'}
+            </p>
+          </div>
+        ) : isFailed ? (
+          <div className="space-y-0.5 pt-0.5">
+            <div className="flex items-center justify-between text-[10px] font-mono text-rose-600 font-bold">
+              <span>Preparation Failed</span>
+              {doc.errorCode && <span className="text-[9px] text-rose-500 font-normal">{doc.errorCode}</span>}
+            </div>
+            <p className="text-[9px] text-rose-700/80 truncate">
+              {doc.errorMessage || 'We could not prepare this material.'}
+            </p>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between text-[10px] font-mono text-[#14261D]/70">
+            <span>
+              {currentPage && totalPages ? (
+                <span className="font-bold text-[#1B3428]">
+                  Page {currentPage}/{totalPages} ({progressPercent}%)
+                </span>
+              ) : (
+                <span className="text-[#14261D]/50">Unread</span>
+              )}
             </span>
-          )}
-        </div>
+            {lastAccessed && (
+              <span className="flex items-center gap-0.5 text-[9px] text-[#14261D]/50 truncate">
+                <Clock className="w-2.5 h-2.5 shrink-0" />
+                <span>{lastAccessed}</span>
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* 3. RESPONSIVE ACTION BUTTONS ROW */}
@@ -240,20 +273,22 @@ export function BookCard({
             <Sparkles className="w-3 h-3 shrink-0 hidden xs:block" />
             <span className="truncate">Open Workspace</span>
           </Link>
+        ) : isProcessing ? (
+          <button
+            type="button"
+            disabled
+            className="flex-1 min-w-0 py-1.5 sm:py-2 px-2 rounded-full bg-[#1B3428]/10 text-[#14261D]/70 font-display font-bold text-[10px] sm:text-xs text-center cursor-not-allowed flex items-center justify-center gap-1.5"
+          >
+            <Loader2 className="w-3 h-3 animate-spin text-[#E8722C] shrink-0" />
+            <span className="truncate">Preparing ({doc.processingProgress ?? 0}%)</span>
+          </button>
         ) : (
           <button
             type="button"
             disabled
-            className="flex-1 min-w-0 py-1.5 sm:py-2 px-2 rounded-full bg-[#1B3428]/15 text-[#14261D]/50 font-display font-bold text-[10px] sm:text-xs text-center cursor-not-allowed flex items-center justify-center gap-1"
+            className="flex-1 min-w-0 py-1.5 sm:py-2 px-2 rounded-full bg-rose-100/70 text-rose-700 font-display font-bold text-[10px] sm:text-xs text-center cursor-not-allowed flex items-center justify-center gap-1"
           >
-            {isProcessing ? (
-              <>
-                <Loader2 className="w-3 h-3 animate-spin shrink-0" />
-                <span className="truncate">Ingesting...</span>
-              </>
-            ) : (
-              <span className="truncate">Unavailable</span>
-            )}
+            <span className="truncate">Processing Failed</span>
           </button>
         )}
 

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef, useCallback, useMemo, Suspense } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   BookOpen,
@@ -16,16 +17,19 @@ import {
   FileText,
   RotateCw,
 } from 'lucide-react';
-import type {
-  WorkspaceListItemDto,
-  WorkspacesListResponseDto,
-  WorkspaceType,
+import {
+  MAX_UPLOAD_SIZE_BYTES,
+  MAX_UPLOAD_SIZE_LABEL,
+  UPLOAD_SIZE_ERROR_MESSAGE,
+  type WorkspaceListItemDto,
+  type WorkspacesListResponseDto,
+  type WorkspaceType,
 } from '@lernivox/contracts';
 import { useAuth } from '../../../context/AuthContext';
 import { api } from '../../../lib/api';
 import { BookCard } from '../../../components/workspace/BookCard';
 
-const MAX_SIZE_BYTES = 25 * 1024 * 1024;
+const MAX_SIZE_BYTES = MAX_UPLOAD_SIZE_BYTES; // 1,048,576 bytes (1 MiB)
 const ALLOWED_EXTS = ['.pdf', '.docx', '.txt'];
 
 type FileTypeFilter = 'ALL' | 'PDF' | 'DOCX' | 'TXT';
@@ -61,6 +65,61 @@ function MyBooksDashboardContent() {
   // Deletion Modal State
   const [deletingDoc, setDeletingDoc] = useState<{ id: string; title: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Pending Group Invitation Action State
+  const [respondingInviteId, setRespondingInviteId] = useState<string | null>(null);
+
+  const handleAcceptInvite = async (invitationId: string) => {
+    if (!accessToken) return;
+    setRespondingInviteId(invitationId);
+    try {
+      const res = await api.workspaces.acceptPendingInvite(invitationId, accessToken);
+      await loadWorkspaces();
+      if (res?.workspaceId) {
+        router.push(`/dashboard/workspaces/${res.workspaceId}`);
+      }
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Failed to accept invitation.');
+    } finally {
+      setRespondingInviteId(null);
+    }
+  };
+
+  const handleDeclineInvite = async (invitationId: string) => {
+    if (!accessToken) return;
+    setRespondingInviteId(invitationId);
+    try {
+      await api.workspaces.declinePendingInvite(invitationId, accessToken);
+      await loadWorkspaces();
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Failed to decline invitation.');
+    } finally {
+      setRespondingInviteId(null);
+    }
+  };
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Lock background scrolling and handle Escape dismissal for global modals
+  useEffect(() => {
+    if (showAddModal || deletingDoc) {
+      document.body.style.overflow = 'hidden';
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          if (showAddModal) setShowAddModal(false);
+          if (deletingDoc) setDeletingDoc(null);
+        }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.body.style.overflow = '';
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [showAddModal, deletingDoc]);
 
   // Open Add Material modal if ?action=upload is in URL
   useEffect(() => {
@@ -105,7 +164,7 @@ function MyBooksDashboardContent() {
 
     const interval = setInterval(() => {
       loadWorkspaces();
-    }, 3000);
+    }, 2000);
 
     return () => clearInterval(interval);
   }, [workspacesData, accessToken, loadWorkspaces]);
@@ -121,7 +180,7 @@ function MyBooksDashboardContent() {
       return;
     }
     if (file.size > MAX_SIZE_BYTES) {
-      setUploadError('File exceeds 25 MB limit.');
+      setUploadError(UPLOAD_SIZE_ERROR_MESSAGE);
       return;
     }
 
@@ -161,6 +220,12 @@ function MyBooksDashboardContent() {
   const handlePastedTextSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pastedContent.trim() || !accessToken) return;
+
+    const byteLength = new TextEncoder().encode(pastedContent.trim()).length;
+    if (byteLength > MAX_SIZE_BYTES) {
+      setUploadError('This text content is larger than the 1 MB upload limit. Choose a smaller text.');
+      return;
+    }
 
     setUploading(true);
     setUploadError(null);
@@ -390,6 +455,74 @@ function MyBooksDashboardContent() {
       </section>
 
       {/* =========================================================================
+          SECTION 1.5: PENDING GROUP INVITATIONS
+          ========================================================================= */}
+      {workspacesData.pendingInvites && workspacesData.pendingInvites.length > 0 && (
+        <section className="space-y-3 pt-6 border-t border-[#1B3428]/10 animate-in fade-in duration-200">
+          <div className="flex items-center gap-2">
+            <h2 className="font-display font-bold text-base sm:text-lg text-[#14261D] tracking-tight">
+              Pending Group Invitations
+            </h2>
+            <span className="px-2 py-0.5 rounded-full bg-[#E8722C]/15 text-[#E8722C] font-mono text-[11px] font-bold">
+              {workspacesData.pendingInvites.length}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {workspacesData.pendingInvites.map((invite) => {
+              const isBusy = respondingInviteId === invite.id;
+              return (
+                <div
+                  key={invite.id}
+                  className="rounded-[20px] bg-[#FAF8F4] border-[1.5px] border-[#E8722C]/30 shadow-xs p-4 sm:p-5 flex flex-col justify-between space-y-3 relative overflow-hidden"
+                >
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-[#E8722C] uppercase tracking-wider bg-[#E8722C]/10 px-2 py-0.5 rounded-full">
+                        <Users className="w-3 h-3" /> Group Invite
+                      </span>
+                      <span className="text-[10px] font-mono text-[#14261D]/50 font-bold uppercase">
+                        {invite.role}
+                      </span>
+                    </div>
+                    <h3 className="font-display font-bold text-sm sm:text-base text-[#14261D] leading-snug line-clamp-2">
+                      {invite.workspaceTitle}
+                    </h3>
+                    <p className="text-xs text-[#14261D]/70 font-sans">
+                      Invited by <strong className="text-[#14261D]">{invite.inviterName}</strong>
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-2 border-t border-[#1B3428]/10">
+                    <button
+                      type="button"
+                      disabled={isBusy}
+                      onClick={() => handleDeclineInvite(invite.id)}
+                      className="flex-1 py-1.5 px-3 rounded-full border border-[#1B3428]/20 hover:bg-[#1B3428]/5 text-[#14261D]/80 font-display font-bold text-xs transition-colors cursor-pointer disabled:opacity-50 text-center"
+                    >
+                      Decline
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isBusy}
+                      onClick={() => handleAcceptInvite(invite.id)}
+                      className="flex-1 py-1.5 px-3 rounded-full bg-[#E8722C] hover:bg-[#D65E1E] text-white font-display font-bold text-xs transition-all shadow-2xs hover:shadow-xs flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    >
+                      {isBusy ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <span>Accept & Open</span>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* =========================================================================
           SECTION 2: "SHARED WITH ME"
           ========================================================================= */}
       <section className="space-y-4 pt-6 border-t border-[#1B3428]/10">
@@ -433,9 +566,18 @@ function MyBooksDashboardContent() {
       {/* =========================================================================
           ADD MATERIAL MODAL (Supports File, Pasted Text, and Workspace Type)
           ========================================================================= */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full max-w-lg rounded-[28px] bg-[#FAF8F4] border-[2px] border-[#1B3428] shadow-[0_12px_0_0_#1B3428] p-6 sm:p-8 space-y-6 relative max-h-[90vh] overflow-y-auto">
+      {mounted && showAddModal && createPortal(
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={() => setShowAddModal(false)}
+        >
+          <div
+            className="w-full max-w-lg rounded-[28px] bg-[#FAF8F4] border-[2px] border-[#1B3428] shadow-[0_12px_0_0_#1B3428] p-6 sm:p-8 space-y-6 relative max-h-[90vh] overflow-y-auto"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-material-modal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-3 border-b border-[#1B3428]/10">
               <div className="flex items-center gap-2.5">
@@ -443,7 +585,7 @@ function MyBooksDashboardContent() {
                   <UploadCloud className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="font-display font-bold text-base sm:text-lg text-[#14261D] leading-tight">
+                  <h3 id="add-material-modal-title" className="font-display font-bold text-base sm:text-lg text-[#14261D] leading-tight">
                     Add Learning Material
                   </h3>
                   <p className="text-[11px] font-sans text-[#14261D]/65">
@@ -454,7 +596,8 @@ function MyBooksDashboardContent() {
               <button
                 type="button"
                 onClick={() => setShowAddModal(false)}
-                className="w-8 h-8 rounded-full border border-[#1B3428]/20 flex items-center justify-center text-[#14261D]/60 hover:text-[#14261D] hover:bg-black/5"
+                className="w-8 h-8 rounded-full border border-[#1B3428]/20 flex items-center justify-center text-[#14261D]/60 hover:text-[#14261D] hover:bg-black/5 cursor-pointer"
+                aria-label="Close dialog"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -568,7 +711,7 @@ function MyBooksDashboardContent() {
                         Click to select document file
                       </p>
                       <p className="text-[10px] text-[#14261D]/60 mt-1">
-                        Accepts PDF, DOCX, and TXT (up to 25 MB)
+                        Accepts PDF, DOCX, and TXT (Maximum file size: {MAX_UPLOAD_SIZE_LABEL})
                       </p>
                     </div>
                   )}
@@ -601,7 +744,7 @@ function MyBooksDashboardContent() {
                     className="px-5 py-2 rounded-full bg-[#E8722C] text-white text-xs font-display font-bold shadow-[0_2px_0_0_#B26E45] hover:bg-[#d66522] disabled:opacity-50 transition-all flex items-center gap-1.5"
                   >
                     {uploading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                    <span>{uploading ? 'Ingesting...' : 'Add Material'}</span>
+                    <span>{uploading ? 'Preparing...' : 'Add Material'}</span>
                   </button>
                 </div>
               </form>
@@ -654,16 +797,26 @@ function MyBooksDashboardContent() {
               </form>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* =========================================================================
           DELETION CONFIRMATION MODAL
           ========================================================================= */}
-      {deletingDoc && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full max-w-sm rounded-[24px] bg-[#FAF8F4] border-[2px] border-[#1B3428] shadow-[0_8px_0_0_#1B3428] p-6 space-y-4">
-            <h3 className="font-display font-bold text-base text-[#14261D]">
+      {mounted && deletingDoc && createPortal(
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={() => setDeletingDoc(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-[24px] bg-[#FAF8F4] border-[2px] border-[#1B3428] shadow-[0_8px_0_0_#1B3428] p-6 space-y-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-material-modal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="delete-material-modal-title" className="font-display font-bold text-base text-[#14261D]">
               Delete Workspace & Material?
             </h3>
             <p className="text-xs text-[#14261D]/70 leading-relaxed">
@@ -673,7 +826,7 @@ function MyBooksDashboardContent() {
               <button
                 type="button"
                 onClick={() => setDeletingDoc(null)}
-                className="px-3.5 py-1.5 rounded-full border border-[#1B3428]/20 text-xs font-display font-bold text-[#14261D]"
+                className="px-3.5 py-1.5 rounded-full border border-[#1B3428]/20 text-xs font-display font-bold text-[#14261D] cursor-pointer"
               >
                 Cancel
               </button>
@@ -681,14 +834,15 @@ function MyBooksDashboardContent() {
                 type="button"
                 onClick={confirmDelete}
                 disabled={isDeleting}
-                className="px-4 py-1.5 rounded-full bg-red-600 text-white text-xs font-display font-bold shadow-[0_2px_0_0_#7F1D1D] hover:bg-red-700 disabled:opacity-50 flex items-center gap-1.5"
+                className="px-4 py-1.5 rounded-full bg-red-600 text-white text-xs font-display font-bold shadow-[0_2px_0_0_#7F1D1D] hover:bg-red-700 disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
               >
                 {isDeleting && <Loader2 className="w-3 h-3 animate-spin" />}
                 <span>Delete</span>
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

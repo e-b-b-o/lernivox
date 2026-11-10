@@ -1,8 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <rect width="32" height="32" rx="8" fill="#4F46E5" />
-  <path d="M7 10C7 8.89543 7.89543 8 9 8H15V22H9C7.89543 22 7 21.1046 7 20V10Z" fill="#FFFFFF" fill-opacity="0.95" />
-  <path d="M25 10C25 8.89543 24.1046 8 23 8H17V22H23C24.1046 22 25 21.1046 25 20V10Z" fill="#FFFFFF" fill-opacity="0.95" />
-  <path d="M15 8H17V22H15V8Z" fill="#818CF8" />
-  <circle cx="16" cy="15" r="1.5" fill="#FBBF24" />
-</svg>
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#E8722C" />
+      <stop offset="85%" stop-color="#E8722C" />
+      <stop offset="100%" stop-color="#C85A1B" />
+    </linearGradient>
+  </defs>
+  <!-- Terracotta Squircle with tactile bottom depth -->
+  <rect width="32" height="32" rx="8" fill="url(#bgGrad)" />
+  <rect x="0" y="30" width="32" height="2" rx="1" fill="#B24E12" opacity="0.4" />
 
+  <!-- Open Book Glyph in warm parchment #FAF8F4 -->
+  <!-- Left Page -->
+  <path d="M7 10.5C7 9.4 7.9 8.5 9 8.5C12 8.5 14.5 9.5 15.5 10.5V22.5C14.5 21.5 12 20.5 9 20.5C7.9 20.5 7 21.4 7 22.5V10.5Z" fill="#FAF8F4" />
+  <!-- Right Page -->
+  <path d="M25 10.5C25 9.4 24.1 8.5 23 8.5C20 8.5 17.5 9.5 16.5 10.5V22.5C17.5 21.5 20 20.5 23 20.5C24.1 20.5 25 21.4 25 22.5V10.5Z" fill="#FAF8F4" />
+  <!-- Center Book Spine -->
+  <path d="M15.5 10.5H16.5V22.5H15.5V10.5Z" fill="#C85A1B" />
+  <!-- Subtle Bookmark Accent -->
+  <path d="M15 8.5H17V13L16 12L15 13V8.5Z" fill="#FAF8F4" opacity="0.9" />
+</svg>

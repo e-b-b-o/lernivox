@@ -32,7 +32,7 @@ export default function WorkspaceLayout({
   return (
     <div className="min-h-screen bg-[#F4F0E5] text-[#14261D] flex flex-col font-sans selection:bg-[#F9D8C0] selection:text-[#14261D]">
       {/* Persistent Authenticated Navigation Header */}
-      <header className="sticky top-0 z-40 w-full bg-[#FAF8F4]/95 backdrop-blur-md border-b-[2px] border-[#1B3428]/15 shadow-xs transition-colors">
+      <header className="sticky top-0 z-30 w-full bg-[#FAF8F4]/95 backdrop-blur-md border-b-[2px] border-[#1B3428]/15 shadow-xs transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-18">
             {/* Left Zone: Brand Logo & Wordmark (Returns to /dashboard) */}
