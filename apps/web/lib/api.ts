@@ -347,6 +347,9 @@ export const api = {
     delete: (id: string, token: string): Promise<{ success: boolean; message: string }> =>
       request<{ success: boolean; message: string }>(`/documents/${id}`, { method: 'DELETE' }, token),
 
+    retry: (id: string, token: string): Promise<DocumentDto> =>
+      request<DocumentDto>(`/documents/${id}/retry`, { method: 'POST' }, token),
+
     getFileUrl: (id: string): string => `${API_BASE_URL}/documents/${id}/file`,
 
     fetchFileBlob: async (id: string, token: string): Promise<Blob> => {

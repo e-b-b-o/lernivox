@@ -950,6 +950,37 @@ Deploy the updated API and Web application to Render and Vercel, and verify that
     - Authored Automated Architectural Invariant Tests (`apps/web/test/loading-and-404-experience.test.ts`): Verified navbar alignment, unified toolbar, 1:1.45 book geometry, and non-redundant processing state.
     - Verified all test suites: Web tests (42/42 passed across 4 suites), API tests (175/175 passed across 14 suites), Worker tests (21/21 passed across 5 suites), full monorepo type-check (11/11 package tasks passed with 0 errors), and Next.js 15 production build (7/7 packages, 17/17 routes). Port audit verified clean (`ss -tulpn` 0 lingering processes).
 
+  - Fixed Cloudinary Ingestion, Recovered Failed Books, Improved Error UI & Refined Dashboard Layout:
+    - Root Cause Analysis of Cloudinary File Download: Diagnosed that `packages/storage/src/adapters/cloudinary-storage.adapter.ts` previously threw an explicit error `throw new Error('Direct stream download from Cloudinary requires signed authenticated fetch')` on `download()`, while `upload()` returned a stub without pushing bytes to Cloudinary. In addition, when documents failed, the API lacked a retry endpoint, leaving users with only the deletion option.
+    - Production-Ready Cloudinary Adapter (`packages/storage/src/adapters/cloudinary-storage.adapter.ts`):
+      - Installed official `cloudinary` Node SDK (`^2.11.0`) in `@lernivox/storage`.
+      - Implemented full streaming upload via `cloudinary.uploader.upload_stream` supporting `raw` and `image` resource types and `authenticated` delivery type with private-by-default access control.
+      - Implemented authenticated downloads leveraging `cloudinary.utils.private_download_url` with 300-second expiration budget for worker ingestion, fallback candidate resolution (raw authenticated stripped/unstripped, raw upload, image authenticated for legacy PDFs), HTTP Range support, and conversion to Node `Readable` streams via `Readable.fromWeb`.
+      - Implemented server-side `getSignedUrl`, `delete`, and `exists` methods using official Cloudinary API.
+    - Recovered Failed Documents in Production Database (Neon PostgreSQL):
+      - Restored the 3 failed documents previously deleted due to the download failure: `37d136d9-3e1f-41b3-adce-6b353931e348` ("1-Overview of Information Retrieval.pdf"), `506a4d6a-da5a-4c84-acde-3d233760d4f2` ("Lecture 5.pdf"), and `80d65f9e-0d68-4af6-84f1-f11baf3b16ed` ("Numerical Analysis  I MID for SE Regular.pdf") for user `f1f40878-1217-48fa-a170-eeb964a4e6d0`.
+      - Recreated their persistent 1:1 workspaces and owner memberships in Neon, setting status to `FAILED` with clear user-facing messages so they are immediately visible on the bookshelf and can be retried.
+    - Document Ingestion Retry API (`POST /api/v1/documents/:id/retry`):
+      - Added `retryIngestion(userId: string, documentId: string)` in `apps/api/src/documents/documents.service.ts`: Verifies ownership, prevents retrying already `READY` documents, cleans up existing failed/waiting BullMQ jobs in Redis, resets document status to `UPLOADED` and stage to `QUEUED`, re-enqueues the BullMQ `process-document` job reusing the existing stored asset, and triggers non-blocking worker wake (`WorkerWakeService.wake('document-retry')`).
+      - Exposed `@Post(':id/retry')` in `apps/api/src/documents/documents.controller.ts`.
+      - Added frontend API method `api.documents.retry(documentId, token)` in `apps/web/lib/api.ts`.
+    - Improved Failed-Book User Experience (`apps/web/components/workspace/BookCard.tsx`):
+      - Removed duplicate "Failed" status badges from inside the book cover.
+      - Completely hid internal developer error codes (e.g. `PROCESSING_ERROR`, `INGESTION_FAILED`).
+      - Added clear, reassuring user-facing copy: "We couldn't prepare this book. Please try again. Your uploaded book is still here."
+      - Added functional "Retry processing" button with `RotateCw` icon, `Loader2` in-flight spinner, and duplicate-submission prevention guard.
+      - Maintained adjacent delete button for full user agency.
+    - Harmonized Layout Widths & Navigation:
+      - Aligned Settings page container width to `w-full max-w-[1380px] mx-auto px-4 sm:px-6 md:px-10` in `apps/web/app/(workspace)/dashboard/settings/page.tsx`, matching the dashboard navbar and `/dashboard` bookshelf across all breakpoints.
+      - Removed the "Study Workspaces" badge from the dashboard navbar ONLY in `apps/web/app/(workspace)/layout.tsx`, keeping the clean brand logo while preserving all workspace routes and functionality.
+      - Removed the redundant secondary "Add Your First Book" button from the empty bookshelf in `apps/web/app/(workspace)/dashboard/page.tsx`, consolidating on the primary top `+ Add Material` button.
+    - Verification & Automated Testing:
+      - Added unit tests for `retryIngestion` and `@Post(':id/retry')` in `documents.service.spec.ts` and `documents.controller.spec.ts`.
+      - Verified full monorepo typecheck: 11/11 package tasks passed with 0 errors (`pnpm type-check`).
+      - Verified all test suites: API (175/175 passing across 14 suites), Worker (21/21 passing across 5 suites), AI-Core (25/25 passing across 5 suites), Web (42/42 passing across 4 suites).
+      - Verified production build: All 7 packages compiled and all 17 Next.js static/dynamic pages generated successfully (`pnpm build`).
+      - Port and process audit: Checked `ss -tulpn`, 0 lingering processes.
+
 
 
 

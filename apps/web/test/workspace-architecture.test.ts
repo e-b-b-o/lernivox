@@ -667,7 +667,7 @@ describe('Unified Workspace Architecture Invariants', () => {
     // 5. Settings Master-Detail Layout & Form Standards
     const settingsPagePath = path.join(baseDir, 'app/(workspace)/dashboard/settings/page.tsx');
     const settingsPageCode = fs.readFileSync(settingsPagePath, 'utf8');
-    assert.match(settingsPageCode, /max-w-7xl mx-auto/);
+    assert.match(settingsPageCode, /max-w-\[1380px\] mx-auto/);
     assert.match(settingsPageCode, /Back to Dashboard/);
     assert.match(settingsPageCode, /md:grid-cols-\[240px_1fr\]/);
     assert.match(settingsPageCode, /Profile & Account/);

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Sparkles, Trash2, Loader2, Users, User, Clock, BookOpen } from 'lucide-react';
+import { Sparkles, Trash2, Loader2, Users, User, Clock, BookOpen, RotateCw } from 'lucide-react';
 import type { DocumentDto, DocumentReadingProgressDto, WorkspaceType } from '@lernivox/contracts';
 
 interface BookCardProps {
@@ -13,6 +13,8 @@ interface BookCardProps {
   readingProgress?: DocumentReadingProgressDto | null;
   onDelete?: (id: string, title: string) => void;
   isDeleting?: boolean;
+  onRetry?: (id: string) => Promise<void> | void;
+  isRetrying?: boolean;
 }
 
 // Deterministic cover palette generator based on document UUID
@@ -72,6 +74,8 @@ export function BookCard({
   readingProgress,
   onDelete,
   isDeleting = false,
+  onRetry,
+  isRetrying = false,
 }: BookCardProps) {
   // Deterministic palette pick from UUID
   const hash = doc.id
@@ -180,7 +184,6 @@ export function BookCard({
           <div className="flex items-center justify-between">
             <span className="truncate">{doc.pageCount ? `${doc.pageCount} Pages` : 'Document'}</span>
             {isReady && <span className="text-[#A3E635] font-bold shrink-0">Ready</span>}
-            {isFailed && <span className="text-rose-300 font-bold shrink-0">Failed</span>}
           </div>
 
           {/* Persistent Reading Progress Bar inside cover for ready documents */}
@@ -229,12 +232,11 @@ export function BookCard({
           </div>
         ) : isFailed ? (
           <div className="space-y-0.5 pt-0.5">
-            <div className="flex items-center justify-between text-[10px] font-mono text-rose-600 font-bold">
-              <span>Preparation Failed</span>
-              {doc.errorCode && <span className="text-[9px] text-rose-500 font-normal">{doc.errorCode}</span>}
-            </div>
-            <p className="text-[9px] text-rose-700/80 truncate">
-              {doc.errorMessage || 'We could not prepare this material.'}
+            <p className="text-[10px] font-sans font-medium text-amber-900/90 leading-tight">
+              We couldn&apos;t prepare this book. Please try again.
+            </p>
+            <p className="text-[9px] font-sans text-[#14261D]/60 truncate">
+              Your uploaded book is still here.
             </p>
           </div>
         ) : (
@@ -278,13 +280,36 @@ export function BookCard({
             <Loader2 className="w-3 h-3 animate-spin text-[#E8722C] shrink-0" />
             <span className="truncate">Preparing Material</span>
           </button>
+        ) : isOwner && onRetry ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRetry(doc.id);
+            }}
+            disabled={isRetrying}
+            className="flex-1 min-w-0 py-1.5 sm:py-2 px-2.5 rounded-full bg-[#1B3428] text-white font-display font-bold text-[10px] sm:text-xs text-center shadow-[0_2px_0_0_#0D1B14] active:translate-y-0.5 active:shadow-none hover:bg-[#264838] transition-all flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
+            aria-label={`Retry processing ${doc.title}`}
+          >
+            {isRetrying ? (
+              <>
+                <Loader2 className="w-3 h-3 animate-spin text-[#E8722C] shrink-0" />
+                <span className="truncate">Retrying...</span>
+              </>
+            ) : (
+              <>
+                <RotateCw className="w-3 h-3 shrink-0" />
+                <span className="truncate">Retry processing</span>
+              </>
+            )}
+          </button>
         ) : (
           <button
             type="button"
             disabled
-            className="flex-1 min-w-0 py-1.5 sm:py-2 px-2 rounded-full bg-rose-100/70 text-rose-700 font-display font-bold text-[10px] sm:text-xs text-center cursor-not-allowed flex items-center justify-center gap-1"
+            className="flex-1 min-w-0 py-1.5 sm:py-2 px-2 rounded-full bg-[#1B3428]/10 text-[#14261D]/60 font-display font-bold text-[10px] sm:text-xs text-center cursor-not-allowed flex items-center justify-center gap-1"
           >
-            <span className="truncate">Processing Failed</span>
+            <span className="truncate">Processing unready</span>
           </button>
         )}
 

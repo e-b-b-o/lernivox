@@ -105,7 +105,7 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 flex-1 w-full space-y-6">
+    <div className="w-full max-w-[1380px] mx-auto px-4 sm:px-6 md:px-10 py-8 sm:py-10 flex-1 space-y-6">
       {/* 1. Header with Breadcrumb & Back Navigation */}
       <div className="space-y-2">
         <Link

@@ -66,7 +66,21 @@ function MyBooksDashboardContent() {
   // Deletion Modal State
   const [deletingDoc, setDeletingDoc] = useState<{ id: string; title: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [retryingDocId, setRetryingDocId] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+
+  const handleRetryDocument = async (documentId: string) => {
+    if (!accessToken || retryingDocId) return;
+    setRetryingDocId(documentId);
+    try {
+      await api.documents.retry(documentId, accessToken);
+      await loadWorkspaces();
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Failed to retry document processing.');
+    } finally {
+      setRetryingDocId(null);
+    }
+  };
 
   // Pending Group Invitation Action State
   const [respondingInviteId, setRespondingInviteId] = useState<string | null>(null);
@@ -446,16 +460,6 @@ function MyBooksDashboardContent() {
                   : 'Upload your textbooks, PDF chapters, lecture notes, or research papers to start studying with your grounded AI tutor.'}
               </p>
             </div>
-            {!searchQuery && typeFilter === 'ALL' && (
-              <button
-                type="button"
-                onClick={() => setShowAddModal(true)}
-                className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#E8722C] text-white font-display font-bold text-xs sm:text-sm shadow-[0_3px_0_0_#B26E45] hover:bg-[#d66522] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none transition-all"
-              >
-                <Plus className="w-4 h-4 stroke-[2.5]" />
-                <span>Add Your First Book</span>
-              </button>
-            )}
           </div>
         ) : (
           <div className="relative pb-6 after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[6px] after:bg-gradient-to-b after:from-[#1B3428]/15 after:to-transparent after:rounded-full grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5 sm:gap-7">
@@ -469,6 +473,8 @@ function MyBooksDashboardContent() {
                 readingProgress={item.myReadingProgress}
                 onDelete={(docId, title) => setDeletingDoc({ id: docId, title })}
                 isDeleting={isDeleting && deletingDoc?.id === item.document.id}
+                onRetry={handleRetryDocument}
+                isRetrying={retryingDocId === item.document.id}
               />
             ))}
           </div>

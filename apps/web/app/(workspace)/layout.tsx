@@ -55,9 +55,6 @@ export default function WorkspaceLayout({
                 <span className="font-display font-bold text-xl sm:text-[22px] leading-none tracking-tight text-[#14261D]">
                   Lernivox
                 </span>
-                <span className="hidden sm:inline-block font-mono text-[9px] text-[#497E64] font-bold tracking-widest uppercase">
-                  Study Workspaces
-                </span>
               </div>
             </Link>
           </div>
