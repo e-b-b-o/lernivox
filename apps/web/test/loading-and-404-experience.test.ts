@@ -251,5 +251,47 @@ describe('Google Coming Soon, Branded 404 & Responsive Loading Architecture', ()
     assert.match(bookCardCode, /Check status/);
     assert.match(bookCardCode, /Retry processing/);
   });
+
+  test('8. Client-Side In-Memory Cache, Functional Status Checking Feedback & Aligned Container Boundaries', () => {
+    const clientCacheCode = fs.readFileSync(
+      path.resolve(baseDir, 'lib/client-cache.ts'),
+      'utf8'
+    );
+    const dashboardPageCode = fs.readFileSync(
+      path.resolve(baseDir, 'app/(workspace)/dashboard/page.tsx'),
+      'utf8'
+    );
+    const settingsPageCode = fs.readFileSync(
+      path.resolve(baseDir, 'app/(workspace)/dashboard/settings/page.tsx'),
+      'utf8'
+    );
+    const bookCardCode = fs.readFileSync(
+      path.resolve(baseDir, 'components/workspace/BookCard.tsx'),
+      'utf8'
+    );
+
+    // 1. Client cache module contract
+    assert.match(clientCacheCode, /getDashboard/);
+    assert.match(clientCacheCode, /setDashboard/);
+    assert.match(clientCacheCode, /updateDashboardDocument/);
+    assert.match(clientCacheCode, /removeDashboardDocument/);
+    assert.match(clientCacheCode, /getWorkspace/);
+    assert.match(clientCacheCode, /setWorkspace/);
+    assert.match(clientCacheCode, /clearAll/);
+
+    // 2. Aligned container architecture matching navbar 1380px boundaries
+    assert.match(dashboardPageCode, /w-full px-4 sm:px-6 md:px-10 flex-1 flex flex-col/);
+    assert.match(dashboardPageCode, /w-full max-w-\[1380px\] mx-auto py-8 sm:py-10 space-y-10 flex-1/);
+    assert.match(settingsPageCode, /w-full px-4 sm:px-6 md:px-10 flex-1 flex flex-col/);
+    assert.match(settingsPageCode, /w-full max-w-\[1380px\] mx-auto py-8 sm:py-10 flex-1 space-y-6/);
+
+    // 3. Functional Check Status with Visible Feedback & Reserved Baseline Slot
+    assert.match(bookCardCode, /onCheckStatus\?: \(id: string\)/);
+    assert.match(bookCardCode, /handleCheckStatusClick/);
+    assert.match(bookCardCode, /isCheckingStatus/);
+    assert.match(bookCardCode, /min-h-\[3\.25rem\] flex flex-col justify-center/);
+    assert.match(bookCardCode, /line-clamp-2 min-h-\[2\.5rem\]/);
+    assert.match(bookCardCode, /mt-auto pt-2\.5 flex items-center/);
+  });
 });
 

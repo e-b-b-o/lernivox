@@ -15,6 +15,12 @@ interface BookCardProps {
   isDeleting?: boolean;
   onRetry?: (id: string) => Promise<void> | void;
   isRetrying?: boolean;
+  onCheckStatus?: (id: string) => Promise<{
+    status: string;
+    message: string;
+    stage?: string;
+    progress?: number;
+  }>;
 }
 
 // Deterministic cover palette generator based on document UUID
@@ -76,12 +82,43 @@ export function BookCard({
   isDeleting = false,
   onRetry,
   isRetrying = false,
+  onCheckStatus,
 }: BookCardProps) {
   // Deterministic palette pick from UUID
   const hash = doc.id
     .split('')
     .reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const theme = COVER_THEMES[hash % COVER_THEMES.length]!;
+
+  const [isCheckingStatus, setIsCheckingStatus] = React.useState(false);
+  const [feedback, setFeedback] = React.useState<{
+    message: string;
+    type: 'info' | 'success' | 'warning';
+  } | null>(null);
+
+  const handleCheckStatusClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isCheckingStatus || !onCheckStatus) return;
+    setIsCheckingStatus(true);
+    try {
+      const res = await onCheckStatus(doc.id);
+      const isSuccess = res.status === 'READY';
+      const isWarn = res.status === 'FAILED' || res.status === 'ERROR';
+      setFeedback({
+        message: res.message,
+        type: isSuccess ? 'success' : isWarn ? 'warning' : 'info',
+      });
+      setTimeout(() => setFeedback(null), 6000);
+    } catch {
+      setFeedback({
+        message: "We couldn't check the status right now. Please try again.",
+        type: 'warning',
+      });
+      setTimeout(() => setFeedback(null), 6000);
+    } finally {
+      setIsCheckingStatus(false);
+    }
+  };
 
   const isReady = doc.status === 'READY';
   const isFailed = doc.status === 'FAILED';
@@ -101,7 +138,7 @@ export function BookCard({
   const elapsedSinceCreatedSec = Math.max(0, Math.floor((now - createdAtMs) / 1000));
   const elapsedSinceUpdatedSec = Math.max(0, Math.floor((now - updatedAtMs) / 1000));
 
-  // Taking longer than expected: waiting > 45s without starting or processing unchanged > 90s
+  // Taking longer than expected: waiting > 40s without starting or processing unchanged > 75s
   const isDelayed =
     !isReady &&
     !isFailed &&
@@ -149,7 +186,7 @@ export function BookCard({
   const lastAccessed = formatTimeAgo(readingProgress?.lastReadAt || doc.updatedAt);
 
   return (
-    <div className="w-full min-w-0 max-w-full flex flex-col group select-none">
+    <div className="w-full min-w-0 max-w-full h-full flex flex-col justify-between group select-none">
       {/* 1. PHYSICAL 3D BOOK COVER (Real 1:1.45 book proportions with spine and page edge) */}
       <Link
         href={isReady ? targetHref : '#'}
@@ -222,108 +259,124 @@ export function BookCard({
       </Link>
 
       {/* 2. EXTERNAL TITLE & READING/INGESTION PROGRESS DETAILS BELOW COVER */}
-      <div className="mt-2.5 px-0.5 min-w-0 w-full space-y-1">
+      <div className="mt-2.5 px-0.5 min-w-0 w-full flex-1 flex flex-col justify-between space-y-1.5">
         <h4
           title={doc.title}
-          className="font-display font-bold text-xs sm:text-sm text-[#14261D] truncate leading-tight"
+          className="font-display font-bold text-xs sm:text-sm text-[#14261D] line-clamp-2 min-h-[2.5rem] leading-snug break-words"
         >
           {doc.title}
         </h4>
 
-        {isStale ? (
-          /* Stale / Delayed: Taking longer than expected */
-          <div className="space-y-1 pt-0.5">
-            <div className="flex items-center justify-between text-[10px] font-mono">
-              <span className="font-semibold text-amber-900 truncate flex items-center gap-1.5">
-                <AlertCircle className="w-3 h-3 text-amber-700 shrink-0" />
-                <span className="truncate">Taking longer than expected</span>
-              </span>
+        {/* Reserved Status & Progress Slot for Perfect Baseline Alignment */}
+        <div className="min-h-[3.25rem] flex flex-col justify-center">
+          {feedback ? (
+            /* Visible Feedback from User Action (e.g. Check Status) */
+            <div
+              className={`px-2 py-1.5 rounded-lg text-[10px] font-sans font-medium flex items-center gap-1.5 animate-in fade-in duration-150 ${
+                feedback.type === 'success'
+                  ? 'bg-[#E2EBD8] text-[#1B3428] border border-[#497E64]/30'
+                  : feedback.type === 'warning'
+                  ? 'bg-amber-100 text-amber-900 border border-amber-300/60'
+                  : 'bg-[#F4F0E5] text-[#14261D] border border-[#1B3428]/15'
+              }`}
+            >
+              <span className="truncate">{feedback.message}</span>
             </div>
-            <div className="h-1.5 w-full rounded-full bg-amber-200/50 overflow-hidden">
-              <div className="h-full rounded-full bg-amber-600 animate-pulse w-full" />
-            </div>
-            <p className="text-[9px] font-sans text-amber-900/80 leading-tight">
-              Your upload is safe. We&apos;re checking what happened.
-            </p>
-          </div>
-        ) : isWaiting ? (
-          /* Waiting in queue: Honest waiting state without fake 0% */
-          <div className="space-y-1 pt-0.5">
-            <div className="flex items-center justify-between text-[10px] font-mono">
-              <span className="font-semibold text-[#14261D] truncate flex items-center gap-1.5">
-                <Loader2 className="w-3 h-3 animate-spin text-[#E8722C] shrink-0" />
-                <span className="truncate">
-                  {isDelayed ? 'Starting processing service...' : 'Waiting to prepare...'}
+          ) : isStale ? (
+            /* Stale / Delayed: Taking longer than expected */
+            <div className="space-y-1 pt-0.5">
+              <div className="flex items-center justify-between text-[10px] font-mono">
+                <span className="font-semibold text-amber-900 truncate flex items-center gap-1.5">
+                  <AlertCircle className="w-3 h-3 text-amber-700 shrink-0" />
+                  <span className="truncate">Taking longer than expected</span>
                 </span>
-              </span>
+              </div>
+              <div className="h-1.5 w-full rounded-full bg-amber-200/50 overflow-hidden">
+                <div className="h-full rounded-full bg-amber-600 animate-pulse w-full" />
+              </div>
+              <p className="text-[9px] font-sans text-amber-900/80 leading-tight truncate">
+                Your upload is safe. We&apos;re checking what happened.
+              </p>
             </div>
-            <div className="h-1.5 w-full rounded-full bg-[#1B3428]/10 overflow-hidden">
-              <div className="h-full rounded-full bg-[#E8722C]/40 animate-pulse w-full" />
-            </div>
-            <p className="text-[9px] font-sans text-[#14261D]/65 leading-tight">
-              {isDelayed
-                ? 'Our processing service is taking a little longer to start. Your book is safely uploaded.'
-                : 'Your book is uploaded and waiting to be prepared.'}
-            </p>
-          </div>
-        ) : isProcessing ? (
-          /* Active Processing with real stages & % */
-          <div className="space-y-1 pt-0.5">
-            <div className="flex items-center justify-between text-[10px] font-mono">
-              <span className="font-semibold text-[#14261D] truncate flex items-center gap-1.5">
-                <Loader2 className="w-3 h-3 animate-spin text-[#E8722C] shrink-0" />
-                <span className="truncate">{doc.processingStage || 'Preparing material...'}</span>
-              </span>
-              <span className="font-bold text-[#E8722C] shrink-0 ml-1">
-                {doc.processingProgress != null ? `${doc.processingProgress}%` : ''}
-              </span>
-            </div>
-            <div className="h-1.5 w-full rounded-full bg-[#1B3428]/10 overflow-hidden">
-              <div
-                className="h-full rounded-full bg-[#E8722C] transition-all duration-300"
-                style={{ width: `${Math.max(5, Math.min(100, doc.processingProgress ?? 10))}%` }}
-              />
-            </div>
-            <p className="text-[9px] font-mono text-[#14261D]/65 truncate">
-              {doc.completedUnits != null && doc.totalUnits != null
-                ? `${doc.completedUnits} of ${doc.totalUnits} sections completed`
-                : doc.processingMessage || 'Extracting text and organizing chapters...'}
-            </p>
-          </div>
-        ) : isFailed ? (
-          /* Terminal Failed state with clear guidance */
-          <div className="space-y-0.5 pt-0.5">
-            <p className="text-[10px] font-sans font-medium text-amber-900/90 leading-tight">
-              We couldn&apos;t prepare this book. Please try again.
-            </p>
-            <p className="text-[9px] font-sans text-[#14261D]/60 truncate">
-              Your uploaded book is still here.
-            </p>
-          </div>
-        ) : (
-          /* Ready: Page numbers or Unread */
-          <div className="flex items-center justify-between text-[10px] font-mono text-[#14261D]/70">
-            <span>
-              {currentPage && totalPages ? (
-                <span className="font-bold text-[#1B3428]">
-                  Page {currentPage}/{totalPages} ({progressPercent}%)
+          ) : isWaiting ? (
+            /* Waiting in queue: Honest waiting state without fake 0% */
+            <div className="space-y-1 pt-0.5">
+              <div className="flex items-center justify-between text-[10px] font-mono">
+                <span className="font-semibold text-[#14261D] truncate flex items-center gap-1.5">
+                  <Loader2 className="w-3 h-3 animate-spin text-[#E8722C] shrink-0" />
+                  <span className="truncate">
+                    {isDelayed ? 'Starting processing service...' : 'Waiting to prepare...'}
+                  </span>
                 </span>
-              ) : (
-                <span className="text-[#14261D]/50">Unread</span>
+              </div>
+              <div className="h-1.5 w-full rounded-full bg-[#1B3428]/10 overflow-hidden">
+                <div className="h-full rounded-full bg-[#E8722C]/40 animate-pulse w-full" />
+              </div>
+              <p className="text-[9px] font-sans text-[#14261D]/65 leading-tight truncate">
+                {isDelayed
+                  ? 'Our processing service is taking a little longer to start. Your book is safely uploaded.'
+                  : 'Your book is uploaded and waiting to be prepared.'}
+              </p>
+            </div>
+          ) : isProcessing ? (
+            /* Active Processing with real stages & % */
+            <div className="space-y-1 pt-0.5">
+              <div className="flex items-center justify-between text-[10px] font-mono">
+                <span className="font-semibold text-[#14261D] truncate flex items-center gap-1.5">
+                  <Loader2 className="w-3 h-3 animate-spin text-[#E8722C] shrink-0" />
+                  <span className="truncate">{doc.processingStage || 'Preparing material...'}</span>
+                </span>
+                <span className="font-bold text-[#E8722C] shrink-0 ml-1">
+                  {doc.processingProgress != null ? `${doc.processingProgress}%` : ''}
+                </span>
+              </div>
+              <div className="h-1.5 w-full rounded-full bg-[#1B3428]/10 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-[#E8722C] transition-all duration-300"
+                  style={{ width: `${Math.max(5, Math.min(100, doc.processingProgress ?? 10))}%` }}
+                />
+              </div>
+              <p className="text-[9px] font-mono text-[#14261D]/65 truncate">
+                {doc.completedUnits != null && doc.totalUnits != null
+                  ? `${doc.completedUnits} of ${doc.totalUnits} sections completed`
+                  : doc.processingMessage || 'Extracting text and organizing chapters...'}
+              </p>
+            </div>
+          ) : isFailed ? (
+            /* Terminal Failed state with clear guidance */
+            <div className="space-y-0.5 pt-0.5">
+              <p className="text-[10px] font-sans font-medium text-amber-900/90 leading-tight">
+                We couldn&apos;t prepare this book. Please try again.
+              </p>
+              <p className="text-[9px] font-sans text-[#14261D]/60 truncate">
+                Your uploaded book is still here.
+              </p>
+            </div>
+          ) : (
+            /* Ready: Page numbers or Unread */
+            <div className="flex items-center justify-between text-[10px] font-mono text-[#14261D]/70">
+              <span>
+                {currentPage && totalPages ? (
+                  <span className="font-bold text-[#1B3428]">
+                    Page {currentPage}/{totalPages} ({progressPercent}%)
+                  </span>
+                ) : (
+                  <span className="text-[#14261D]/50">Unread</span>
+                )}
+              </span>
+              {lastAccessed && (
+                <span className="flex items-center gap-0.5 text-[9px] text-[#14261D]/50 truncate">
+                  <Clock className="w-2.5 h-2.5 shrink-0" />
+                  <span>{lastAccessed}</span>
+                </span>
               )}
-            </span>
-            {lastAccessed && (
-              <span className="flex items-center gap-0.5 text-[9px] text-[#14261D]/50 truncate">
-                <Clock className="w-2.5 h-2.5 shrink-0" />
-                <span>{lastAccessed}</span>
-              </span>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* 3. RESPONSIVE ACTION BUTTONS ROW */}
-      <div className="flex items-center gap-1.5 mt-2.5 w-full min-w-0">
+      {/* 3. RESPONSIVE ACTION BUTTONS ROW (Consistent Pinned Baseline) */}
+      <div className="mt-auto pt-2.5 flex items-center gap-1.5 w-full min-w-0">
         {/* Primary Open & Study Button */}
         {isReady ? (
           <Link
@@ -333,8 +386,8 @@ export function BookCard({
             <Sparkles className="w-3 h-3 shrink-0 hidden xs:block" />
             <span className="truncate">Open Workspace</span>
           </Link>
-        ) : isFailed || isStale ? (
-          /* Functional Retry / Check Status button when failed or delayed */
+        ) : isFailed ? (
+          /* Failed state: dedicated Retry processing button */
           isOwner && onRetry ? (
             <button
               type="button"
@@ -344,21 +397,42 @@ export function BookCard({
               }}
               disabled={isRetrying}
               className="flex-1 min-w-0 py-1.5 sm:py-2 px-2.5 rounded-full bg-[#1B3428] text-white font-display font-bold text-[10px] sm:text-xs text-center shadow-[0_2px_0_0_#0D1B14] active:translate-y-0.5 active:shadow-none hover:bg-[#264838] transition-all flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
-              aria-label={isStale ? `Check status for ${doc.title}` : `Retry processing ${doc.title}`}
+              aria-label={`Retry processing ${doc.title}`}
             >
               {isRetrying ? (
                 <>
                   <Loader2 className="w-3 h-3 animate-spin text-[#E8722C] shrink-0" />
-                  <span className="truncate">Checking...</span>
+                  <span className="truncate">Retrying...</span>
                 </>
               ) : (
                 <>
                   <RotateCw className="w-3 h-3 shrink-0" />
-                  <span className="truncate">{isStale ? 'Check status' : 'Retry processing'}</span>
+                  <span className="truncate">Retry processing</span>
                 </>
               )}
             </button>
           ) : null
+        ) : isDelayed || isStale ? (
+          /* Delayed / Stale state: genuine Check status button */
+          <button
+            type="button"
+            onClick={handleCheckStatusClick}
+            disabled={isCheckingStatus}
+            className="flex-1 min-w-0 py-1.5 sm:py-2 px-2.5 rounded-full bg-[#1B3428] text-white font-display font-bold text-[10px] sm:text-xs text-center shadow-[0_2px_0_0_#0D1B14] active:translate-y-0.5 active:shadow-none hover:bg-[#264838] transition-all flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
+            aria-label={`Check status for ${doc.title}`}
+          >
+            {isCheckingStatus ? (
+              <>
+                <Loader2 className="w-3 h-3 animate-spin text-[#E8722C] shrink-0" />
+                <span className="truncate">Checking...</span>
+              </>
+            ) : (
+              <>
+                <RotateCw className="w-3 h-3 shrink-0" />
+                <span className="truncate">Check status</span>
+              </>
+            )}
+          </button>
         ) : (
           /* In-flight processing/waiting: NO REDUNDANT SECONDARY PILL */
           <div className="flex-1 min-w-0 flex items-center text-[10px] font-mono text-[#14261D]/55 px-1 py-1">

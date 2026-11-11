@@ -105,8 +105,9 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="w-full max-w-[1380px] mx-auto px-4 sm:px-6 md:px-10 py-8 sm:py-10 flex-1 space-y-6">
-      {/* 1. Header with Breadcrumb & Back Navigation */}
+    <div className="w-full px-4 sm:px-6 md:px-10 flex-1 flex flex-col">
+      <div className="w-full max-w-[1380px] mx-auto py-8 sm:py-10 flex-1 space-y-6">
+        {/* 1. Header with Breadcrumb & Back Navigation */}
       <div className="space-y-2">
         <Link
           href="/dashboard"
@@ -457,5 +458,6 @@ export default function SettingsPage() {
         </main>
       </div>
     </div>
-  );
+  </div>
+);
 }

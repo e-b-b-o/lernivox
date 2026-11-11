@@ -87,7 +87,7 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 
 ## 6. Current Task Record
 
-- **Task**: Fix Unreliable Document Processing, Improve User-Facing Processing States, and Refine Dashboard & Mobile Review UI
+- **Task**: Reliable Document Processing, Premium Digital Bookshelf, Dashboard Layout, and Mobile Review Improvements
 - **Status**: **Complete**
 - **Objective**:
   1. *Investigate Document `7bb29c0c-0a8a-467f-a7ce-39d9fefcea7a` Processing Root Cause*:
@@ -104,28 +104,39 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
      - Authored unit tests in `worker-wake.service.spec.ts` (9 tests, all passing).
   3. *Graceful Google OAuth Fallback (`apps/api/src/auth/guards/google-auth.guard.ts`)*:
      - When Google OAuth is not configured, redirects 302 to `${frontendUrl}/login` instead of throwing an unhandled `ServiceUnavailableException` (HTTP 503).
-  4. *Redesigned User-Facing Processing States (`apps/web/components/workspace/BookCard.tsx`)*:
+  4. *Redesigned User-Facing Processing States & Card Alignment (`apps/web/components/workspace/BookCard.tsx`)*:
      - Disentangled 5 distinct states: `Waiting`, `Processing`, `Delayed / Stale`, `Failed`, and `Ready`.
      - Eliminated fake 0% progress display: waiting books show "Waiting to prepare..." with a gentle indeterminate pulse.
      - Delayed state (> 40s waiting or > 75s processing) displays honest feedback ("Taking longer than expected. Your upload is safe. We're checking what happened.") with actionable "Check status" or "Retry processing" controls and "Delete" button.
+     - Genuinely functional "Check status" button: calls `api.documents.getStatus`, shows `Checking...` spinner, reads real server stage/progress, and renders a visible human result badge ("Your book is still waiting...", "Your book is now being prepared", "Your book is ready!").
+     - Card baseline alignment: uniform title clamping (`line-clamp-2 min-h-[2.5rem]`), reserved status slot (`min-h-[3.25rem]`), and pinned bottom action row (`mt-auto`) ensuring all buttons across a bookshelf row align at the exact same horizontal baseline.
      - Removed redundant secondary processing pill/button ("Preparing Material") from the card footer.
-  5. *Fluid Dashboard Search Toolbar (`apps/web/app/(workspace)/dashboard/page.tsx`)*:
-     - Search input container updated from `w-full sm:w-80 shrink-0` to `flex-1 min-w-0 w-full` so it expands fluidly across remaining width next to format filters.
-  6. *Mobile Review Bottom Sheet Repairs (`apps/web/app/(workspace)/dashboard/workspaces/[workspaceId]/page.tsx`)*:
+  5. *Fluid Dashboard Search Toolbar & Aligned Container Widths (`apps/web/app/(workspace)/dashboard/page.tsx` & `settings/page.tsx`)*:
+     - Search input container updated to `flex-1 min-w-0 w-full` so it expands fluidly across remaining width next to format filters.
+     - Removed 40px desktop container padding discrepancy: outer wrapper provides `w-full px-4 sm:px-6 md:px-10` while inner container uses `w-full max-w-[1380px] mx-auto`, aligning perfectly with the navbar brand logo and profile menu on all screen sizes.
+  6. *Client-Side In-Memory Cache (`apps/web/lib/client-cache.ts`)*:
+     - Built zero-dependency client cache module for dashboard workspaces list and individual workspaces.
+     - Reuses valid cached data when navigating between Dashboard, Settings, and Workspaces, completely eliminating the flash of skeleton loaders.
+     - Automatic mutation invalidation on document upload, deletion, status checks, and retries.
+     - Strict multi-user isolation and immediate purge on logout or session expiration (`clientCache.clearAll()`).
+  7. *Mobile Review Bottom Sheet Repairs (`apps/web/app/(workspace)/dashboard/workspaces/[workspaceId]/page.tsx`)*:
      - Fixed blank initial view: bottom dock "Review" button and sheet content body default to `quizzes` tab if current view is not already a review mode.
      - Fixed tab clipping on narrow screens (320px–430px): added `overflow-x-auto scrollbar-none min-w-0 max-w-[calc(100%-36px)]` and `shrink-0` to tabs.
 - **Files Created/Modified**:
+  - `apps/web/lib/client-cache.ts` (created) — Zero-dependency client caching layer for dashboard and workspaces.
+  - `apps/web/context/AuthContext.tsx` (modified) — Clears client cache on logout and session expiration.
   - `apps/api/src/common/worker-wake/worker-wake.service.ts` (modified) — Retry-After parsing, 3-minute active worker skip, 15s health timeout budget.
   - `apps/api/src/common/worker-wake/worker-wake.service.spec.ts` (modified) — Unit tests for Retry-After parsing and active worker wake deduplication.
   - `apps/api/src/auth/guards/google-auth.guard.ts` (modified) — Graceful 302 redirect on unconfigured Google OAuth.
-  - `apps/web/components/workspace/BookCard.tsx` (modified) — Honest waiting states, delayed threshold, removed redundant secondary pill, actionable check/retry controls.
-  - `apps/web/app/(workspace)/dashboard/page.tsx` (modified) — Fluid flex-1 search toolbar with right-aligned format filters.
-  - `apps/web/app/(workspace)/dashboard/workspaces/[workspaceId]/page.tsx` (modified) — Default Quizzes tab on review sheet open, horizontal overflow scrolling on review tabs.
-  - `apps/web/test/loading-and-404-experience.test.ts` (modified) — Automated architectural invariant test for toolbar, review sheet defaults, and honest card states.
+  - `apps/web/components/workspace/BookCard.tsx` (modified) — Honest waiting states, delayed threshold, removed redundant secondary pill, functional Check status with visible feedback, baseline alignment.
+  - `apps/web/app/(workspace)/dashboard/page.tsx` (modified) — Fluid flex-1 search toolbar, client cache integration, zero-offset navbar alignment, handleCheckStatus callback.
+  - `apps/web/app/(workspace)/dashboard/settings/page.tsx` (modified) — Zero-offset navbar alignment.
+  - `apps/web/app/(workspace)/dashboard/workspaces/[workspaceId]/page.tsx` (modified) — Default Quizzes tab on review sheet open, horizontal overflow scrolling on review tabs, workspace cache recovery.
+  - `apps/web/test/loading-and-404-experience.test.ts` (modified) — Automated architectural invariant tests for caching, toolbar, review sheet defaults, and honest card states.
 - **Verification**:
   - `pnpm --filter @lernivox/api test`: 14 suites, 181/181 tests passed.
   - `pnpm --filter @lernivox/worker test`: 5 suites, 21/21 tests passed.
-  - `pnpm --filter @lernivox/web test`: 4 suites, 43/43 tests passed.
+  - `pnpm --filter @lernivox/web test`: 4 suites, 44/44 tests passed.
   - `pnpm type-check`: 11/11 package tasks passed with 0 errors.
   - `pnpm build`: 7/7 package builds passed, 17/17 Next.js static and dynamic routes generated.
   - Live Neon PostgreSQL & Upstash Redis verification: confirmed document `7bb29c0c-0a8a-467f-a7ce-39d9fefcea7a` successfully processed to `READY`.
@@ -136,19 +147,18 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 
 ## 7. Next Recommended Action
 
-Deploy the verified changes to Render (`lernivox-api` and `lernivox-worker`) and Vercel (`lernivox-web`), then perform live smoke test of book upload and background ingestion on Render Free.
+Deploy the verified commits to Render (`lernivox-api` and `lernivox-worker`) and Vercel (`lernivox-web`), then perform live smoke test of book upload and background ingestion on Render Free.
 
 ---
 
 ## 8. Update History
-  - Fixed Unreliable Document Processing, Improved User-Facing Processing States & Refined Dashboard & Mobile Review UI:
+  - Reliable Document Processing, Premium Digital Bookshelf, Dashboard Layout & Mobile Review Improvements:
     - Resolved worker wake 429 bug with RFC 7231 `Retry-After` parsing and 3-minute active worker awareness.
-    - Gracefully handled Google OAuth callbacks with 302 redirect to `/login`.
-    - Redesigned processing states in `BookCard.tsx` with honest waiting feedback and zero fake 0%.
-    - Removed redundant secondary "Preparing Material" pill from book card.
-    - Expanded dashboard search toolbar fluidly (`flex-1 min-w-0`).
-    - Fixed mobile review sheet blank initial view and narrow-viewport tab clipping.
-    - Verified all 181 API tests, 43 Web tests, 11 type-check tasks, and full Next.js 15 production build.
+    - Built `client-cache.ts` in `@lernivox/web` eliminating skeleton flash across dashboard and settings navigation.
+    - Implemented genuinely functional "Check status" with visible human feedback badges and status synchronization.
+    - Enforced consistent card baseline alignment (uniform title clamping, reserved status slot, pinned action row).
+    - Aligned dashboard and settings container widths with header navbar (0px offset).
+    - Verified all 181 API tests, 21 Worker tests, 44 Web tests, 11 type-check tasks, and full Next.js 15 production build.
   - `package.json` (modified) — Updated root `"db:migrate"`.
   - `PROGRESS.md` (modified)
 - **Verification**:

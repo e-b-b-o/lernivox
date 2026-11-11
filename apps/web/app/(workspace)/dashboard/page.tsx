@@ -21,12 +21,14 @@ import {
   MAX_UPLOAD_SIZE_BYTES,
   MAX_UPLOAD_SIZE_LABEL,
   UPLOAD_SIZE_ERROR_MESSAGE,
+  type DocumentDto,
   type WorkspaceListItemDto,
   type WorkspacesListResponseDto,
   type WorkspaceType,
 } from '@lernivox/contracts';
 import { useAuth } from '../../../context/AuthContext';
 import { api } from '../../../lib/api';
+import { clientCache } from '../../../lib/client-cache';
 import { BookCard } from '../../../components/workspace/BookCard';
 import { BookCardSkeleton } from '../../../components/ui/loading';
 
@@ -74,11 +76,89 @@ function MyBooksDashboardContent() {
     setRetryingDocId(documentId);
     try {
       await api.documents.retry(documentId, accessToken);
-      await loadWorkspaces();
+      clientCache.invalidateDashboard();
+      await loadWorkspaces(true);
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : 'Failed to retry document processing.');
     } finally {
       setRetryingDocId(null);
+    }
+  };
+
+  const handleCheckStatus = async (
+    documentId: string,
+  ): Promise<{
+    status: string;
+    message: string;
+    stage?: string;
+    progress?: number;
+  }> => {
+    if (!accessToken) {
+      return {
+        status: 'ERROR',
+        message: "We couldn't check the status right now. Please try again.",
+      };
+    }
+    try {
+      const statusRes = await api.documents.getStatus(documentId, accessToken);
+      setWorkspacesData((prev) => {
+        const updateDoc = (doc: DocumentDto): DocumentDto => {
+          if (doc.id !== documentId) return doc;
+          return {
+            ...doc,
+            status: statusRes.status,
+            processingProgress: statusRes.progress,
+            processingStage: statusRes.stage,
+            processingMessage: statusRes.message,
+            completedUnits: statusRes.completedUnits ?? doc.completedUnits,
+            totalUnits: statusRes.totalUnits ?? doc.totalUnits,
+            errorCode: statusRes.errorCode ?? doc.errorCode,
+          };
+        };
+        const next = {
+          myBooks: prev.myBooks.map((item) => ({ ...item, document: updateDoc(item.document) })),
+          sharedWithMe: prev.sharedWithMe.map((item) => ({ ...item, document: updateDoc(item.document) })),
+        };
+        if (user) {
+          clientCache.setDashboard(user.id, next);
+        }
+        return next;
+      });
+
+      if (statusRes.isComplete) {
+        return {
+          status: 'READY',
+          message: 'Your book is ready! Opening workspace...',
+          stage: 'READY',
+          progress: 100,
+        };
+      }
+      if (statusRes.isFailed) {
+        return {
+          status: 'FAILED',
+          message: "We couldn't prepare this book. Please try again.",
+          stage: 'FAILED',
+        };
+      }
+      if (statusRes.progress > 5 || (statusRes.stage && statusRes.stage !== 'QUEUED')) {
+        return {
+          status: 'PROCESSING',
+          message: `Your book is now being prepared (${statusRes.progress}% completed).`,
+          stage: statusRes.stage,
+          progress: statusRes.progress,
+        };
+      }
+      return {
+        status: 'WAITING',
+        message: 'Your book is still waiting for processing. Your upload is safe.',
+        stage: statusRes.stage,
+        progress: statusRes.progress,
+      };
+    } catch {
+      return {
+        status: 'ERROR',
+        message: "We couldn't check the status right now. Please try again.",
+      };
     }
   };
 
@@ -143,26 +223,43 @@ function MyBooksDashboardContent() {
     }
   }, [searchParams]);
 
-  // Load Workspaces list
-  const loadWorkspaces = useCallback(async () => {
-    if (!accessToken) return;
-    try {
-      const data = await api.workspaces.list(accessToken);
-      setWorkspacesData(data);
-      setFetchError(null);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to load your study materials.';
-      setFetchError(msg);
-    } finally {
-      setLoading(false);
-    }
-  }, [accessToken]);
+  // Load Workspaces list with caching support
+  const loadWorkspaces = useCallback(
+    async (isBackground = false) => {
+      if (!accessToken) return;
+      try {
+        const data = await api.workspaces.list(accessToken);
+        setWorkspacesData(data);
+        if (user) {
+          clientCache.setDashboard(user.id, data);
+        }
+        setFetchError(null);
+      } catch (err: unknown) {
+        if (!isBackground) {
+          const msg =
+            err instanceof Error ? err.message : 'Failed to load your study materials.';
+          setFetchError(msg);
+        }
+      } finally {
+        setLoading(false);
+      }
+    },
+    [accessToken, user],
+  );
 
   useEffect(() => {
-    if (accessToken) {
-      loadWorkspaces();
+    if (!accessToken) return;
+    if (user) {
+      const cached = clientCache.getDashboard(user.id);
+      if (cached) {
+        setWorkspacesData(cached);
+        setLoading(false);
+        void loadWorkspaces(true);
+        return;
+      }
     }
-  }, [accessToken, loadWorkspaces]);
+    void loadWorkspaces(false);
+  }, [accessToken, user, loadWorkspaces]);
 
   // Polling for processing materials: check every 3s if any book is ingesting
   useEffect(() => {
@@ -219,6 +316,7 @@ function MyBooksDashboardContent() {
         customTitle.trim() || undefined,
         selectedWorkspaceType,
       );
+      clientCache.invalidateDashboard();
       setShowAddModal(false);
       setSelectedFile(null);
       setCustomTitle('');
@@ -254,6 +352,7 @@ function MyBooksDashboardContent() {
         },
         accessToken,
       );
+      clientCache.invalidateDashboard();
       setShowAddModal(false);
       setPastedTitle('');
       setPastedContent('');
@@ -273,8 +372,11 @@ function MyBooksDashboardContent() {
     setIsDeleting(true);
     try {
       await api.documents.delete(deletingDoc.id, accessToken);
+      if (user) {
+        clientCache.removeDashboardDocument(user.id, deletingDoc.id);
+      }
       setDeletingDoc(null);
-      await loadWorkspaces();
+      await loadWorkspaces(true);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to delete workspace.';
       alert(msg);
@@ -329,10 +431,11 @@ function MyBooksDashboardContent() {
   }
 
   return (
-    <div className="w-full max-w-[1380px] mx-auto px-4 sm:px-6 md:px-10 py-8 sm:py-10 space-y-10 flex-1">
-      {/* =========================================================================
-          PAGE INTRODUCTION: "My Books"
-          ========================================================================= */}
+    <div className="w-full px-4 sm:px-6 md:px-10 flex-1 flex flex-col">
+      <div className="w-full max-w-[1380px] mx-auto py-8 sm:py-10 space-y-10 flex-1">
+        {/* =========================================================================
+            PAGE INTRODUCTION: "My Books"
+            ========================================================================= */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-[#1B3428]/10">
         <div>
           <h1 className="font-display font-black text-2xl sm:text-3xl lg:text-4xl text-[#14261D] tracking-tight">
@@ -407,7 +510,7 @@ function MyBooksDashboardContent() {
           <span>{fetchError}</span>
           <button
             type="button"
-            onClick={loadWorkspaces}
+            onClick={() => void loadWorkspaces(false)}
             className="font-bold underline ml-4 flex items-center gap-1"
           >
             <RotateCw className="w-3 h-3" /> Retry
@@ -475,6 +578,7 @@ function MyBooksDashboardContent() {
                 isDeleting={isDeleting && deletingDoc?.id === item.document.id}
                 onRetry={handleRetryDocument}
                 isRetrying={retryingDocId === item.document.id}
+                onCheckStatus={handleCheckStatus}
               />
             ))}
           </div>
@@ -584,11 +688,13 @@ function MyBooksDashboardContent() {
                 workspaceType={item.type}
                 isOwner={false}
                 readingProgress={item.myReadingProgress}
+                onCheckStatus={handleCheckStatus}
               />
             ))}
           </div>
         )}
       </section>
+      </div>
 
       {/* =========================================================================
           ADD MATERIAL MODAL (Supports File, Pasted Text, and Workspace Type)
