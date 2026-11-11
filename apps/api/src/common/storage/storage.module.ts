@@ -20,17 +20,16 @@ export const STORAGE_SERVICE_TOKEN = 'STORAGE_SERVICE';
         const driver = config.get<string>('STORAGE_DRIVER', 'local');
 
         if (driver === 'cloudinary') {
-          const cloudName = config.get<string>('CLOUDINARY_CLOUD_NAME', '');
-          const apiKey = config.get<string>('CLOUDINARY_API_KEY', '');
-          const apiSecret = config.get<string>('CLOUDINARY_API_SECRET', '');
-
-          if (cloudName && apiKey && apiSecret && !cloudName.includes('placeholder')) {
-            return new CloudinaryStorageAdapter({
-              cloudName,
-              apiKey,
-              apiSecret,
-            });
+          const cloudinaryUrl = config.get<string>('CLOUDINARY_URL', process.env.CLOUDINARY_URL || '');
+          if (!cloudinaryUrl) {
+            throw new Error(
+              'STORAGE_DRIVER is set to "cloudinary", but CLOUDINARY_URL is missing. Please configure CLOUDINARY_URL in the format: cloudinary://<api_key>:<api_secret>@<cloud_name>',
+            );
           }
+          return new CloudinaryStorageAdapter({
+            cloudinaryUrl,
+            secure: true,
+          });
         }
 
         // Default to LocalStorageAdapter with absolute shared uploads directory

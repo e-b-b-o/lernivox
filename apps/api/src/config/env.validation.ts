@@ -101,6 +101,10 @@ export class EnvironmentVariables {
 
   @IsString()
   @IsOptional()
+  CLOUDINARY_URL?: string;
+
+  @IsString()
+  @IsOptional()
   STORAGE_BASE_DIR?: string;
 
   @IsNumber()
@@ -126,6 +130,21 @@ export function validate(config: Record<string, unknown>) {
     ) {
       throw new Error(
         'Production security violation: JWT_SECRET must be set to a secure, unpredictable random string at least 32 characters long in production.',
+      );
+    }
+  }
+
+  if (validatedConfig.STORAGE_DRIVER === 'cloudinary') {
+    const rawCloudinaryUrl = validatedConfig.CLOUDINARY_URL || (process.env.CLOUDINARY_URL as string | undefined);
+    if (!rawCloudinaryUrl) {
+      throw new Error(
+        'Configuration error: STORAGE_DRIVER is set to "cloudinary", but CLOUDINARY_URL is missing. Expected format: cloudinary://<api_key>:<api_secret>@<cloud_name>',
+      );
+    }
+    const cleanUrl = rawCloudinaryUrl.replace(/<([^>]+)>/g, '$1').trim();
+    if (!cleanUrl.startsWith('cloudinary://')) {
+      throw new Error(
+        'Configuration error: CLOUDINARY_URL must begin with "cloudinary://". Expected format: cloudinary://<api_key>:<api_secret>@<cloud_name>',
       );
     }
   }

@@ -46,12 +46,8 @@ services:
         sync: false # Set to your frontend URL
       - key: STORAGE_DRIVER
         value: cloudinary
-      - key: CLOUDINARY_CLOUD_NAME
-        sync: false
-      - key: CLOUDINARY_API_KEY
-        sync: false
-      - key: CLOUDINARY_API_SECRET
-        sync: false
+      - key: CLOUDINARY_URL
+        sync: false # Set to your Cloudinary URL (cloudinary://API_KEY:API_SECRET@CLOUD_NAME)
       - key: AI_PROVIDER
         value: gemini
       - key: GEMINI_API_KEY
@@ -89,12 +85,8 @@ services:
           envVarKey: WORKER_WAKE_SECRET # Shares the exact secret generated on API
       - key: STORAGE_DRIVER
         value: cloudinary
-      - key: CLOUDINARY_CLOUD_NAME
-        sync: false
-      - key: CLOUDINARY_API_KEY
-        sync: false
-      - key: CLOUDINARY_API_SECRET
-        sync: false
+      - key: CLOUDINARY_URL
+        sync: false # Set to your Cloudinary URL (cloudinary://API_KEY:API_SECRET@CLOUD_NAME)
       - key: AI_PROVIDER
         value: gemini
       - key: GEMINI_API_KEY

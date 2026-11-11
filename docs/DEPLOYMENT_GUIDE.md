@@ -341,9 +341,7 @@ Never commit real values to Git. Set these in the respective platform secret das
 | `GEMINI_API_KEY` | Google Gemini API key | `AIzaSy...` |
 | `GEMINI_MODEL` | Gemini LLM model | `gemini-2.5-flash` |
 | `STORAGE_DRIVER` | File storage driver | `cloudinary` |
-| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud identifier | `your_cloud_name` |
-| `CLOUDINARY_API_KEY` | Cloudinary API access key | `123456789012345` |
-| `CLOUDINARY_API_SECRET` | Cloudinary API secret | `your_cloudinary_api_secret` |
+| `CLOUDINARY_URL` | Unified Cloudinary connection URL | `cloudinary://API_KEY:API_SECRET@CLOUD_NAME` |
 | `GOOGLE_CLIENT_ID` | Google OAuth Client ID (Optional) | `123...apps.googleusercontent.com` |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth Secret (Optional) | `GOCSPX-...` |
 | `GOOGLE_CALLBACK_URL` | Google OAuth redirect destination | `https://lernivox-api.onrender.com/api/v1/auth/google/callback` |
@@ -365,9 +363,7 @@ Never commit real values to Git. Set these in the respective platform secret das
 | `GEMINI_API_KEY` | Google Gemini API key | **Identical to API** |
 | `GEMINI_MODEL` | Gemini LLM model | `gemini-2.5-flash` |
 | `STORAGE_DRIVER` | File storage driver | `cloudinary` |
-| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud identifier | **Identical to API** |
-| `CLOUDINARY_API_KEY` | Cloudinary API access key | **Identical to API** |
-| `CLOUDINARY_API_SECRET` | Cloudinary API secret | **Identical to API** |
+| `CLOUDINARY_URL` | Unified Cloudinary connection URL | **Identical to API** |
 
 ---
 

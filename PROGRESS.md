@@ -981,6 +981,41 @@ Deploy the updated API and Web application to Render and Vercel, and verify that
       - Verified production build: All 7 packages compiled and all 17 Next.js static/dynamic pages generated successfully (`pnpm build`).
       - Port and process audit: Checked `ss -tulpn`, 0 lingering processes.
 
+  - Standardized Cloudinary Configuration Using ONLY CLOUDINARY_URL:
+    - Diagnosed "Invalid cloud_name Root" Root Cause:
+      - Identified that `.env` line 43 previously contained `CLOUDINARY_CLOUD_NAME=Root` and lines 44-45 contained legacy API key/secret variables.
+      - In `apps/api` and `apps/worker` `storage.module.ts`, `config.get('CLOUDINARY_CLOUD_NAME')` read `'Root'` and instantiated `CloudinaryStorageAdapter` with `cloudName: 'Root'`, explicitly calling `cloudinary.config({ cloud_name: 'Root', ... })`. This overrode any Cloudinary configuration with the invalid cloud name `Root`, resulting in `Cloudinary upload failed: Invalid cloud_name Root`.
+      - In addition, `.env` line 47 had angle brackets `<` and `>` wrapping the key and secret in `CLOUDINARY_URL`, causing URL percent-encoding (`%3C` and `%3E`) when parsed by standard URL parsers.
+    - Unified Cloudinary Storage Adapter (`packages/storage/src/adapters/cloudinary-storage.adapter.ts`):
+      - Refactored `CloudinaryStorageAdapter` to initialize strictly from `CLOUDINARY_URL`.
+      - Implemented automatic legacy variable purging (`delete process.env.CLOUDINARY_CLOUD_NAME`, `delete process.env.CLOUDINARY_API_KEY`, `delete process.env.CLOUDINARY_API_SECRET`) on initialization so legacy environment variables cannot override or conflict with `CLOUDINARY_URL`.
+      - Added automatic angle-bracket sanitization (`rawUrl.replace(/<([^>]+)>/g, '$1')`) to protect against template copy-paste errors.
+      - Leveraged native official Cloudinary SDK connection parsing via `process.env.CLOUDINARY_URL` and `cloudinary.config(true)`.
+      - Added strict configuration validation: rejects missing `CLOUDINARY_URL`, rejects non-`cloudinary://` protocols, rejects missing `api_key` or `api_secret`, and explicitly detects and rejects `"Root"` as an invalid cloud name.
+      - Enforced zero secret logging: only sanitized `cloud_name` is output on initialization.
+    - Updated API & Worker Storage Modules (`apps/api` & `apps/worker`):
+      - Refactored both `storage.module.ts` providers to read only `CLOUDINARY_URL`. Completely removed dependencies on `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET`.
+      - Fail-fast validation throws descriptive startup errors if `STORAGE_DRIVER=cloudinary` is set without `CLOUDINARY_URL`.
+    - Production Environment Validation (`apps/api/src/config/env.validation.ts`):
+      - Added `CLOUDINARY_URL?: string` to `EnvironmentVariables`.
+      - Added validation rule ensuring `CLOUDINARY_URL` exists and begins with `cloudinary://` whenever `STORAGE_DRIVER === 'cloudinary'`.
+    - Render Infrastructure-as-Code (`render.yaml`):
+      - Updated both `lernivox-api` and `lernivox-worker` service definitions.
+      - Replaced `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` with a single `- key: CLOUDINARY_URL (sync: false)`.
+    - Documentation & Examples (`.env.example` & `docs/DEPLOYMENT_GUIDE.md`):
+      - Replaced the three separate variables with `CLOUDINARY_URL=cloudinary://your_api_key:your_api_secret@your_cloud_name`.
+      - Ensured zero frontend exposure (`NEXT_PUBLIC_` never used for Cloudinary credentials).
+    - Authoring Invariant Tests (`packages/storage/test/cloudinary-config.test.ts`):
+      - Authored 9 automated tests validating constructor URL parsing, environment variable parsing, angle-bracket sanitization, missing URL rejection, malformed protocol rejection, "Root" cloud name rejection, missing key/secret rejection, legacy variable purging, and signed URL generation.
+    - Verification & Automated Testing:
+      - Storage unit tests: 9/9 passed (`pnpm --filter @lernivox/storage test`).
+      - API unit tests: 179/179 passed across 14 suites (`pnpm --filter @lernivox/api test`).
+      - Worker unit tests: 21/21 passed across 5 suites (`pnpm --filter @lernivox/worker test`).
+      - Web unit tests: 42/42 passed across 4 suites (`pnpm --filter @lernivox/web test`).
+      - Monorepo typecheck: 11/11 package tasks passed with 0 errors (`pnpm type-check`).
+      - Monorepo production build: 7/7 packages compiled successfully including all 17 Next.js static/dynamic pages (`pnpm build`).
+      - Port and process audit: Checked `ss -tulpn`, 0 lingering processes.
+
 
 
 
