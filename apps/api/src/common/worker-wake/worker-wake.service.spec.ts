@@ -153,4 +153,41 @@ describe('WorkerWakeService', () => {
       service.wake('non-blocking-test');
     }).not.toThrow();
   });
+
+  it('correctly parses various Retry-After header formats', () => {
+    const service = createService('https://worker.onrender.com', 'secret');
+
+    expect(service.parseRetryAfter('30')).toBe(30);
+    expect(service.parseRetryAfter('30s')).toBe(30);
+    expect(service.parseRetryAfter(' 45S ')).toBe(45);
+    expect(service.parseRetryAfter('1')).toBe(5); // Minimum floor is 5s
+    expect(service.parseRetryAfter('300')).toBe(120); // Maximum ceiling is 120s
+    expect(service.parseRetryAfter(null)).toBe(30);
+    expect(service.parseRetryAfter('invalid')).toBe(30);
+
+    // RFC 7231 HTTP-Date format 60 seconds into the future
+    const futureDate = new Date(Date.now() + 60000).toUTCString();
+    const parsedFromDate = service.parseRetryAfter(futureDate);
+    expect(parsedFromDate).toBeGreaterThanOrEqual(58);
+    expect(parsedFromDate).toBeLessThanOrEqual(62);
+  });
+
+  it('skips redundant wake() when worker was confirmed active in the last 3 minutes', () => {
+    const mockFetch = (jest.fn() as any).mockResolvedValue({ status: 200, statusText: 'OK' });
+    global.fetch = mockFetch as unknown as typeof fetch;
+
+    const service = createService('https://worker.onrender.com', 'secret');
+
+    // First wake triggers fetch
+    service.wake('initial-upload');
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+
+    // Simulate worker confirmation active 10 seconds ago
+    (service as any).workerConfirmedActiveAt = Date.now() - 10000;
+    (service as any).inFlightWakePromise = null;
+
+    // Second wake within 3 minutes skips redundant wake call
+    service.wake('second-upload-soon-after');
+    expect(mockFetch).toHaveBeenCalledTimes(1); // Still 1!
+  });
 });

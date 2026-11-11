@@ -29,9 +29,19 @@ export class WorkerWakeService {
   /**
    * Fire-and-forget, non-blocking wake trigger.
    * Never blocks user request flow; coalesces simultaneous in-flight wake attempts.
+   * Skips redundant calls if the worker was confirmed active in the last 3 minutes.
    */
   public wake(reason: string = 'job-enqueued'): void {
     if (!this.workerBaseUrl) {
+      return;
+    }
+
+    const now = Date.now();
+    // If worker was confirmed active in the last 3 minutes, jobs in Redis are already being consumed
+    if (now - this.workerConfirmedActiveAt < 180000) {
+      this.logger.debug(
+        `Worker confirmed active ${Math.round((now - this.workerConfirmedActiveAt) / 1000)}s ago. Skipping redundant wake call (${reason}); worker is consuming Redis queue.`,
+      );
       return;
     }
 
@@ -80,6 +90,31 @@ export class WorkerWakeService {
 
     this.lastWakeAttemptTime = now;
     this.wake(reason);
+  }
+
+  /**
+   * Parses standard HTTP Retry-After header into integer seconds.
+   * Handles integer seconds (e.g. "30" or "30s") and RFC 7231 / RFC 9110 HTTP-Date strings.
+   * Bounded between 5s and 120s to ensure timely recovery without hammering upstream proxies.
+   */
+  public parseRetryAfter(header: string | null): number {
+    if (!header) return 30;
+    const trimmed = header.trim();
+    // Integer seconds format, optionally with 's' suffix (e.g. "30" or "30s")
+    const matchSeconds = trimmed.match(/^(\d+)\s*s?$/i);
+    if (matchSeconds && matchSeconds[1]) {
+      const sec = parseInt(matchSeconds[1], 10);
+      if (!isNaN(sec) && sec > 0) {
+        return Math.min(Math.max(sec, 5), 120);
+      }
+    }
+    // HTTP-Date format (RFC 7231 / RFC 9110)
+    const parsedDate = Date.parse(trimmed);
+    if (!isNaN(parsedDate)) {
+      const diffSec = Math.ceil((parsedDate - Date.now()) / 1000);
+      return Math.min(Math.max(diffSec, 5), 120);
+    }
+    return 30;
   }
 
   /**
@@ -165,14 +200,11 @@ export class WorkerWakeService {
             // ignore
           }
 
-          let coolDownSec = 30;
-          if (retryAfterHeader) {
-            const parsed = parseInt(retryAfterHeader, 10);
-            if (!isNaN(parsed) && parsed > 0) {
-              coolDownSec = Math.min(parsed, 120);
-            }
-          }
-          this.rateLimitedUntil = Date.now() + coolDownSec * 1000;
+          const coolDownSec = this.parseRetryAfter(retryAfterHeader);
+          // Add bounded jitter (500ms - 2000ms) on top of coolDownSec so we never retry before Retry-After expires
+          const jitterMs = initialDelayMs === 0 ? 0 : Math.floor(Math.random() * 1500) + 500;
+          const waitDelayMs = coolDownSec * 1000 + jitterMs;
+          this.rateLimitedUntil = Date.now() + waitDelayMs;
 
           this.logger.warn(
             `Worker wake rate-limited (HTTP 429, server: ${serverHeader}, reqId: ${rayId}, retryAfter: ${coolDownSec}s, body: "${bodySnippet}"). Checking worker health probe...`,
@@ -184,11 +216,12 @@ export class WorkerWakeService {
             return true;
           }
 
-          // If rate-limited, wait the cool-down time before retrying POST, or terminate if attempts exhausted
+          // If rate-limited, wait the full cool-down time before retrying POST, or terminate if attempts exhausted
           if (attempt < maxAttempts) {
-            const delay = Math.min(coolDownSec * 1000, 15000);
-            this.logger.log(`Waiting ${delay}ms before next worker wake retry...`);
-            await new Promise((resolve) => setTimeout(resolve, delay));
+            this.logger.log(
+              `Waiting ${waitDelayMs}ms before next worker wake retry (respecting Retry-After: ${coolDownSec}s)...`,
+            );
+            await new Promise((resolve) => setTimeout(resolve, waitDelayMs));
             continue;
           }
         }
@@ -236,6 +269,7 @@ export class WorkerWakeService {
   /**
    * Probes GET /healthz on the worker service.
    * If /healthz returns 200 OK, the worker container is confirmed active and running.
+   * Uses a 15-second timeout budget to accommodate Render Free container cold-starts.
    */
   public async probeWorkerHealth(): Promise<boolean> {
     if (!this.workerBaseUrl) {
@@ -250,7 +284,7 @@ export class WorkerWakeService {
           'User-Agent': 'Lernivox-API-HealthProbe/1.0',
           Accept: 'application/json',
         },
-        signal: AbortSignal.timeout(6000),
+        signal: AbortSignal.timeout(15000), // 15s budget for Render Free container cold-start
       });
 
       if (res.status === 200) {
