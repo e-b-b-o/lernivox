@@ -178,5 +178,43 @@ describe('Google Coming Soon, Branded 404 & Responsive Loading Architecture', ()
       /Log in to your account →/
     );
   });
+
+  test('6. Modern Bookshelf Dashboard, Aligned Navbar, Spine Depth and Clean Processing State', () => {
+    const layoutPath = path.join(baseDir, 'app/(workspace)/layout.tsx');
+    const bookCardPath = path.join(baseDir, 'components/workspace/BookCard.tsx');
+    const layoutCode = fs.readFileSync(layoutPath, 'utf8');
+    const bookCardCode = fs.readFileSync(bookCardPath, 'utf8');
+
+    // 1. Authenticated Navbar alignment matches marketing navbar
+    assert.match(layoutCode, /max-w-\[1380px\]/);
+    assert.match(layoutCode, /bg-\[#F4EFE4\]\/95/);
+    assert.match(layoutCode, /border-b-\[1\.5px\] border-\[#1B3428\]\/10/);
+    assert.match(layoutCode, /h-16 md:h-20/);
+
+    // 2. Dashboard toolbar: single unified bar with white search input
+    assert.match(dashboardPageCode, /max-w-\[1380px\]/);
+    assert.match(dashboardPageCode, /placeholder="Search your books\.\.\."/);
+    assert.match(dashboardPageCode, /bg-\[#FFFFFF\]/);
+    assert.match(dashboardPageCode, /All Materials/);
+
+    // 3. Bookshelf Grid with subtle shelf grounding line
+    assert.match(dashboardPageCode, /after:from-\[#1B3428\]\/15/);
+    assert.match(dashboardPageCode, /grid-cols-2.*xl:grid-cols-6/);
+
+    // 4. Physical 1:1.45 Book Card with spine crease and page edge
+    assert.match(bookCardCode, /aspect-\[1\/1\.45\]/);
+    assert.match(bookCardCode, /rounded-l-xs rounded-r-xl/);
+    assert.match(bookCardCode, /bg-gradient-to-r from-black\/35/);
+    assert.match(bookCardCode, /border-r-\[4px\] border-r-\[#FAF8F4\]\/80/);
+
+    // 5. Clean, non-redundant processing area (no duplicate badge inside cover, single clean status below)
+    assert.doesNotMatch(bookCardCode, /isProcessing && \([\s\S]*?<Loader2[\s\S]*?<span>Preparing<\/span>/);
+    assert.match(bookCardCode, /doc\.processingStage \|\| 'Preparing material\.\.\.'/);
+    assert.match(bookCardCode, /Preparing Material/);
+
+    // 6. BookCardSkeleton mirrors exact 1:1.45 proportions and spine
+    assert.match(loadingComponentsCode, /aspect-\[1\/1\.45\]/);
+    assert.match(loadingComponentsCode, /rounded-l-xs rounded-r-xl/);
+  });
 });
 

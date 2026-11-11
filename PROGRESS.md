@@ -87,32 +87,55 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 
 ## 6. Current Task Record
 
-- **Task**: Fix Render Free Production Database Migrations on API Startup, Add Programmatic Migration Runner, and Enforce Fail-Fast Schema Verification
+- **Task**: Fix Worker Wake-Up Failures, Ensure End-to-End Document Ingestion, and Redesign My Books Dashboard into Modern Digital Bookshelf
 - **Status**: **Complete**
 - **Objective**:
-  1. *Programmatic & Reliable Database Migration Execution*:
-     - Created `packages/database/src/migrate.ts` exporting `runDatabaseMigrations()` and callable directly via `node dist/migrate.js`.
-     - Automatically resolves Prisma schema and Prisma CLI entry point across monorepo directories and containerized deployments.
-     - Replaced brittle `import * as dotenv from 'dotenv'` in `packages/database/prisma.config.ts` with Node 20+ native `process.loadEnvFile` and safe error boundary for containerized environments where `process.env` is injected directly.
-     - Added `"db:migrate": "node dist/migrate.js"` in `packages/database/package.json` and updated root `package.json` `"db:migrate"`.
-  2. *API Startup Migration Automation*:
-     - In `apps/api/src/main.ts`, integrated `runDatabaseMigrations()` directly before `NestFactory.create(AppModule)`.
-     - Regardless of whether Render executes `pnpm db:migrate && pnpm --filter @lernivox/api start`, `pnpm start`, or directly `node dist/main.js`, database migrations are always checked and deployed before the API initializes.
-     - If migrations fail, the API logs the fatal error and exits with code 1 immediately.
-  3. *Enforce Fail-Fast Schema Verification*:
-     - In `apps/api/src/common/prisma/prisma.service.ts`, transformed the previous non-blocking warning (`DATABASE SCHEMA WARNING`) into an active fail-fast check: if table `public.users` does not exist after connection, it logs a fatal error and throws an exception, preventing NestJS from binding to port 10000 or reporting healthy on unmigrated databases.
-     - Enforced fail-fast PostgreSQL connection check in both API and Worker Prisma services.
-  4. *Render Free Web Service Compatibility*:
-     - Render Free ignores paid `preDeployCommand`. The solution guarantees migrations run at container startup before the HTTP listener opens, with zero external service dependencies and zero paid Render features required.
+  1. *Worker Wake-Up Reliability & Document Ingestion Pipeline*:
+     - Diagnosed root cause of `HTTP 429 Too Many Requests` when API triggers `POST /internal/wake` to Render Worker: Render shared outbound IP/Cloudflare edge throttling rapid inter-service calls.
+     - Investigated uploaded document `37d136d9-3e1f-41b3-adce-6b353931e348`: confirmed document was queued into Upstash Redis (Job ID 1), worker was asleep when 429 was returned, and document was deleted by user before worker woke up.
+     - Implemented dual-path health fallback in `WorkerWakeService`: if wake POST returns 429 or times out, it probes `GET /healthz`. If worker is already awake and connected to BullMQ, wake succeeds immediately.
+     - Supported HEAD alongside GET on `/healthz` and `/readyz` in `WorkerHttpService` so edge health checks succeed with 200.
+     - Added idempotent 200 response on `/internal/wake` when worker is already ready.
+     - Added dynamic `REDIS_URL` parsing in `WorkerHealthService` so `readyz` reflects real Upstash host/port.
+     - Added BullMQ cleanup on document deletion in `DocumentsService` to remove queued ingestion jobs for deleted documents.
+  2. *Modern Bookshelf Dashboard UI/UX Redesign*:
+     - Aligned authenticated navbar in `apps/web/app/(workspace)/layout.tsx` to marketing navbar: `max-w-[1380px]`, `px-4 sm:px-6 md:px-10`, `h-16 md:h-20`, `bg-[#F4EFE4]/95 backdrop-blur-sm`, `border-b-[1.5px] border-[#1B3428]/10`.
+     - Built unified search and filters toolbar in `apps/web/app/(workspace)/dashboard/page.tsx`: single parchment bar (`bg-[#FAF8F4] border border-[#1B3428]/10`), clean white search input (`bg-[#FFFFFF] border-[#1B3428]/15 rounded-xl`), placeholder "Search your books...", clear button, and format pills (`All Materials`, `PDF`, `DOCX`, `TXT`).
+     - Transformed document cards into physical 1:1.45 digital books in `BookCard.tsx`: real book proportions (`aspect-[1/1.45]`), left spine crease (`w-3 sm:w-4 bg-gradient-to-r from-black/35 via-black/15 to-transparent`), right page-edge bevel (`border-r-[4px] border-r-[#FAF8F4]/80 shadow-[inset_-2px_0_4px_rgba(0,0,0,0.2)]`), bound corners (`rounded-l-xs rounded-r-xl`), and natural serif title wrapping.
+     - Added subtle bookshelf grounding line beneath book rows (`after:h-[6px] after:bg-gradient-to-b after:from-[#1B3428]/15 after:to-transparent after:rounded-full`).
+     - Consolidated processing state: removed duplicate "Preparing" badge from inside cover, unified status area below cover (stage title, progress bar, percentage, description), and clean "Preparing Material" action button.
+     - Enhanced "Shared with Me" and empty library states with friendly visual treatments and direct "Add Your First Book" button.
+     - Updated `BookCardSkeleton` in `apps/web/components/ui/loading.tsx` to mirror the exact `aspect-[1/1.45]` book proportions, spine crease, and page-edge bevel.
 - **Files Created/Modified**:
-  - `packages/database/src/migrate.ts` (created) — Dedicated programmatic migration runner and standalone CLI script.
-  - `packages/database/test/migrate.test.ts` (created) — Automated test suite verifying schema detection, migration assets, and fast failure on connection failure.
-  - `packages/database/prisma.config.ts` (modified) — Fixed missing `dotenv` module error by using native `process.loadEnvFile`.
-  - `packages/database/src/index.ts` (modified) — Exported `runDatabaseMigrations` and `MigrationLogger`.
-  - `packages/database/package.json` (modified) — Added `"db:migrate": "node dist/migrate.js"`.
-  - `apps/api/src/main.ts` (modified) — Automated pre-bootstrap migration execution.
-  - `apps/api/src/common/prisma/prisma.service.ts` (modified) — Enforced fail-fast `public.users` existence validation.
-  - `apps/worker/src/prisma/prisma.service.ts` (modified) — Enforced fail-fast connection handling.
+  - `apps/api/src/common/worker-wake/worker-wake.service.ts` (modified) — Dual-path probe fallback on 429, sanitized rate-limit headers, and active worker cool-down tracking.
+  - `apps/api/src/common/worker-wake/worker-wake.service.spec.ts` (modified) — Unit tests for worker wake retry, timeout handling, and health probing.
+  - `apps/api/src/documents/documents.service.ts` (modified) — BullMQ queued job cleanup on document deletion.
+  - `apps/worker/src/server/worker-http.service.ts` (modified) — HEAD support on `/healthz` and `/readyz`, idempotent 200 wake responses.
+  - `apps/worker/src/health/worker-health.service.ts` (modified) — Dynamic `REDIS_URL` parsing for accurate Upstash connection reporting.
+  - `apps/web/app/(workspace)/layout.tsx` (modified) — Aligned navbar background, border, height, and 1380px container to homepage navbar.
+  - `apps/web/app/(workspace)/dashboard/page.tsx` (modified) — Unified toolbar with white search input, bookshelf grid layout with shelf grounding, and friendly empty states.
+  - `apps/web/components/workspace/BookCard.tsx` (modified) — 1:1.45 digital book geometry, spine crease, page-edge bevel, clean cover, and consolidated processing status.
+  - `apps/web/components/ui/loading.tsx` (modified) — Updated `BookCardSkeleton` to match 1:1.45 book proportions and shelf layout.
+  - `apps/web/test/loading-and-404-experience.test.ts` (modified) — Added test suite verifying navbar alignment, unified toolbar, 1:1.45 book geometry, and clean processing indicators.
+- **Verification**:
+  - `pnpm --filter @lernivox/api test`: 14 suites, 175/175 tests passed.
+  - `pnpm --filter @lernivox/worker test`: 5 suites, 21/21 tests passed.
+  - `pnpm --filter @lernivox/web test`: 4 suites, 42/42 tests passed.
+  - `pnpm type-check`: 11/11 package tasks passed with 0 errors.
+  - `pnpm build`: 7/7 package builds passed, 17/17 Next.js static and dynamic routes generated.
+  - Live Neon PostgreSQL & Upstash Redis verification: confirmed user and database schema healthy, BullMQ queue connectivity active.
+- **Processes and Ports**: Port audit confirmed clean via `ss -tulpn` (0 lingering background processes).
+- **Known Issues / Blockers**: None.
+
+---
+
+## 7. Next Recommended Action
+
+Deploy the verified changes to Render (`lernivox-api` and `lernivox-worker`) and Vercel (`lernivox-web`), then perform live smoke test of book upload and background ingestion on Render Free.
+
+---
+
+## 8. Update History
   - `package.json` (modified) — Updated root `"db:migrate"`.
   - `PROGRESS.md` (modified)
 - **Verification**:
@@ -911,6 +934,21 @@ Deploy the updated API and Web application to Render and Vercel, and verify that
     - Accessible Frontend Validation & Custom Error UI (`apps/web/app/(auth)/login/page.tsx` & `register/page.tsx`): Added field-level blur and submit validation for email, password, and confirm password with clear inline errors, error borders, `noValidate`, `aria-invalid`, `aria-describedby`, and focus trapping to the first invalid field. Mapped auth-wide error messages (401 credentials, 409 conflict with login link, 500 server error, network errors).
     - Production Database & 401 Investigation: Confirmed missing `public.users` table is resolved via `render.yaml` automated migration command (`pnpm db:migrate && pnpm --filter @lernivox/api start`). Confirmed `POST /api/v1/auth/refresh` 401 response is standard unauthenticated session-check behavior with zero retry loops.
     - Verified all test suites: Web tests (41/41 passing across 4 suites), API tests (175/175 passing across 14 suites), full monorepo type-check (11/11 package tasks passing with 0 errors), and Next.js 15 production build (`next build` 17/17 routes).
+
+  - Fixed Worker Wake-Up Reliability, Verified Document Ingestion Pipeline & Redesigned My Books Dashboard:
+    - Diagnosed Worker Wake HTTP 429 Root Cause: Live Upstash Redis inspection confirmed Job ID 1 was queued for document `37d136d9-3e1f-41b3-adce-6b353931e348`. The API received HTTP 429 when calling `POST https://lernivox-worker.onrender.com/internal/wake` because Render's shared egress IP/Cloudflare edge throttles bursts of requests across Render Free web services. Because the wake call failed, the sleeping worker container did not boot in time, leaving the document in `UPLOADED` state with `processingProgress: 0%` until the user deleted it.
+    - Implemented Dual-Path Health Probe Fallback in API (`apps/api/src/common/worker-wake/worker-wake.service.ts`): If the wake POST receives 429 or times out, the service probes `GET /healthz`. Since any incoming HTTP traffic triggers Render Free to boot the container, once `/healthz` returns 200 OK, the worker container is confirmed active, connected to Redis, and automatically consuming BullMQ jobs without requiring further wake calls. Added cool-down tracking to prevent edge rate-limit compounding.
+    - Enhanced Worker Control HTTP Server (`apps/worker/src/server/worker-http.service.ts` & `apps/worker/src/health/worker-health.service.ts`): Added `HEAD` method support alongside `GET` on `/healthz` and `/readyz` for edge checkers; made `/internal/wake` idempotent returning `200 OK` (`status: 'awake'`) when already initialized; added dynamic `REDIS_URL` parsing so Upstash Redis host and TLS port are correctly reflected on `readyz`.
+    - Added BullMQ Queue Cleanup on Document Deletion (`apps/api/src/documents/documents.service.ts`): When a document is deleted, any pending or waiting ingestion jobs in Redis are now safely removed from the queue.
+    - Harmonized Authenticated Navbar (`apps/web/app/(workspace)/layout.tsx`): Aligned container width to `max-w-[1380px] px-4 sm:px-6 md:px-10 h-16 md:h-20`, background to `bg-[#F4EFE4]/95 backdrop-blur-sm`, and border to `border-b-[1.5px] border-[#1B3428]/10` to achieve visual continuity with the marketing homepage navbar.
+    - Unified Search & Filters Toolbar (`apps/web/app/(workspace)/dashboard/page.tsx`): Replaced disjointed controls with a single parchment toolbar (`bg-[#FAF8F4] border border-[#1B3428]/10 rounded-2xl`), featuring a prominent white search input (`bg-[#FFFFFF] rounded-xl`) with placeholder `"Search your books..."`, search icon, clear button, and format pills (`All Materials`, `PDF`, `DOCX`, `TXT`).
+    - Redesigned 1:1.45 Digital Book Cards (`apps/web/components/workspace/BookCard.tsx`): Replaced ordinary cards with digital books featuring standard `aspect-[1/1.45]` proportions, left-edge spine crease (`w-3 sm:w-4 bg-gradient-to-r from-black/35 via-black/15 to-transparent`), right-side page-edge bevel (`border-r-[4px] border-r-[#FAF8F4]/80 shadow-[inset_-2px_0_4px_rgba(0,0,0,0.2)]`), bound corners (`rounded-l-xs rounded-r-xl`), and natural serif title wrapping.
+    - Consolidated Processing State: Removed duplicate "Preparing" badge from inside the cover; created a single, uncluttered status block below the cover with stage label, percentage, slim progress bar, and descriptive status; updated the action button to a clean disabled state ("Preparing Material" with spinner), eliminating redundant percentages.
+    - Bookshelf Shelf Grounding: Added subtle shelf grounding lines (`after:h-[6px] after:bg-gradient-to-b after:from-[#1B3428]/15 after:to-transparent`) beneath the book rows in the responsive 6-column grid (`grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6`).
+    - Enhanced Empty States: Refined empty library container with friendly copy and direct "Add Your First Book" button; added warm compact treatment for "Shared with Me".
+    - Updated Loading Skeletons (`apps/web/components/ui/loading.tsx`): Updated `BookCardSkeleton` to match exact `aspect-[1/1.45]` proportions, spine crease, and page-edge bevel.
+    - Authored Automated Architectural Invariant Tests (`apps/web/test/loading-and-404-experience.test.ts`): Verified navbar alignment, unified toolbar, 1:1.45 book geometry, and non-redundant processing state.
+    - Verified all test suites: Web tests (42/42 passed across 4 suites), API tests (175/175 passed across 14 suites), Worker tests (21/21 passed across 5 suites), full monorepo type-check (11/11 package tasks passed with 0 errors), and Next.js 15 production build (7/7 packages, 17/17 routes). Port audit verified clean (`ss -tulpn` 0 lingering processes).
 
 
 
