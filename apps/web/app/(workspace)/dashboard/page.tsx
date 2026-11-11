@@ -315,7 +315,7 @@ function MyBooksDashboardContent() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-10 flex-1 w-full">
+    <div className="w-full max-w-[1380px] mx-auto px-4 sm:px-6 md:px-10 py-8 sm:py-10 space-y-10 flex-1">
       {/* =========================================================================
           PAGE INTRODUCTION: "My Books"
           ========================================================================= */}
@@ -343,24 +343,26 @@ function MyBooksDashboardContent() {
       </div>
 
       {/* =========================================================================
-          SEARCH & FILTER CONTROLS BAR
+          UNIFIED SEARCH & FILTERS TOOLBAR
           ========================================================================= */}
-      <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
-        {/* Search Input */}
-        <div className="relative w-full sm:max-w-xs">
-          <Search className="w-4 h-4 text-[#14261D]/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
+      <div className="rounded-2xl bg-[#FAF8F4] border border-[#1B3428]/10 p-2 sm:p-2.5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+        {/* Search Input (Clean White Field) */}
+        <div className="relative w-full sm:w-80 shrink-0">
+          <Search className="w-4 h-4 text-[#14261D]/40 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search books & materials..."
-            className="w-full pl-9 pr-4 py-2 rounded-full bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/20 text-xs font-sans text-[#14261D] placeholder:text-[#14261D]/40 focus:outline-none focus:border-[#E8722C] focus:ring-1 focus:ring-[#E8722C] transition-all"
+            placeholder="Search your books..."
+            aria-label="Search your books"
+            className="w-full pl-9 pr-8 py-2 rounded-xl bg-[#FFFFFF] border border-[#1B3428]/15 text-xs font-sans text-[#14261D] placeholder:text-[#14261D]/45 focus:outline-none focus:border-[#E8722C] focus:ring-1 focus:ring-[#E8722C] transition-all shadow-2xs"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#14261D]/40 hover:text-[#14261D]"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#14261D]/40 hover:text-[#14261D] p-0.5 rounded-full"
+              aria-label="Clear search"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -374,10 +376,10 @@ function MyBooksDashboardContent() {
               key={ft}
               type="button"
               onClick={() => setTypeFilter(ft)}
-              className={`px-3 py-1.5 rounded-full text-xs font-display font-bold transition-all shrink-0 ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-display font-bold transition-all shrink-0 ${
                 typeFilter === ft
                   ? 'bg-[#14261D] text-white shadow-xs'
-                  : 'bg-[#FAF8F4] border border-[#1B3428]/15 text-[#14261D]/70 hover:bg-[#FBE8DC]/60 hover:text-[#14261D]'
+                  : 'bg-white/80 hover:bg-white text-[#14261D]/70 border border-[#1B3428]/10 hover:border-[#1B3428]/20'
               }`}
             >
               {ft === 'ALL' ? 'All Materials' : ft}
@@ -418,8 +420,9 @@ function MyBooksDashboardContent() {
           <div
             aria-label="Loading your personal library"
             aria-busy="true"
-            className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6"
+            className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5 sm:gap-7"
           >
+            <BookCardSkeleton />
             <BookCardSkeleton />
             <BookCardSkeleton />
             <BookCardSkeleton />
@@ -431,21 +434,31 @@ function MyBooksDashboardContent() {
             <div className="w-14 h-14 rounded-2xl bg-[#E2EBD8] text-[#497E64] flex items-center justify-center border border-[#1B3428]/20 shadow-[0_3px_0_0_#1B3428]">
               <BookOpen className="w-7 h-7" />
             </div>
-            <div className="max-w-md">
+            <div className="max-w-md space-y-1.5">
               <h3 className="font-display font-bold text-base sm:text-lg text-[#14261D]">
                 {searchQuery || typeFilter !== 'ALL'
                   ? 'No matching books found'
-                  : 'Your book collection is empty'}
+                  : 'Your bookshelf is empty'}
               </h3>
-              <p className="text-xs sm:text-sm text-[#14261D]/70 mt-1">
+              <p className="text-xs sm:text-sm text-[#14261D]/70">
                 {searchQuery || typeFilter !== 'ALL'
                   ? 'Try clearing your search or filter criteria to see your books.'
-                  : 'Upload your textbooks, PDF chapters, lecture notes, or literature to start studying with your AI tutor.'}
+                  : 'Upload your textbooks, PDF chapters, lecture notes, or research papers to start studying with your grounded AI tutor.'}
               </p>
             </div>
+            {!searchQuery && typeFilter === 'ALL' && (
+              <button
+                type="button"
+                onClick={() => setShowAddModal(true)}
+                className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#E8722C] text-white font-display font-bold text-xs sm:text-sm shadow-[0_3px_0_0_#B26E45] hover:bg-[#d66522] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none transition-all"
+              >
+                <Plus className="w-4 h-4 stroke-[2.5]" />
+                <span>Add Your First Book</span>
+              </button>
+            )}
           </div>
         ) : (
-          <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+          <div className="relative pb-6 after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[6px] after:bg-gradient-to-b after:from-[#1B3428]/15 after:to-transparent after:rounded-full grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5 sm:gap-7">
             {filteredMyBooks.map((item) => (
               <BookCard
                 key={item.id}
@@ -546,17 +559,17 @@ function MyBooksDashboardContent() {
         </div>
 
         {filteredSharedWithMe.length === 0 ? (
-          <div className="rounded-[20px] bg-[#FAF8F4]/60 border border-[#1B3428]/10 p-6 text-center text-[#14261D]/60 text-xs">
-            <Users className="w-6 h-6 mx-auto mb-2 text-[#14261D]/40" />
+          <div className="rounded-[20px] bg-[#FAF8F4]/80 border border-[#1B3428]/10 p-6 text-center text-[#14261D]/60 text-xs flex flex-col items-center justify-center space-y-1">
+            <Users className="w-6 h-6 mx-auto mb-1 text-[#14261D]/40" />
             <p className="font-display font-bold text-xs text-[#14261D]/80">
-              No shared workspaces yet
+              No shared materials yet
             </p>
-            <p className="text-[11px] text-[#14261D]/60 mt-0.5">
-              When classmates or study partners invite you to their group workspaces, those books will appear here.
+            <p className="text-[11px] text-[#14261D]/60 max-w-sm">
+              Materials and textbooks shared with you by peers or study groups will appear here on your shelf.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+          <div className="relative pb-6 after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[6px] after:bg-gradient-to-b after:from-[#1B3428]/15 after:to-transparent after:rounded-full grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5 sm:gap-7">
             {filteredSharedWithMe.map((item) => (
               <BookCard
                 key={item.id}

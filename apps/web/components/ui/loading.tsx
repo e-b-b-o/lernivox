@@ -52,7 +52,7 @@ export function InlineLoader({
 
 /**
  * Skeleton placeholder for a single 3D Book Card on the dashboard.
- * Mirrors the exact aspect ratio (3/4.2) and card spacing of `BookCard`.
+ * Mirrors the exact book aspect ratio (1/1.45), spine crease, and card spacing of `BookCard`.
  */
 export function BookCardSkeleton() {
   return (
@@ -61,12 +61,12 @@ export function BookCardSkeleton() {
       className="w-full min-w-0 max-w-full flex flex-col select-none"
     >
       {/* 1. PHYSICAL 3D BOOK COVER PLACEHOLDER */}
-      <div className="relative w-full aspect-[3/4.2] rounded-[14px] sm:rounded-[20px] p-2.5 sm:p-4 flex flex-col justify-between overflow-hidden bg-[#FAF8F4] border-[1.5px] sm:border-[2px] border-[#1B3428]/15 shadow-[0_3px_0_0_#1B3428]/15">
+      <div className="relative w-full aspect-[1/1.45] rounded-l-xs rounded-r-xl p-3 sm:p-4 flex flex-col justify-between overflow-hidden bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/20 border-r-[4px] border-r-[#FAF8F4]/80 shadow-[0_4px_12px_rgba(27,52,40,0.08),inset_-2px_0_4px_rgba(0,0,0,0.1)]">
         {/* Spine Crease Accent */}
-        <div className="absolute top-0 left-0 bottom-0 w-2 sm:w-3 bg-black/5 border-r border-[#1B3428]/10" />
+        <div className="absolute top-0 left-0 bottom-0 w-3 sm:w-4 bg-gradient-to-r from-black/15 via-black/5 to-transparent border-r border-[#1B3428]/10" />
 
         {/* Top Meta Row inside Book */}
-        <div className="flex items-start justify-between gap-1 pl-1.5 sm:pl-2">
+        <div className="flex items-start justify-between gap-1 pl-2 sm:pl-3">
           <div className="flex items-center gap-1.5">
             <Skeleton className="h-4 w-9 rounded-md bg-[#1B3428]/15" />
             <Skeleton className="h-4 w-14 rounded-md bg-[#1B3428]/10" />
@@ -75,14 +75,14 @@ export function BookCardSkeleton() {
         </div>
 
         {/* Center: Book Title Lines */}
-        <div className="my-auto pl-1.5 sm:pl-2 pr-1 space-y-2">
+        <div className="my-auto pl-2 sm:pl-3 pr-1.5 space-y-2">
           <Skeleton className="h-3.5 w-[85%] rounded bg-[#1B3428]/20" />
           <Skeleton className="h-3 w-[60%] rounded bg-[#1B3428]/15" />
           <Skeleton className="h-2.5 w-[40%] rounded bg-[#1B3428]/10 mt-1" />
         </div>
 
         {/* Bottom Meta inside Cover */}
-        <div className="pl-1.5 sm:pl-2 pt-1 border-t border-[#1B3428]/10 flex items-center justify-between">
+        <div className="pl-2 sm:pl-3 pt-1 border-t border-[#1B3428]/10 flex items-center justify-between">
           <Skeleton className="h-2.5 w-12 rounded bg-[#1B3428]/15" />
           <Skeleton className="h-2.5 w-8 rounded bg-[#1B3428]/15" />
         </div>

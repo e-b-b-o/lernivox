@@ -31,35 +31,40 @@ export default function WorkspaceLayout({
 
   return (
     <div className="min-h-screen bg-[#F4F0E5] text-[#14261D] flex flex-col font-sans selection:bg-[#F9D8C0] selection:text-[#14261D]">
-      {/* Persistent Authenticated Navigation Header */}
-      <header className="sticky top-0 z-30 w-full bg-[#FAF8F4]/95 backdrop-blur-md border-b-[2px] border-[#1B3428]/15 shadow-xs transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 sm:h-18">
-            {/* Left Zone: Brand Logo & Wordmark (Returns to /dashboard) */}
-            <div className="flex items-center gap-6 sm:gap-8">
-              <Link
-                href="/dashboard"
-                className="flex items-center gap-2.5 group focus:outline-none"
-                aria-label="Lernivox Dashboard"
-              >
-                <div className="w-9 h-9 rounded-[10px] bg-[#E8722C] text-white flex items-center justify-center border border-[#1B3428]/20 shadow-[0_2px_0_0_#1B3428] group-hover:-translate-y-0.5 group-hover:shadow-[0_3px_0_0_#1B3428] transition-all">
-                  <BookOpen className="w-5 h-5" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="font-display font-black text-lg sm:text-xl text-[#14261D] tracking-tight leading-none">
-                    Lernivox
-                  </span>
-                  <span className="font-mono text-[9px] text-[#497E64] font-bold tracking-widest uppercase mt-0.5">
-                    Study Workspaces
-                  </span>
-                </div>
-              </Link>
-            </div>
+      {/* Persistent Authenticated Navigation Header (Aligned with Homepage Navbar) */}
+      <header className="w-full bg-[#F4EFE4]/95 backdrop-blur-sm sticky top-0 z-50 border-b-[1.5px] border-[#1B3428]/10 transition-colors px-4 sm:px-6 md:px-10">
+        <div className="w-full max-w-[1380px] mx-auto h-16 md:h-20 flex items-center justify-between">
+          {/* Left Zone: Brand Logo & Wordmark (Returns to /dashboard) */}
+          <div className="flex items-center justify-start shrink-0">
+            <Link
+              href="/dashboard"
+              className="h-8 inline-flex items-center gap-2.5 group focus:outline-none"
+              aria-label="Lernivox Dashboard"
+            >
+              <div className="w-8 h-8 rounded-lg bg-[#E8722C] text-white flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105 shadow-sm">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2.2"
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                  />
+                </svg>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="font-display font-bold text-xl sm:text-[22px] leading-none tracking-tight text-[#14261D]">
+                  Lernivox
+                </span>
+                <span className="hidden sm:inline-block font-mono text-[9px] text-[#497E64] font-bold tracking-widest uppercase">
+                  Study Workspaces
+                </span>
+              </div>
+            </Link>
+          </div>
 
-            {/* Right Zone: Profile Menu */}
-            <div className="flex items-center gap-3">
-              <ProfileMenu />
-            </div>
+          {/* Right Zone: Profile Menu */}
+          <div className="flex items-center gap-3">
+            <ProfileMenu />
           </div>
         </div>
       </header>
