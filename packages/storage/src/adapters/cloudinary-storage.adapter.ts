@@ -4,27 +4,83 @@ import { v2 as cloudinary } from 'cloudinary';
 import { StorageFileMeta, StorageService, UploadOptions } from '../storage.interface';
 
 export interface CloudinaryConfig {
-  cloudName: string;
-  apiKey: string;
-  apiSecret: string;
+  cloudinaryUrl?: string;
   secure?: boolean;
 }
 
 /**
  * Production Cloudinary storage adapter.
  * Implements the vendor-agnostic StorageService contract using the official
- * Cloudinary Node SDK with authenticated, signed downloads and uploads.
+ * Cloudinary Node SDK configured strictly via the unified CLOUDINARY_URL environment variable.
  */
 export class CloudinaryStorageAdapter implements StorageService {
-  constructor(private readonly config: CloudinaryConfig) {
-    if (config.cloudName && config.apiKey && config.apiSecret) {
-      cloudinary.config({
-        cloud_name: config.cloudName,
-        api_key: config.apiKey,
-        api_secret: config.apiSecret,
-        secure: config.secure !== false,
-      });
+  private readonly cloudName: string;
+
+  constructor(config?: CloudinaryConfig) {
+    // 1. Cleanly purge legacy variables so they cannot override or conflict with CLOUDINARY_URL
+    delete process.env.CLOUDINARY_CLOUD_NAME;
+    delete process.env.CLOUDINARY_API_KEY;
+    delete process.env.CLOUDINARY_API_SECRET;
+
+    // 2. Resolve the Cloudinary URL from config or environment
+    const rawUrl = (config?.cloudinaryUrl || process.env.CLOUDINARY_URL || '').trim();
+
+    if (!rawUrl) {
+      throw new Error(
+        'Cloudinary initialization failed: CLOUDINARY_URL is missing. Please configure CLOUDINARY_URL in the format: cloudinary://<api_key>:<api_secret>@<cloud_name>',
+      );
     }
+
+    // 3. Sanitize accidental angle brackets (e.g. from copy-pasting template placeholders like <api_key>)
+    const sanitizedUrl = rawUrl.replace(/<([^>]+)>/g, '$1').trim();
+
+    if (!sanitizedUrl.startsWith('cloudinary://')) {
+      throw new Error(
+        'Cloudinary initialization failed: CLOUDINARY_URL must begin with "cloudinary://". Expected format: cloudinary://<api_key>:<api_secret>@<cloud_name>',
+      );
+    }
+
+    // 4. Set sanitized CLOUDINARY_URL in environment and let Cloudinary Node SDK natively parse it
+    process.env.CLOUDINARY_URL = sanitizedUrl;
+    cloudinary.config(true);
+
+    if (config?.secure !== false) {
+      cloudinary.config({ secure: true });
+    }
+
+    // 5. Validate the resolved configuration from SDK
+    const resolved = cloudinary.config();
+    const resolvedCloudName = resolved.cloud_name ? String(resolved.cloud_name).trim() : '';
+
+    if (!resolvedCloudName) {
+      throw new Error(
+        'Cloudinary initialization failed: Could not parse cloud_name from CLOUDINARY_URL. Expected format: cloudinary://<api_key>:<api_secret>@<cloud_name>',
+      );
+    }
+
+    if (resolvedCloudName.toLowerCase() === 'root') {
+      throw new Error(
+        'Cloudinary initialization failed: "Root" is an invalid cloud_name. Ensure CLOUDINARY_URL contains your actual Cloudinary cloud name (e.g. cloudinary://<api_key>:<api_secret>@<cloud_name>).',
+      );
+    }
+
+    if (!resolved.api_key || !resolved.api_secret) {
+      throw new Error(
+        'Cloudinary initialization failed: CLOUDINARY_URL is missing api_key or api_secret. Expected format: cloudinary://<api_key>:<api_secret>@<cloud_name>',
+      );
+    }
+
+    this.cloudName = resolvedCloudName;
+
+    // Log safe sanitized confirmation without leaking secrets or full URL
+    console.log(`[Storage] CloudinaryStorageAdapter initialized successfully (cloud_name: "${this.cloudName}")`);
+  }
+
+  /**
+   * Helper to retrieve the active cloud name without exposing API credentials.
+   */
+  getCloudName(): string {
+    return this.cloudName;
   }
 
   private resolveResourceType(ext: string): 'raw' | 'image' {
