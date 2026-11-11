@@ -15,5 +15,8 @@
     "@lernivox/typescript-config": "workspace:*",
     "@types/node": "^22.0.0",
     "typescript": "^5.7.0"
+  },
+  "dependencies": {
+    "cloudinary": "^2.11.0"
   }
 }
