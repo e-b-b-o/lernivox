@@ -52,8 +52,19 @@ export class WorkerHealthService implements OnApplicationBootstrap, OnApplicatio
   }
 
   getStatus(): WorkerStatusDetails {
-    const redisHost = this.configService.get<string>('REDIS_HOST', 'localhost');
-    const redisPort = Number(this.configService.get<string | number>('REDIS_PORT', 6379));
+    let redisHost = this.configService.get<string>('REDIS_HOST', 'localhost');
+    let redisPort = Number(this.configService.get<string | number>('REDIS_PORT', 6379));
+
+    const redisUrl = this.configService.get<string>('REDIS_URL');
+    if (redisUrl) {
+      try {
+        const parsed = new URL(redisUrl);
+        redisHost = parsed.hostname;
+        redisPort = parsed.port ? parseInt(parsed.port, 10) : parsed.protocol === 'rediss:' ? 6380 : 6379;
+      } catch {
+        // fallback to discrete host/port
+      }
+    }
 
     return {
       ready: this.ready,

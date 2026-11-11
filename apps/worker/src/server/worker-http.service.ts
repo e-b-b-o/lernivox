@@ -81,9 +81,13 @@ export class WorkerHttpService implements OnApplicationBootstrap, OnApplicationS
     const pathname = parsedUrl.pathname;
     const method = (req.method || 'GET').toUpperCase();
 
-    // 1. Health liveness probe for Render health checker
-    if (pathname === '/healthz' && method === 'GET') {
+    // 1. Health liveness probe for Render health checker (GET or HEAD)
+    if (pathname === '/healthz' && (method === 'GET' || method === 'HEAD')) {
       res.writeHead(200, { 'Content-Type': 'application/json' });
+      if (method === 'HEAD') {
+        res.end();
+        return;
+      }
       res.end(
         JSON.stringify({
           status: 'ok',
@@ -95,11 +99,15 @@ export class WorkerHttpService implements OnApplicationBootstrap, OnApplicationS
       return;
     }
 
-    // 2. Readiness probe for deployment and orchestration checks
-    if (pathname === '/readyz' && method === 'GET') {
+    // 2. Readiness probe for deployment and orchestration checks (GET or HEAD)
+    if (pathname === '/readyz' && (method === 'GET' || method === 'HEAD')) {
       const isReady = this.healthService.isReady();
       const statusCode = isReady ? 200 : 503;
       res.writeHead(statusCode, { 'Content-Type': 'application/json' });
+      if (method === 'HEAD') {
+        res.end();
+        return;
+      }
       res.end(
         JSON.stringify({
           status: isReady ? 'ready' : 'not_ready',
@@ -112,7 +120,7 @@ export class WorkerHttpService implements OnApplicationBootstrap, OnApplicationS
       return;
     }
 
-    // 3. Authenticated wake endpoint
+    // 3. Authenticated wake endpoint (Idempotent: returns 200 if already awake)
     if (pathname === '/internal/wake') {
       if (method !== 'POST') {
         res.writeHead(405, { 'Content-Type': 'application/json' });
@@ -128,13 +136,21 @@ export class WorkerHttpService implements OnApplicationBootstrap, OnApplicationS
       }
 
       this.healthService.recordWake();
-      this.logger.log('Worker wake signal verified and acknowledged successfully.');
+      const isReady = this.healthService.isReady();
 
-      res.writeHead(200, { 'Content-Type': 'application/json' });
+      this.logger.log(
+        `Worker wake signal verified. Worker status: ${isReady ? 'already_awake' : 'initializing'}.`,
+      );
+
+      // If already ready, return 200 OK (idempotent successful wake)
+      // If currently initializing, return 202 Accepted
+      const status = isReady ? 200 : 202;
+      res.writeHead(status, { 'Content-Type': 'application/json' });
       res.end(
         JSON.stringify({
-          status: 'awake',
+          status: isReady ? 'awake' : 'waking',
           service: 'worker',
+          uptime: process.uptime(),
           timestamp: new Date().toISOString(),
         }),
       );

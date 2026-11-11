@@ -474,6 +474,21 @@ export class DocumentsService {
       this.logger.warn(`Failed to delete storage file ${document.storagePath}: ${err}`);
     }
 
+    // Clean up any pending / waiting ingestion jobs from Redis queue for this document
+    try {
+      if (typeof this.ingestionQueue?.getJobs === 'function') {
+        const waitingJobs = await this.ingestionQueue.getJobs(['waiting', 'delayed', 'active']);
+        for (const job of waitingJobs) {
+          if (job.data?.documentId === documentId) {
+            await job.remove();
+            this.logger.log(`Removed queued ingestion job ${job.id} for deleted document ${documentId}`);
+          }
+        }
+      }
+    } catch (queueErr) {
+      this.logger.warn(`Failed to remove queue jobs for document ${documentId}: ${queueErr}`);
+    }
+
     // Delete workspace if present (cascades to document), otherwise delete document
     if (document.workspaceId) {
       await this.prisma.workspace.delete({
