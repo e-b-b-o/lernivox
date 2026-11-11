@@ -36,6 +36,7 @@ import type {
 } from '@lernivox/contracts';
 import { useAuth } from '../../../../../context/AuthContext';
 import { api } from '../../../../../lib/api';
+import { clientCache } from '../../../../../lib/client-cache';
 import { TutorHeader, type WorkspaceViewMode, type CompanionToolMode } from '../../../../../components/workspace/TutorHeader';
 import { DocumentOutlinePane } from '../../../../../components/workspace/DocumentOutlinePane';
 import { DocumentReader } from '../../../../../components/workspace/DocumentReader';
@@ -437,34 +438,43 @@ function WorkspaceInner() {
     }
   }, [isLoading, isAuthenticated, router]);
 
-  // Load Workspace by ID
-  const fetchWorkspace = useCallback(async () => {
-    if (!accessToken || !workspaceId) return;
+  // Load Workspace by ID with instantaneous cache recovery
+  const fetchWorkspace = useCallback(
+    async (isBackground = false) => {
+      if (!accessToken || !workspaceId) return;
 
-    try {
-      const ws = await api.workspaces.getById(workspaceId, accessToken);
-      setWorkspace(ws);
-      if (ws.unreadDiscussionCount !== undefined) {
-        setUnreadDiscussionCount(ws.unreadDiscussionCount);
-      }
-      setCurrentDoc(ws.document);
-      if (ws.document.pageCount) {
-        setTotalPages(ws.document.pageCount);
-      }
-      setError(null);
+      try {
+        const ws = await api.workspaces.getById(workspaceId, accessToken);
+        setWorkspace(ws);
+        if (user) {
+          clientCache.setWorkspace(workspaceId, user.id, ws);
+        }
+        if (ws.unreadDiscussionCount !== undefined) {
+          setUnreadDiscussionCount(ws.unreadDiscussionCount);
+        }
+        setCurrentDoc(ws.document);
+        if (ws.document.pageCount) {
+          setTotalPages(ws.document.pageCount);
+        }
+        setError(null);
 
-      // Load contextual study plan offer
-      api.learningPlans
-        .getOffer(workspaceId, accessToken)
-        .then((offer) => setPlanOffer(offer))
-        .catch((err) => console.warn('Failed to load learning plan offer:', err));
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Unable to access this workspace.';
-      setError(msg);
-    } finally {
-      setLoadingWorkspace(false);
-    }
-  }, [accessToken, workspaceId]);
+        // Load contextual study plan offer
+        api.learningPlans
+          .getOffer(workspaceId, accessToken)
+          .then((offer) => setPlanOffer(offer))
+          .catch((err) => console.warn('Failed to load learning plan offer:', err));
+      } catch (err: unknown) {
+        if (!isBackground) {
+          const msg =
+            err instanceof Error ? err.message : 'Unable to access this workspace.';
+          setError(msg);
+        }
+      } finally {
+        setLoadingWorkspace(false);
+      }
+    },
+    [accessToken, workspaceId, user],
+  );
 
   const handleDismissPlanOffer = async () => {
     if (!accessToken || !workspaceId) return;
@@ -477,8 +487,22 @@ function WorkspaceInner() {
   };
 
   useEffect(() => {
-    fetchWorkspace();
-  }, [fetchWorkspace]);
+    if (!accessToken || !workspaceId) return;
+    if (user) {
+      const cached = clientCache.getWorkspace(workspaceId, user.id);
+      if (cached) {
+        setWorkspace(cached);
+        setCurrentDoc(cached.document);
+        if (cached.document.pageCount) {
+          setTotalPages(cached.document.pageCount);
+        }
+        setLoadingWorkspace(false);
+        void fetchWorkspace(true);
+        return;
+      }
+    }
+    void fetchWorkspace(false);
+  }, [accessToken, workspaceId, user, fetchWorkspace]);
 
   // Poll workspace/document if document is still processing
   useEffect(() => {

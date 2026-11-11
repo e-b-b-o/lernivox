@@ -9,6 +9,7 @@ import React, {
   useState,
 } from 'react';
 import { api, ApiError, onTokenRefreshed, onSessionExpired } from '../lib/api';
+import { clientCache } from '../lib/client-cache';
 import type {
   LoginRequestDto,
   RegisterRequestDto,
@@ -63,6 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     const unsubExpired = onSessionExpired(() => {
+      clientCache.clearAll();
       setUser(null);
       setAccessToken(null);
     });
@@ -107,6 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // ignore network errors on logout
     } finally {
+      clientCache.clearAll();
       setUser(null);
       setAccessToken(null);
     }
