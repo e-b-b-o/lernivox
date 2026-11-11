@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Sparkles, Trash2, Loader2, Users, User, Clock, BookOpen, RotateCw } from 'lucide-react';
+import { Sparkles, Trash2, Loader2, Users, User, Clock, BookOpen, RotateCw, AlertCircle } from 'lucide-react';
 import type { DocumentDto, DocumentReadingProgressDto, WorkspaceType } from '@lernivox/contracts';
 
 interface BookCardProps {
@@ -85,9 +85,32 @@ export function BookCard({
 
   const isReady = doc.status === 'READY';
   const isFailed = doc.status === 'FAILED';
-  const isProcessing = ['UPLOADED', 'PROCESSING', 'EXTRACTING', 'CHUNKING', 'EMBEDDING'].includes(
-    doc.status,
-  );
+  const isWaiting =
+    !isReady &&
+    !isFailed &&
+    (doc.status === 'UPLOADED' ||
+      doc.processingStage === 'QUEUED' ||
+      doc.processingProgress == null ||
+      doc.processingProgress <= 5);
+  const isProcessing = !isReady && !isFailed && !isWaiting;
+
+  // Real elapsed time calculation from persisted timestamps
+  const now = Date.now();
+  const createdAtMs = doc.createdAt ? new Date(doc.createdAt).getTime() : now;
+  const updatedAtMs = doc.updatedAt ? new Date(doc.updatedAt).getTime() : createdAtMs;
+  const elapsedSinceCreatedSec = Math.max(0, Math.floor((now - createdAtMs) / 1000));
+  const elapsedSinceUpdatedSec = Math.max(0, Math.floor((now - updatedAtMs) / 1000));
+
+  // Taking longer than expected: waiting > 45s without starting or processing unchanged > 90s
+  const isDelayed =
+    !isReady &&
+    !isFailed &&
+    ((isWaiting && elapsedSinceCreatedSec > 40) || (isProcessing && elapsedSinceUpdatedSec > 75));
+
+  const isStale =
+    !isReady &&
+    !isFailed &&
+    ((isWaiting && elapsedSinceCreatedSec > 90) || (isProcessing && elapsedSinceUpdatedSec > 150));
 
   const formatFileType = (mime: string, name?: string | null) => {
     if (mime.includes('pdf') || name?.endsWith('.pdf')) return 'PDF';
@@ -207,7 +230,44 @@ export function BookCard({
           {doc.title}
         </h4>
 
-        {isProcessing ? (
+        {isStale ? (
+          /* Stale / Delayed: Taking longer than expected */
+          <div className="space-y-1 pt-0.5">
+            <div className="flex items-center justify-between text-[10px] font-mono">
+              <span className="font-semibold text-amber-900 truncate flex items-center gap-1.5">
+                <AlertCircle className="w-3 h-3 text-amber-700 shrink-0" />
+                <span className="truncate">Taking longer than expected</span>
+              </span>
+            </div>
+            <div className="h-1.5 w-full rounded-full bg-amber-200/50 overflow-hidden">
+              <div className="h-full rounded-full bg-amber-600 animate-pulse w-full" />
+            </div>
+            <p className="text-[9px] font-sans text-amber-900/80 leading-tight">
+              Your upload is safe. We&apos;re checking what happened.
+            </p>
+          </div>
+        ) : isWaiting ? (
+          /* Waiting in queue: Honest waiting state without fake 0% */
+          <div className="space-y-1 pt-0.5">
+            <div className="flex items-center justify-between text-[10px] font-mono">
+              <span className="font-semibold text-[#14261D] truncate flex items-center gap-1.5">
+                <Loader2 className="w-3 h-3 animate-spin text-[#E8722C] shrink-0" />
+                <span className="truncate">
+                  {isDelayed ? 'Starting processing service...' : 'Waiting to prepare...'}
+                </span>
+              </span>
+            </div>
+            <div className="h-1.5 w-full rounded-full bg-[#1B3428]/10 overflow-hidden">
+              <div className="h-full rounded-full bg-[#E8722C]/40 animate-pulse w-full" />
+            </div>
+            <p className="text-[9px] font-sans text-[#14261D]/65 leading-tight">
+              {isDelayed
+                ? 'Our processing service is taking a little longer to start. Your book is safely uploaded.'
+                : 'Your book is uploaded and waiting to be prepared.'}
+            </p>
+          </div>
+        ) : isProcessing ? (
+          /* Active Processing with real stages & % */
           <div className="space-y-1 pt-0.5">
             <div className="flex items-center justify-between text-[10px] font-mono">
               <span className="font-semibold text-[#14261D] truncate flex items-center gap-1.5">
@@ -221,7 +281,7 @@ export function BookCard({
             <div className="h-1.5 w-full rounded-full bg-[#1B3428]/10 overflow-hidden">
               <div
                 className="h-full rounded-full bg-[#E8722C] transition-all duration-300"
-                style={{ width: `${Math.max(4, Math.min(100, doc.processingProgress ?? 8))}%` }}
+                style={{ width: `${Math.max(5, Math.min(100, doc.processingProgress ?? 10))}%` }}
               />
             </div>
             <p className="text-[9px] font-mono text-[#14261D]/65 truncate">
@@ -231,6 +291,7 @@ export function BookCard({
             </p>
           </div>
         ) : isFailed ? (
+          /* Terminal Failed state with clear guidance */
           <div className="space-y-0.5 pt-0.5">
             <p className="text-[10px] font-sans font-medium text-amber-900/90 leading-tight">
               We couldn&apos;t prepare this book. Please try again.
@@ -240,6 +301,7 @@ export function BookCard({
             </p>
           </div>
         ) : (
+          /* Ready: Page numbers or Unread */
           <div className="flex items-center justify-between text-[10px] font-mono text-[#14261D]/70">
             <span>
               {currentPage && totalPages ? (
@@ -271,46 +333,42 @@ export function BookCard({
             <Sparkles className="w-3 h-3 shrink-0 hidden xs:block" />
             <span className="truncate">Open Workspace</span>
           </Link>
-        ) : isProcessing ? (
-          <button
-            type="button"
-            disabled
-            className="flex-1 min-w-0 py-1.5 sm:py-2 px-2 rounded-full bg-[#1B3428]/10 text-[#14261D]/70 font-display font-bold text-[10px] sm:text-xs text-center cursor-not-allowed flex items-center justify-center gap-1.5"
-          >
-            <Loader2 className="w-3 h-3 animate-spin text-[#E8722C] shrink-0" />
-            <span className="truncate">Preparing Material</span>
-          </button>
-        ) : isOwner && onRetry ? (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRetry(doc.id);
-            }}
-            disabled={isRetrying}
-            className="flex-1 min-w-0 py-1.5 sm:py-2 px-2.5 rounded-full bg-[#1B3428] text-white font-display font-bold text-[10px] sm:text-xs text-center shadow-[0_2px_0_0_#0D1B14] active:translate-y-0.5 active:shadow-none hover:bg-[#264838] transition-all flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
-            aria-label={`Retry processing ${doc.title}`}
-          >
-            {isRetrying ? (
-              <>
-                <Loader2 className="w-3 h-3 animate-spin text-[#E8722C] shrink-0" />
-                <span className="truncate">Retrying...</span>
-              </>
-            ) : (
-              <>
-                <RotateCw className="w-3 h-3 shrink-0" />
-                <span className="truncate">Retry processing</span>
-              </>
-            )}
-          </button>
+        ) : isFailed || isStale ? (
+          /* Functional Retry / Check Status button when failed or delayed */
+          isOwner && onRetry ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRetry(doc.id);
+              }}
+              disabled={isRetrying}
+              className="flex-1 min-w-0 py-1.5 sm:py-2 px-2.5 rounded-full bg-[#1B3428] text-white font-display font-bold text-[10px] sm:text-xs text-center shadow-[0_2px_0_0_#0D1B14] active:translate-y-0.5 active:shadow-none hover:bg-[#264838] transition-all flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
+              aria-label={isStale ? `Check status for ${doc.title}` : `Retry processing ${doc.title}`}
+            >
+              {isRetrying ? (
+                <>
+                  <Loader2 className="w-3 h-3 animate-spin text-[#E8722C] shrink-0" />
+                  <span className="truncate">Checking...</span>
+                </>
+              ) : (
+                <>
+                  <RotateCw className="w-3 h-3 shrink-0" />
+                  <span className="truncate">{isStale ? 'Check status' : 'Retry processing'}</span>
+                </>
+              )}
+            </button>
+          ) : null
         ) : (
-          <button
-            type="button"
-            disabled
-            className="flex-1 min-w-0 py-1.5 sm:py-2 px-2 rounded-full bg-[#1B3428]/10 text-[#14261D]/60 font-display font-bold text-[10px] sm:text-xs text-center cursor-not-allowed flex items-center justify-center gap-1"
-          >
-            <span className="truncate">Processing unready</span>
-          </button>
+          /* In-flight processing/waiting: NO REDUNDANT SECONDARY PILL */
+          <div className="flex-1 min-w-0 flex items-center text-[10px] font-mono text-[#14261D]/55 px-1 py-1">
+            <span className="flex items-center gap-1.5 truncate">
+              <Loader2 className="w-3 h-3 animate-spin text-[#E8722C] shrink-0" />
+              <span className="truncate">
+                {isWaiting ? 'Waiting in queue...' : 'Processing in background...'}
+              </span>
+            </span>
+          </div>
         )}
 
         {/* Delete Button (Only for Workspace Owner) */}

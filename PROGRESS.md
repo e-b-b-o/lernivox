@@ -87,43 +87,48 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 
 ## 6. Current Task Record
 
-- **Task**: Fix Worker Wake-Up Failures, Ensure End-to-End Document Ingestion, and Redesign My Books Dashboard into Modern Digital Bookshelf
+- **Task**: Fix Unreliable Document Processing, Improve User-Facing Processing States, and Refine Dashboard & Mobile Review UI
 - **Status**: **Complete**
 - **Objective**:
-  1. *Worker Wake-Up Reliability & Document Ingestion Pipeline*:
-     - Diagnosed root cause of `HTTP 429 Too Many Requests` when API triggers `POST /internal/wake` to Render Worker: Render shared outbound IP/Cloudflare edge throttling rapid inter-service calls.
-     - Investigated uploaded document `37d136d9-3e1f-41b3-adce-6b353931e348`: confirmed document was queued into Upstash Redis (Job ID 1), worker was asleep when 429 was returned, and document was deleted by user before worker woke up.
-     - Implemented dual-path health fallback in `WorkerWakeService`: if wake POST returns 429 or times out, it probes `GET /healthz`. If worker is already awake and connected to BullMQ, wake succeeds immediately.
-     - Supported HEAD alongside GET on `/healthz` and `/readyz` in `WorkerHttpService` so edge health checks succeed with 200.
-     - Added idempotent 200 response on `/internal/wake` when worker is already ready.
-     - Added dynamic `REDIS_URL` parsing in `WorkerHealthService` so `readyz` reflects real Upstash host/port.
-     - Added BullMQ cleanup on document deletion in `DocumentsService` to remove queued ingestion jobs for deleted documents.
-  2. *Modern Bookshelf Dashboard UI/UX Redesign*:
-     - Aligned authenticated navbar in `apps/web/app/(workspace)/layout.tsx` to marketing navbar: `max-w-[1380px]`, `px-4 sm:px-6 md:px-10`, `h-16 md:h-20`, `bg-[#F4EFE4]/95 backdrop-blur-sm`, `border-b-[1.5px] border-[#1B3428]/10`.
-     - Built unified search and filters toolbar in `apps/web/app/(workspace)/dashboard/page.tsx`: single parchment bar (`bg-[#FAF8F4] border border-[#1B3428]/10`), clean white search input (`bg-[#FFFFFF] border-[#1B3428]/15 rounded-xl`), placeholder "Search your books...", clear button, and format pills (`All Materials`, `PDF`, `DOCX`, `TXT`).
-     - Transformed document cards into physical 1:1.45 digital books in `BookCard.tsx`: real book proportions (`aspect-[1/1.45]`), left spine crease (`w-3 sm:w-4 bg-gradient-to-r from-black/35 via-black/15 to-transparent`), right page-edge bevel (`border-r-[4px] border-r-[#FAF8F4]/80 shadow-[inset_-2px_0_4px_rgba(0,0,0,0.2)]`), bound corners (`rounded-l-xs rounded-r-xl`), and natural serif title wrapping.
-     - Added subtle bookshelf grounding line beneath book rows (`after:h-[6px] after:bg-gradient-to-b after:from-[#1B3428]/15 after:to-transparent after:rounded-full`).
-     - Consolidated processing state: removed duplicate "Preparing" badge from inside cover, unified status area below cover (stage title, progress bar, percentage, description), and clean "Preparing Material" action button.
-     - Enhanced "Shared with Me" and empty library states with friendly visual treatments and direct "Add Your First Book" button.
-     - Updated `BookCardSkeleton` in `apps/web/components/ui/loading.tsx` to mirror the exact `aspect-[1/1.45]` book proportions, spine crease, and page-edge bevel.
+  1. *Investigate Document `7bb29c0c-0a8a-467f-a7ce-39d9fefcea7a` Processing Root Cause*:
+     - Queried live Upstash Redis queues: Job 6 (`2-Text Operations (3).pdf`) was successfully queued into `bull:document-ingestion:wait`, but remained pending because the Render Free worker service was asleep.
+     - Discovered worker wake failure: Render Free API sent wake `POST /internal/wake`, but Cloudflare edge responded with HTTP 429 (`Retry-After: 30s`).
+     - Diagnosed bug in `WorkerWakeService`: line 189 clamped retry delay to `Math.min(coolDownSec * 1000, 15000) = 15000ms`, causing early retries after 15s instead of respecting the 30s header. Attempt 2 and 3 failed with 429, exhausting retries and leaving the worker asleep.
+     - Verified Cloudinary: file exists in cloud storage.
+     - When `GET /healthz` was probed on `lernivox-worker.onrender.com`, Render booted the worker, which immediately consumed Job 6 from Upstash Redis and successfully processed the document to `READY`.
+  2. *Worker Wake-Up & Queue Reliability Fixes (`apps/api/src/common/worker-wake/worker-wake.service.ts`)*:
+     - Added robust `parseRetryAfter()` supporting integer seconds (`"30"`, `"30s"`) and RFC 7231 HTTP-Date timestamps, bounded between 5s and 120s.
+     - Fixed retry backoff: removed 15s clamp, now waits `coolDownSec * 1000 + jitterMs` (30s+), fully respecting Cloudflare headers.
+     - Added active worker awareness: skips redundant wake calls if worker was confirmed active within the last 3 minutes (`Date.now() - workerConfirmedActiveAt < 180000`).
+     - Increased `probeWorkerHealth` timeout from 6000ms to 15000ms for Render Free container cold-starts.
+     - Authored unit tests in `worker-wake.service.spec.ts` (9 tests, all passing).
+  3. *Graceful Google OAuth Fallback (`apps/api/src/auth/guards/google-auth.guard.ts`)*:
+     - When Google OAuth is not configured, redirects 302 to `${frontendUrl}/login` instead of throwing an unhandled `ServiceUnavailableException` (HTTP 503).
+  4. *Redesigned User-Facing Processing States (`apps/web/components/workspace/BookCard.tsx`)*:
+     - Disentangled 5 distinct states: `Waiting`, `Processing`, `Delayed / Stale`, `Failed`, and `Ready`.
+     - Eliminated fake 0% progress display: waiting books show "Waiting to prepare..." with a gentle indeterminate pulse.
+     - Delayed state (> 40s waiting or > 75s processing) displays honest feedback ("Taking longer than expected. Your upload is safe. We're checking what happened.") with actionable "Check status" or "Retry processing" controls and "Delete" button.
+     - Removed redundant secondary processing pill/button ("Preparing Material") from the card footer.
+  5. *Fluid Dashboard Search Toolbar (`apps/web/app/(workspace)/dashboard/page.tsx`)*:
+     - Search input container updated from `w-full sm:w-80 shrink-0` to `flex-1 min-w-0 w-full` so it expands fluidly across remaining width next to format filters.
+  6. *Mobile Review Bottom Sheet Repairs (`apps/web/app/(workspace)/dashboard/workspaces/[workspaceId]/page.tsx`)*:
+     - Fixed blank initial view: bottom dock "Review" button and sheet content body default to `quizzes` tab if current view is not already a review mode.
+     - Fixed tab clipping on narrow screens (320px–430px): added `overflow-x-auto scrollbar-none min-w-0 max-w-[calc(100%-36px)]` and `shrink-0` to tabs.
 - **Files Created/Modified**:
-  - `apps/api/src/common/worker-wake/worker-wake.service.ts` (modified) — Dual-path probe fallback on 429, sanitized rate-limit headers, and active worker cool-down tracking.
-  - `apps/api/src/common/worker-wake/worker-wake.service.spec.ts` (modified) — Unit tests for worker wake retry, timeout handling, and health probing.
-  - `apps/api/src/documents/documents.service.ts` (modified) — BullMQ queued job cleanup on document deletion.
-  - `apps/worker/src/server/worker-http.service.ts` (modified) — HEAD support on `/healthz` and `/readyz`, idempotent 200 wake responses.
-  - `apps/worker/src/health/worker-health.service.ts` (modified) — Dynamic `REDIS_URL` parsing for accurate Upstash connection reporting.
-  - `apps/web/app/(workspace)/layout.tsx` (modified) — Aligned navbar background, border, height, and 1380px container to homepage navbar.
-  - `apps/web/app/(workspace)/dashboard/page.tsx` (modified) — Unified toolbar with white search input, bookshelf grid layout with shelf grounding, and friendly empty states.
-  - `apps/web/components/workspace/BookCard.tsx` (modified) — 1:1.45 digital book geometry, spine crease, page-edge bevel, clean cover, and consolidated processing status.
-  - `apps/web/components/ui/loading.tsx` (modified) — Updated `BookCardSkeleton` to match 1:1.45 book proportions and shelf layout.
-  - `apps/web/test/loading-and-404-experience.test.ts` (modified) — Added test suite verifying navbar alignment, unified toolbar, 1:1.45 book geometry, and clean processing indicators.
+  - `apps/api/src/common/worker-wake/worker-wake.service.ts` (modified) — Retry-After parsing, 3-minute active worker skip, 15s health timeout budget.
+  - `apps/api/src/common/worker-wake/worker-wake.service.spec.ts` (modified) — Unit tests for Retry-After parsing and active worker wake deduplication.
+  - `apps/api/src/auth/guards/google-auth.guard.ts` (modified) — Graceful 302 redirect on unconfigured Google OAuth.
+  - `apps/web/components/workspace/BookCard.tsx` (modified) — Honest waiting states, delayed threshold, removed redundant secondary pill, actionable check/retry controls.
+  - `apps/web/app/(workspace)/dashboard/page.tsx` (modified) — Fluid flex-1 search toolbar with right-aligned format filters.
+  - `apps/web/app/(workspace)/dashboard/workspaces/[workspaceId]/page.tsx` (modified) — Default Quizzes tab on review sheet open, horizontal overflow scrolling on review tabs.
+  - `apps/web/test/loading-and-404-experience.test.ts` (modified) — Automated architectural invariant test for toolbar, review sheet defaults, and honest card states.
 - **Verification**:
-  - `pnpm --filter @lernivox/api test`: 14 suites, 175/175 tests passed.
+  - `pnpm --filter @lernivox/api test`: 14 suites, 181/181 tests passed.
   - `pnpm --filter @lernivox/worker test`: 5 suites, 21/21 tests passed.
-  - `pnpm --filter @lernivox/web test`: 4 suites, 42/42 tests passed.
+  - `pnpm --filter @lernivox/web test`: 4 suites, 43/43 tests passed.
   - `pnpm type-check`: 11/11 package tasks passed with 0 errors.
   - `pnpm build`: 7/7 package builds passed, 17/17 Next.js static and dynamic routes generated.
-  - Live Neon PostgreSQL & Upstash Redis verification: confirmed user and database schema healthy, BullMQ queue connectivity active.
+  - Live Neon PostgreSQL & Upstash Redis verification: confirmed document `7bb29c0c-0a8a-467f-a7ce-39d9fefcea7a` successfully processed to `READY`.
 - **Processes and Ports**: Port audit confirmed clean via `ss -tulpn` (0 lingering background processes).
 - **Known Issues / Blockers**: None.
 
@@ -136,6 +141,14 @@ Deploy the verified changes to Render (`lernivox-api` and `lernivox-worker`) and
 ---
 
 ## 8. Update History
+  - Fixed Unreliable Document Processing, Improved User-Facing Processing States & Refined Dashboard & Mobile Review UI:
+    - Resolved worker wake 429 bug with RFC 7231 `Retry-After` parsing and 3-minute active worker awareness.
+    - Gracefully handled Google OAuth callbacks with 302 redirect to `/login`.
+    - Redesigned processing states in `BookCard.tsx` with honest waiting feedback and zero fake 0%.
+    - Removed redundant secondary "Preparing Material" pill from book card.
+    - Expanded dashboard search toolbar fluidly (`flex-1 min-w-0`).
+    - Fixed mobile review sheet blank initial view and narrow-viewport tab clipping.
+    - Verified all 181 API tests, 43 Web tests, 11 type-check tasks, and full Next.js 15 production build.
   - `package.json` (modified) — Updated root `"db:migrate"`.
   - `PROGRESS.md` (modified)
 - **Verification**:

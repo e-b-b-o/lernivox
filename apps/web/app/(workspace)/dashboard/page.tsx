@@ -360,8 +360,8 @@ function MyBooksDashboardContent() {
           UNIFIED SEARCH & FILTERS TOOLBAR
           ========================================================================= */}
       <div className="rounded-2xl bg-[#FAF8F4] border border-[#1B3428]/10 p-2 sm:p-2.5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
-        {/* Search Input (Clean White Field) */}
-        <div className="relative w-full sm:w-80 shrink-0">
+        {/* Search Input (Clean White Field - Fluidly expands across remaining width) */}
+        <div className="relative flex-1 min-w-0 w-full">
           <Search className="w-4 h-4 text-[#14261D]/40 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
@@ -384,7 +384,7 @@ function MyBooksDashboardContent() {
         </div>
 
         {/* File Type Filter Pills */}
-        <div className="flex items-center gap-1.5 self-start sm:self-auto overflow-x-auto pb-1 sm:pb-0 w-full sm:w-auto">
+        <div className="flex items-center gap-1.5 self-start sm:self-auto overflow-x-auto pb-1 sm:pb-0 w-full sm:w-auto shrink-0 scrollbar-none">
           {(['ALL', 'PDF', 'DOCX', 'TXT'] as FileTypeFilter[]).map((ft) => (
             <button
               key={ft}

@@ -1661,14 +1661,14 @@ function WorkspaceInner() {
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Review Sheet Header with Switcher & Close */}
-                <div className="px-4 py-3 border-b-[1.5px] border-[#1B3428]/15 flex items-center justify-between shrink-0 bg-[#FAF8F4] rounded-t-3xl">
+                <div className="px-3 sm:px-4 py-2.5 sm:py-3 border-b-[1.5px] border-[#1B3428]/15 flex items-center justify-between gap-2 shrink-0 bg-[#FAF8F4] rounded-t-3xl">
                   {/* Internal Review Switcher */}
-                  <nav className="flex items-center gap-1 bg-[#F4F0E5] p-1 rounded-full border border-[#1B3428]/15 shadow-2xs">
+                  <nav className="flex items-center gap-1 bg-[#F4F0E5] p-1 rounded-full border border-[#1B3428]/15 shadow-2xs overflow-x-auto scrollbar-none min-w-0 max-w-[calc(100%-36px)]">
                     <button
                       type="button"
                       onClick={() => setActiveView('quizzes')}
-                      className={`px-3 py-1 rounded-full font-display font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
-                        activeView === 'quizzes'
+                      className={`px-3 py-1 rounded-full font-display font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
+                        activeView === 'quizzes' || !['flashcards', 'plan', 'progress'].includes(activeView)
                           ? 'bg-[#14261D] text-white shadow-xs'
                           : 'text-[#14261D]/70'
                       }`}
@@ -1679,7 +1679,7 @@ function WorkspaceInner() {
                     <button
                       type="button"
                       onClick={() => setActiveView('flashcards')}
-                      className={`px-3 py-1 rounded-full font-display font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+                      className={`px-3 py-1 rounded-full font-display font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
                         activeView === 'flashcards'
                           ? 'bg-[#14261D] text-white shadow-xs'
                           : 'text-[#14261D]/70'
@@ -1691,7 +1691,7 @@ function WorkspaceInner() {
                     <button
                       type="button"
                       onClick={() => setActiveView('plan')}
-                      className={`px-3 py-1 rounded-full font-display font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+                      className={`px-3 py-1 rounded-full font-display font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
                         activeView === 'plan'
                           ? 'bg-[#14261D] text-white shadow-xs'
                           : 'text-[#14261D]/70'
@@ -1703,7 +1703,7 @@ function WorkspaceInner() {
                     <button
                       type="button"
                       onClick={() => setActiveView('progress')}
-                      className={`px-3 py-1 rounded-full font-display font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+                      className={`px-3 py-1 rounded-full font-display font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
                         activeView === 'progress'
                           ? 'bg-[#14261D] text-white shadow-xs'
                           : 'text-[#14261D]/70'
@@ -1717,7 +1717,7 @@ function WorkspaceInner() {
                   <button
                     type="button"
                     onClick={closeMobileDrawer}
-                    className="w-7 h-7 rounded-full border border-[#1B3428]/20 flex items-center justify-center text-[#14261D]/70 hover:bg-[#1B3428]/5 cursor-pointer"
+                    className="w-7 h-7 rounded-full border border-[#1B3428]/20 flex items-center justify-center text-[#14261D]/70 hover:bg-[#1B3428]/5 cursor-pointer shrink-0"
                     title="Close review sheet"
                     aria-label="Close review sheet"
                   >
@@ -1727,7 +1727,7 @@ function WorkspaceInner() {
 
                 {/* Review Sheet Content Body */}
                 <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-                  {activeView === 'quizzes' && (
+                  {(activeView === 'quizzes' || !['flashcards', 'plan', 'progress'].includes(activeView)) && (
                     <WorkspaceQuizzesView
                       workspaceId={workspace.id}
                       document={currentDoc}
@@ -1897,7 +1897,14 @@ function WorkspaceInner() {
           type="button"
           onClick={() => {
             setMobileNavHidden(false);
-            setMobileDrawer((prev) => (prev === 'review' ? 'none' : 'review'));
+            setMobileDrawer((prev) => {
+              if (prev === 'review') return 'none';
+              // If current activeView is not one of the review views, default to quizzes
+              if (!['quizzes', 'flashcards', 'plan', 'progress'].includes(activeView)) {
+                setActiveView('quizzes');
+              }
+              return 'review';
+            });
           }}
           className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-colors cursor-pointer ${
             mobileDrawer === 'review' ? 'text-[#E8722C]' : 'text-[#14261D]/75 active:text-[#14261D]'

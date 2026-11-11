@@ -207,14 +207,49 @@ describe('Google Coming Soon, Branded 404 & Responsive Loading Architecture', ()
     assert.match(bookCardCode, /bg-gradient-to-r from-black\/35/);
     assert.match(bookCardCode, /border-r-\[4px\] border-r-\[#FAF8F4\]\/80/);
 
-    // 5. Clean, non-redundant processing area (no duplicate badge inside cover, single clean status below)
+    // 5. Clean, non-redundant processing area (no redundant secondary pill, honest waiting states)
     assert.doesNotMatch(bookCardCode, /isProcessing && \([\s\S]*?<Loader2[\s\S]*?<span>Preparing<\/span>/);
     assert.match(bookCardCode, /doc\.processingStage \|\| 'Preparing material\.\.\.'/);
-    assert.match(bookCardCode, /Preparing Material/);
+    assert.doesNotMatch(bookCardCode, /Preparing Material/);
+    assert.match(bookCardCode, /Waiting to prepare\.\.\./);
+    assert.match(bookCardCode, /Taking longer than expected/);
 
     // 6. BookCardSkeleton mirrors exact 1:1.45 proportions and spine
     assert.match(loadingComponentsCode, /aspect-\[1\/1\.45\]/);
     assert.match(loadingComponentsCode, /rounded-l-xs rounded-r-xl/);
+  });
+
+  test('7. Fluid Dashboard Search Toolbar, Mobile Review Non-Blank Initial View & Safe Responsive Overflow', () => {
+    const dashboardPageCode = fs.readFileSync(
+      path.resolve(baseDir, 'app/(workspace)/dashboard/page.tsx'),
+      'utf8'
+    );
+    const workspacePageCode = fs.readFileSync(
+      path.resolve(baseDir, 'app/(workspace)/dashboard/workspaces/[workspaceId]/page.tsx'),
+      'utf8'
+    );
+    const bookCardCode = fs.readFileSync(
+      path.resolve(baseDir, 'components/workspace/BookCard.tsx'),
+      'utf8'
+    );
+
+    // 1. Search input expands fluidly across remaining width before filters
+    assert.match(dashboardPageCode, /relative flex-1 min-w-0 w-full/);
+    assert.match(dashboardPageCode, /shrink-0 scrollbar-none/);
+
+    // 2. Mobile Review Bottom Sheet guarantees non-blank default view (Quizzes)
+    assert.match(workspacePageCode, /activeView === 'quizzes' \|\| !\['flashcards', 'plan', 'progress'\]\.includes\(activeView\)/);
+    assert.match(workspacePageCode, /if \(!\['quizzes', 'flashcards', 'plan', 'progress'\]\.includes\(activeView\)\) \{\s*setActiveView\('quizzes'\);/);
+
+    // 3. Mobile Review Switcher nav handles narrow viewports (320px–430px) without tab clipping
+    assert.match(workspacePageCode, /overflow-x-auto scrollbar-none min-w-0 max-w-\[calc\(100%-36px\)\]/);
+
+    // 4. Honest waiting & delayed states on book card without fake 0%
+    assert.match(bookCardCode, /Starting processing service\.\.\./);
+    assert.match(bookCardCode, /Waiting to prepare\.\.\./);
+    assert.match(bookCardCode, /Taking longer than expected/);
+    assert.match(bookCardCode, /Check status/);
+    assert.match(bookCardCode, /Retry processing/);
   });
 });
 
