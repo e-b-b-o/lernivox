@@ -6,6 +6,7 @@ import { DocumentsService } from './documents.service';
 describe('DocumentsService', () => {
   let service: DocumentsService;
   let mockPrisma: any;
+  let mockWorkspacesService: any;
   let mockStorage: any;
   let mockQueue: any;
   let mockConfig: any;
@@ -23,6 +24,7 @@ describe('DocumentsService', () => {
     mockPrisma = {
       document: {
         create: jest.fn(),
+        update: jest.fn(),
         findMany: jest.fn(),
         findUnique: jest.fn(),
         delete: jest.fn(),
@@ -49,7 +51,7 @@ describe('DocumentsService', () => {
       },
     };
 
-    const mockWorkspacesService: any = {
+    mockWorkspacesService = {
       verifyDocumentAccess: (jest.fn() as any).mockImplementation(async (userId: string, docId: string) => {
         const doc = await mockPrisma.document.findUnique({ where: { id: docId } });
         if (!doc) throw new NotFoundException('Document not found');
@@ -77,6 +79,7 @@ describe('DocumentsService', () => {
 
     mockQueue = {
       add: (jest.fn() as any).mockResolvedValue({ id: 'job-123' }),
+      getJobs: (jest.fn() as any).mockResolvedValue([]),
     };
 
     mockConfig = {
@@ -682,6 +685,103 @@ describe('DocumentsService', () => {
       const del = await service.deleteBookmark('user-1', 'doc-1', 'bm-1');
       expect(del.success).toBe(true);
       expect(mockPrisma.documentBookmark.delete).toHaveBeenCalledWith({ where: { id: 'bm-1' } });
+    });
+  });
+
+  describe('retryIngestion', () => {
+    it('successfully re-enqueues a failed document and updates status to UPLOADED', async () => {
+      mockWorkspacesService.verifyDocumentAccess.mockResolvedValueOnce({
+        hasAccess: true,
+        isOwner: true,
+        document: {
+          id: 'doc-failed-1',
+          ownerId: 'user-1',
+          title: 'Failed Book',
+          fileName: 'book.pdf',
+          storagePath: 'documents/user-1/doc-failed-1_book.pdf',
+          mimeType: 'application/pdf',
+          sizeBytes: 500000,
+          status: 'FAILED',
+          errorCode: 'PROCESSING_ERROR',
+          errorMessage: 'Something broke',
+        },
+        workspace: { id: 'ws-1' },
+      });
+
+      mockPrisma.document.update.mockResolvedValueOnce({
+        id: 'doc-failed-1',
+        ownerId: 'user-1',
+        title: 'Failed Book',
+        fileName: 'book.pdf',
+        mimeType: 'application/pdf',
+        sizeBytes: 500000,
+        storageProvider: 'CLOUDINARY',
+        visibility: 'PRIVATE',
+        status: 'UPLOADED',
+        errorCode: null,
+        errorMessage: null,
+        pageCount: null,
+        totalTokens: null,
+        processingProgress: 0,
+        processingStage: 'QUEUED',
+        processingMessage: 'Queued for processing',
+        completedUnits: null,
+        totalUnits: null,
+        processingStartedAt: null,
+        processingCompletedAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      const result = await service.retryIngestion('user-1', 'doc-failed-1');
+
+      expect(result.id).toBe('doc-failed-1');
+      expect(result.status).toBe('UPLOADED');
+      expect(mockPrisma.document.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'doc-failed-1' },
+          data: expect.objectContaining({
+            status: 'UPLOADED',
+            processingStage: 'QUEUED',
+            errorCode: null,
+          }),
+        }),
+      );
+      expect(mockQueue.add).toHaveBeenCalledWith(
+        'process-document',
+        expect.objectContaining({
+          documentId: 'doc-failed-1',
+          userId: 'user-1',
+          storagePath: 'documents/user-1/doc-failed-1_book.pdf',
+        }),
+        expect.any(Object),
+      );
+    });
+
+    it('throws ForbiddenException if user is not the owner', async () => {
+      mockWorkspacesService.verifyDocumentAccess.mockResolvedValueOnce({
+        hasAccess: true,
+        isOwner: false,
+        document: { id: 'doc-failed-1', status: 'FAILED' },
+        workspace: { id: 'ws-1' },
+      });
+
+      await expect(service.retryIngestion('user-other', 'doc-failed-1')).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('throws BadRequestException if document is already READY', async () => {
+      mockWorkspacesService.verifyDocumentAccess.mockResolvedValueOnce({
+        hasAccess: true,
+        isOwner: true,
+        document: { id: 'doc-ready-1', status: 'READY' },
+        workspace: { id: 'ws-1' },
+      });
+
+      await expect(service.retryIngestion('user-1', 'doc-ready-1')).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 });

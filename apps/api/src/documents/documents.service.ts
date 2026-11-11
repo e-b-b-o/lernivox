@@ -506,6 +506,83 @@ export class DocumentsService {
     };
   }
 
+  async retryIngestion(userId: string, documentId: string): Promise<DocumentDto> {
+    const { document, isOwner } = await this.workspacesService.verifyDocumentAccess(userId, documentId);
+
+    if (!isOwner) {
+      throw new ForbiddenException('Only the document owner can retry processing.');
+    }
+
+    if (document.status === 'READY') {
+      throw new BadRequestException('This book has already been processed successfully.');
+    }
+
+    // Clean up any failed, waiting, or delayed BullMQ jobs for this document
+    try {
+      if (typeof this.ingestionQueue?.getJobs === 'function') {
+        const existingJobs = await this.ingestionQueue.getJobs(['waiting', 'delayed', 'active', 'failed']);
+        for (const job of existingJobs) {
+          if (job.data?.documentId === documentId) {
+            await job.remove();
+            this.logger.log(`Removed previous job ${job.id} for retried document ${documentId}`);
+          }
+        }
+      }
+    } catch (queueErr) {
+      this.logger.warn(`Failed to clean up queue jobs for retried document ${documentId}: ${queueErr}`);
+    }
+
+    // Update document status in database to UPLOADED with QUEUED stage
+    const updated = await this.prisma.document.update({
+      where: { id: documentId },
+      data: {
+        status: 'UPLOADED',
+        processingStage: 'QUEUED',
+        processingProgress: 0,
+        processingMessage: 'Queued for processing',
+        errorCode: null,
+        errorMessage: null,
+        processingStartedAt: null,
+        processingCompletedAt: null,
+      },
+    });
+
+    // Re-enqueue BullMQ background ingestion job reusing the existing stored asset
+    try {
+      await this.ingestionQueue.add(
+        'process-document',
+        {
+          documentId: document.id,
+          userId,
+          storagePath: document.storagePath,
+          originalFileName: document.fileName || document.title,
+          mimeType: document.mimeType,
+          fileSizeBytes: document.sizeBytes,
+        },
+        {
+          attempts: 3,
+          backoff: {
+            type: 'exponential',
+            delay: 2000,
+          },
+          removeOnComplete: true,
+        },
+      );
+      this.logger.log(`Re-queued ingestion job for document ${document.id} (${document.title})`);
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      this.logger.error(`Failed to re-enqueue document ${documentId}: ${errMsg}`);
+      throw new BadRequestException('Failed to enqueue processing job. Please try again.');
+    }
+
+    // Wake the worker (fire-and-forget, non-blocking)
+    if (this.workerWakeService) {
+      this.workerWakeService.wake('document-retry');
+    }
+
+    return this.sanitizeDocument(updated);
+  }
+
   async getDocumentFileStream(
     userId: string,
     documentId: string,

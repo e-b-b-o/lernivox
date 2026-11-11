@@ -25,6 +25,7 @@ describe('DocumentsController', () => {
       getDocumentChunks: jest.fn<any>(),
       getDocumentStatus: jest.fn<any>(),
       deleteDocument: jest.fn<any>(),
+      retryIngestion: jest.fn<any>(),
     };
 
     controller = new DocumentsController(mockService as unknown as DocumentsService);
@@ -103,5 +104,13 @@ describe('DocumentsController', () => {
     const result = await controller.deleteDocument(mockUser, 'doc-1');
     expect(result).toEqual({ success: true, message: 'Deleted' });
     expect(mockService.deleteDocument).toHaveBeenCalledWith('user-1', 'doc-1');
+  });
+
+  it('retryDocument delegates to service with userId and docId', async () => {
+    mockService.retryIngestion.mockResolvedValue({ id: 'doc-1', status: 'UPLOADED' });
+
+    const result = await controller.retryDocument(mockUser, 'doc-1');
+    expect(result).toEqual({ id: 'doc-1', status: 'UPLOADED' });
+    expect(mockService.retryIngestion).toHaveBeenCalledWith('user-1', 'doc-1');
   });
 });

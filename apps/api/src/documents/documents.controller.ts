@@ -197,6 +197,21 @@ export class DocumentsController {
     return this.documentsService.deleteDocument(user.id, id);
   }
 
+  @Post(':id/retry')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Retry processing for a failed document without re-uploading' })
+  @ApiParam({ name: 'id', description: 'Document UUID' })
+  @ApiResponse({ status: 200, description: 'Document ingestion re-enqueued successfully' })
+  @ApiResponse({ status: 400, description: 'Document is already processed or currently processing' })
+  @ApiResponse({ status: 403, description: 'Forbidden (not owner)' })
+  @ApiResponse({ status: 404, description: 'Document not found' })
+  async retryDocument(
+    @CurrentUser() user: UserDto,
+    @Param('id') id: string,
+  ): Promise<DocumentResponseDto> {
+    return this.documentsService.retryIngestion(user.id, id);
+  }
+
   @Get(':id/file')
   @ApiOperation({ summary: 'Stream authenticated document file with byte-range HTTP 206 support' })
   @ApiParam({ name: 'id', description: 'Document UUID' })
