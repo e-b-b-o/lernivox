@@ -414,7 +414,7 @@ export class TutorService {
 
   /**
    * Retrieves verified chunk passage details for citation inspection.
-   * Strictly enforces that the requesting student owns the parent document.
+   * Enforces document ownership or group workspace membership via WorkspacesService.
    */
   async getChunkDetail(userId: string, chunkId: string): Promise<TutorChunkDetailResponseDto> {
     const chunk = await this.prisma.documentChunk.findUnique({
@@ -430,9 +430,7 @@ export class TutorService {
       throw new NotFoundException('Source passage not found');
     }
 
-    if (chunk.document.ownerId !== userId) {
-      throw new ForbiddenException('Access to this document excerpt is denied');
-    }
+    await this.workspacesService.verifyDocumentAccess(userId, chunk.documentId);
 
     return {
       chunkId: chunk.id,

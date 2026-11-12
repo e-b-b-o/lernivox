@@ -257,7 +257,33 @@ describe('TutorService', () => {
       expect(chunk.documentTitle).toBe('New Testament History & Literature');
     });
 
-    it('should throw ForbiddenException if chunk belongs to another user document', async () => {
+    it('should allow excerpt access for authorized group workspace members', async () => {
+      mockPrisma.documentChunk.findUnique.mockResolvedValue({
+        id: 'chunk-1',
+        documentId,
+        chunkIndex: 0,
+        content: 'Shared chapter excerpt',
+        pageNumber: 22,
+        chapter: 'Chapter 2',
+        sectionTitle: 'Group Notes',
+        document: {
+          id: documentId,
+          title: 'New Testament History & Literature',
+          ownerId: 'owner-user',
+        },
+      });
+      mockWorkspacesService.verifyDocumentAccess.mockResolvedValueOnce({
+        hasAccess: true,
+        isOwner: false,
+      });
+
+      const chunk = await service.getChunkDetail(userId, 'chunk-1');
+      expect(chunk.chunkId).toBe('chunk-1');
+      expect(chunk.pageNumber).toBe(22);
+      expect(mockWorkspacesService.verifyDocumentAccess).toHaveBeenCalledWith(userId, documentId);
+    });
+
+    it('should throw ForbiddenException if chunk belongs to an inaccessible document', async () => {
       mockPrisma.documentChunk.findUnique.mockResolvedValue({
         id: 'chunk-1',
         documentId,
@@ -266,6 +292,9 @@ describe('TutorService', () => {
           ownerId: 'different-user',
         },
       });
+      mockWorkspacesService.verifyDocumentAccess.mockRejectedValueOnce(
+        new ForbiddenException('You do not have permission to access this learning workspace or document.'),
+      );
 
       await expect(service.getChunkDetail(userId, 'chunk-1')).rejects.toThrow(
         ForbiddenException,

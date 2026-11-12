@@ -439,5 +439,48 @@ describe('QuizzesService', () => {
         }),
       );
     });
+
+    it('getDocumentQuizzes allows authorized group workspace members and scopes attempts to requesting user', async () => {
+      mockPrisma.document.findFirst.mockResolvedValue({
+        id: 'doc-1',
+        ownerId: 'owner-user',
+        workspaceId: 'ws-group-1',
+        title: 'Shared Textbook',
+        workspace: { id: 'ws-group-1' },
+      });
+      mockPrisma.quiz.findMany.mockResolvedValue([
+        {
+          id: 'quiz-shared-1',
+          userId: 'owner-user',
+          documentId: 'doc-1',
+          title: 'Group Quiz',
+          description: null,
+          sourceChapter: 'Ch 1',
+          difficulty: 'INTERMEDIATE',
+          status: 'READY',
+          errorMessage: null,
+          createdAt: new Date(),
+          document: { title: 'Shared Textbook' },
+          questions: [{ id: 'q-1' }],
+          attempts: [{ score: 90, isCompleted: true }],
+        },
+      ]);
+
+      const quizzes = await service.getDocumentQuizzes('member-user', 'doc-1');
+
+      expect(mockPrisma.document.findFirst).toHaveBeenCalledWith({
+        where: {
+          id: 'doc-1',
+          OR: [
+            { ownerId: 'member-user' },
+            { workspace: { ownerId: 'member-user' } },
+            { workspace: { members: { some: { userId: 'member-user' } } } },
+          ],
+        },
+        include: { workspace: true },
+      });
+      expect(quizzes).toHaveLength(1);
+      expect(quizzes[0]!.bestScore).toBe(90);
+    });
   });
 });

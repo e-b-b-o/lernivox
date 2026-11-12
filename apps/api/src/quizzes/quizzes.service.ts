@@ -71,6 +71,7 @@ export class QuizzesService {
         id: documentId,
         OR: [
           { ownerId: userId },
+          { workspace: { ownerId: userId } },
           { workspace: { members: { some: { userId } } } },
         ],
       },
@@ -238,19 +239,36 @@ export class QuizzesService {
 
   async getDocumentQuizzes(userId: string, documentId: string): Promise<QuizSummaryDto[]> {
     const document = await this.prisma.document.findFirst({
-      where: { id: documentId, ownerId: userId },
+      where: {
+        id: documentId,
+        OR: [
+          { ownerId: userId },
+          { workspace: { ownerId: userId } },
+          { workspace: { members: { some: { userId } } } },
+        ],
+      },
+      include: { workspace: true },
     });
 
     if (!document) {
       throw new NotFoundException('Document not found or access denied.');
     }
 
+    const resolvedWorkspaceId = document.workspaceId ?? document.workspace?.id ?? null;
+
     const quizzes = await this.prisma.quiz.findMany({
-      where: { userId, documentId, archivedAt: null },
+      where: resolvedWorkspaceId
+        ? {
+            documentId,
+            archivedAt: null,
+            OR: [{ userId }, { workspaceId: resolvedWorkspaceId }],
+          }
+        : { userId, documentId, archivedAt: null },
       include: {
         document: { select: { title: true } },
         questions: { select: { id: true } },
         attempts: {
+          where: { userId },
           select: { score: true, isCompleted: true },
         },
       },
