@@ -32,11 +32,12 @@ import {
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { UpdatePreferencesDto } from './dto/update-preferences.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import type { ValidatedGoogleUser } from './strategies/google.strategy';
-import type { UserDto } from '@lernivox/contracts';
+import type { UserDto, UserPreferencesDto } from '@lernivox/contracts';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -240,6 +241,30 @@ export class AuthController {
     @Body() dto: UpdateProfileDto,
   ): Promise<UserDto> {
     return this.authService.updateProfile(user.id, dto.name);
+  }
+
+  @Get('preferences')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get persisted learning and schedule preferences for current user' })
+  @ApiResponse({ status: 200, description: 'User preferences retrieved.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async getPreferences(@CurrentUser() user: UserDto): Promise<UserPreferencesDto> {
+    return this.authService.getPreferences(user.id);
+  }
+
+  @Patch('preferences')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update persisted learning and schedule preferences for current user' })
+  @ApiResponse({ status: 200, description: 'User preferences updated.' })
+  @ApiResponse({ status: 400, description: 'Validation failed' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async updatePreferences(
+    @CurrentUser() user: UserDto,
+    @Body() dto: UpdatePreferencesDto,
+  ): Promise<UserPreferencesDto> {
+    return this.authService.updatePreferences(user.id, dto);
   }
 
   @Post('change-password')

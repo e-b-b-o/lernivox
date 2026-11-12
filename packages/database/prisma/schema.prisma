@@ -229,6 +229,8 @@ model UserPreference {
   explanationLength       ExplanationLength @default(BALANCED)
   teachingStyle           TeachingStyle     @default(SOCRATIC)
   dailyStudyTargetMinutes Int               @default(30)
+  studyReminders          Boolean           @default(true)
+  reviewReminders         Boolean           @default(true)
   theme                   ThemePreference   @default(SYSTEM)
   createdAt               DateTime          @default(now())
   updatedAt               DateTime          @updatedAt

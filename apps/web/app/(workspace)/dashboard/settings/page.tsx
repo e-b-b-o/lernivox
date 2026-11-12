@@ -17,13 +17,14 @@ import {
   Loader2,
 } from 'lucide-react';
 import { useAuth } from '../../../../context/AuthContext';
+import { api } from '../../../../lib/api';
 
 type SettingsCategory = 'account' | 'tutor' | 'schedule';
 
 const SETTINGS_STORAGE_KEY = 'lernivox_user_preferences';
 
 export default function SettingsPage() {
-  const { user, updateProfile, changePassword } = useAuth();
+  const { user, accessToken, updateProfile, changePassword } = useAuth();
 
   // Active Category State for Master-Detail Information Architecture
   const [activeCategory, setActiveCategory] = useState<SettingsCategory>('account');
@@ -61,9 +62,12 @@ export default function SettingsPage() {
   // Schedule & Notifications State
   const [studyReminders, setStudyReminders] = useState(true);
   const [reviewReminders, setReviewReminders] = useState(true);
+  const [isLoadingPreferences, setIsLoadingPreferences] = useState(false);
+  const [isSavingPreferences, setIsSavingPreferences] = useState(false);
   const [prefSavedSuccess, setPrefSavedSuccess] = useState(false);
+  const [prefError, setPrefError] = useState<string | null>(null);
 
-  // Load saved preferences from localStorage if present
+  // Hydrate initial preferences from local cache first, then sync authoritative state from backend
   useEffect(() => {
     try {
       const stored = localStorage.getItem(SETTINGS_STORAGE_KEY);
@@ -79,7 +83,54 @@ export default function SettingsPage() {
     } catch {
       // ignore storage access errors
     }
-  }, []);
+
+    if (!accessToken) {
+      return;
+    }
+
+    let cancelled = false;
+    setIsLoadingPreferences(true);
+
+    api.auth
+      .getPreferences(accessToken)
+      .then((prefs) => {
+        if (cancelled) return;
+        setTeachingStyle(prefs.teachingStyle);
+        setExplanationLength(prefs.explanationLength);
+        setDifficulty(prefs.difficulty);
+        setDailyMinutes(prefs.dailyStudyTargetMinutes);
+        setStudyReminders(prefs.studyReminders);
+        setReviewReminders(prefs.reviewReminders);
+        try {
+          localStorage.setItem(
+            SETTINGS_STORAGE_KEY,
+            JSON.stringify({
+              teachingStyle: prefs.teachingStyle,
+              explanationLength: prefs.explanationLength,
+              difficulty: prefs.difficulty,
+              dailyMinutes: prefs.dailyStudyTargetMinutes,
+              studyReminders: prefs.studyReminders,
+              reviewReminders: prefs.reviewReminders,
+              updatedAt: prefs.updatedAt,
+            }),
+          );
+        } catch {
+          // ignore storage errors
+        }
+      })
+      .catch(() => {
+        // Keep local cache fallback if backend preferences fail to load
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoadingPreferences(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [accessToken]);
 
   const handleProfileSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,26 +196,63 @@ export default function SettingsPage() {
     }
   };
 
-  const handleSavePreferences = (e: React.FormEvent) => {
+  const handleSavePreferences = async (e: React.FormEvent) => {
     e.preventDefault();
+    setPrefError(null);
+    setPrefSavedSuccess(false);
+
+    if (!accessToken) {
+      setPrefError('Sign in again before saving preferences.');
+      return;
+    }
+
+    setIsSavingPreferences(true);
     try {
-      localStorage.setItem(
-        SETTINGS_STORAGE_KEY,
-        JSON.stringify({
+      const saved = await api.auth.updatePreferences(
+        {
           teachingStyle,
           explanationLength,
           difficulty,
-          dailyMinutes,
+          dailyStudyTargetMinutes: dailyMinutes,
           studyReminders,
           reviewReminders,
-          updatedAt: new Date().toISOString(),
-        }),
+        },
+        accessToken,
       );
-    } catch {
-      // ignore storage errors
+
+      setTeachingStyle(saved.teachingStyle);
+      setExplanationLength(saved.explanationLength);
+      setDifficulty(saved.difficulty);
+      setDailyMinutes(saved.dailyStudyTargetMinutes);
+      setStudyReminders(saved.studyReminders);
+      setReviewReminders(saved.reviewReminders);
+
+      try {
+        localStorage.setItem(
+          SETTINGS_STORAGE_KEY,
+          JSON.stringify({
+            teachingStyle: saved.teachingStyle,
+            explanationLength: saved.explanationLength,
+            difficulty: saved.difficulty,
+            dailyMinutes: saved.dailyStudyTargetMinutes,
+            studyReminders: saved.studyReminders,
+            reviewReminders: saved.reviewReminders,
+            updatedAt: saved.updatedAt,
+          }),
+        );
+      } catch {
+        // ignore storage errors
+      }
+
+      setPrefSavedSuccess(true);
+      setTimeout(() => setPrefSavedSuccess(false), 3000);
+    } catch (err: unknown) {
+      setPrefError(
+        err instanceof Error ? err.message : 'Failed to save preferences. Please try again.',
+      );
+    } finally {
+      setIsSavingPreferences(false);
     }
-    setPrefSavedSuccess(true);
-    setTimeout(() => setPrefSavedSuccess(false), 3000);
   };
 
   const categories = [
@@ -674,13 +762,29 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Tutor Save Button */}
+                {prefError && (
+                  <div className="p-3 rounded-xl bg-red-50 border border-red-200 flex items-center gap-2 text-xs text-red-700 font-medium">
+                    <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+                    <span>{prefError}</span>
+                  </div>
+                )}
                 <div className="flex items-center justify-end gap-3 pt-2">
                   <button
                     type="submit"
-                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#E8722C] hover:bg-[#D65E1E] text-white font-display font-bold text-xs sm:text-sm shadow-xs hover:-translate-y-0.5 active:translate-y-0.5 transition-all cursor-pointer"
+                    disabled={isSavingPreferences || isLoadingPreferences}
+                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#E8722C] hover:bg-[#D65E1E] text-white font-display font-bold text-xs sm:text-sm shadow-xs hover:-translate-y-0.5 active:translate-y-0.5 transition-all cursor-pointer disabled:opacity-50"
                   >
-                    <Save className="w-4 h-4" />
-                    <span>Save Preferences</span>
+                    {isSavingPreferences ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        <span>Save Preferences</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </form>
@@ -740,13 +844,29 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Schedule Save Button */}
+                {prefError && (
+                  <div className="p-3 rounded-xl bg-red-50 border border-red-200 flex items-center gap-2 text-xs text-red-700 font-medium">
+                    <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+                    <span>{prefError}</span>
+                  </div>
+                )}
                 <div className="flex items-center justify-end gap-3 pt-2">
                   <button
                     type="submit"
-                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#E8722C] hover:bg-[#D65E1E] text-white font-display font-bold text-xs sm:text-sm shadow-xs hover:-translate-y-0.5 active:translate-y-0.5 transition-all cursor-pointer"
+                    disabled={isSavingPreferences || isLoadingPreferences}
+                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#E8722C] hover:bg-[#D65E1E] text-white font-display font-bold text-xs sm:text-sm shadow-xs hover:-translate-y-0.5 active:translate-y-0.5 transition-all cursor-pointer disabled:opacity-50"
                   >
-                    <Save className="w-4 h-4" />
-                    <span>Save Preferences</span>
+                    {isSavingPreferences ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        <span>Save Preferences</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </form>

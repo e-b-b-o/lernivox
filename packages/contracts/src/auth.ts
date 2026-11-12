@@ -53,3 +53,29 @@ export interface JwtPayload {
   iat?: number;
   exp?: number;
 }
+
+export type DifficultyPreference = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
+export type ExplanationLengthPreference = 'CONCISE' | 'BALANCED' | 'DETAILED';
+export type TeachingStylePreference = 'SOCRATIC' | 'DIRECT' | 'ANALOGICAL';
+export type ThemePreferenceType = 'SYSTEM' | 'LIGHT' | 'DARK';
+
+export interface UserPreferencesDto {
+  teachingStyle: TeachingStylePreference;
+  explanationLength: ExplanationLengthPreference;
+  difficulty: DifficultyPreference;
+  dailyStudyTargetMinutes: number;
+  studyReminders: boolean;
+  reviewReminders: boolean;
+  theme: ThemePreferenceType;
+  updatedAt: string;
+}
+
+export interface UpdateUserPreferencesRequestDto {
+  teachingStyle?: TeachingStylePreference;
+  explanationLength?: ExplanationLengthPreference;
+  difficulty?: DifficultyPreference;
+  dailyStudyTargetMinutes?: number;
+  studyReminders?: boolean;
+  reviewReminders?: boolean;
+  theme?: ThemePreferenceType;
+}

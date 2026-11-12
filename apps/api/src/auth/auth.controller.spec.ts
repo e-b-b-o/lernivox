@@ -20,6 +20,8 @@ describe('AuthController', () => {
       getProfile: jest.fn(),
       updateProfile: jest.fn(),
       changePassword: jest.fn(),
+      getPreferences: jest.fn(),
+      updatePreferences: jest.fn(),
     };
 
     mockConfigService = {
@@ -315,6 +317,37 @@ describe('AuthController', () => {
         'new-refresh-token',
         expect.any(Object),
       );
+    });
+
+    it('should get and update user preferences', async () => {
+      const mockPrefs = {
+        teachingStyle: 'ANALOGICAL' as const,
+        explanationLength: 'DETAILED' as const,
+        difficulty: 'INTERMEDIATE' as const,
+        dailyStudyTargetMinutes: 60,
+        studyReminders: true,
+        reviewReminders: false,
+        theme: 'SYSTEM' as const,
+        updatedAt: new Date().toISOString(),
+      };
+      mockAuthService.getPreferences.mockResolvedValue(mockPrefs);
+      mockAuthService.updatePreferences.mockResolvedValue(mockPrefs);
+
+      const user: any = { id: 'u1', email: 'test@example.com', role: 'USER' };
+      const fetched = await controller.getPreferences(user);
+      expect(fetched.dailyStudyTargetMinutes).toBe(60);
+
+      const updated = await controller.updatePreferences(user, {
+        teachingStyle: 'ANALOGICAL',
+        dailyStudyTargetMinutes: 60,
+        reviewReminders: false,
+      });
+      expect(updated.teachingStyle).toBe('ANALOGICAL');
+      expect(mockAuthService.updatePreferences).toHaveBeenCalledWith('u1', {
+        teachingStyle: 'ANALOGICAL',
+        dailyStudyTargetMinutes: 60,
+        reviewReminders: false,
+      });
     });
   });
 });

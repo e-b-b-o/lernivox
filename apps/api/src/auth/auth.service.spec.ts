@@ -25,6 +25,7 @@ describe('AuthService', () => {
       },
       userPreference: {
         create: jest.fn(),
+        upsert: jest.fn(),
       },
       userSession: {
         create: jest.fn(),
@@ -611,6 +612,51 @@ describe('AuthService', () => {
           newPassword: currentPassword,
         }),
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should load and upsert user learning and schedule preferences', async () => {
+      const updatedAt = new Date('2026-11-12T10:00:00Z');
+      mockPrisma.userPreference.upsert.mockResolvedValue({
+        teachingStyle: 'DIRECT',
+        explanationLength: 'CONCISE',
+        difficulty: 'ADVANCED',
+        dailyStudyTargetMinutes: 45,
+        studyReminders: false,
+        reviewReminders: true,
+        theme: 'SYSTEM',
+        updatedAt,
+      });
+
+      const prefs = await authService.updatePreferences('u-1', {
+        teachingStyle: 'DIRECT',
+        explanationLength: 'CONCISE',
+        difficulty: 'ADVANCED',
+        dailyStudyTargetMinutes: 45,
+        studyReminders: false,
+      });
+
+      expect(mockPrisma.userPreference.upsert).toHaveBeenCalledWith({
+        where: { userId: 'u-1' },
+        create: {
+          userId: 'u-1',
+          teachingStyle: 'DIRECT',
+          explanationLength: 'CONCISE',
+          difficulty: 'ADVANCED',
+          dailyStudyTargetMinutes: 45,
+          studyReminders: false,
+        },
+        update: {
+          teachingStyle: 'DIRECT',
+          explanationLength: 'CONCISE',
+          difficulty: 'ADVANCED',
+          dailyStudyTargetMinutes: 45,
+          studyReminders: false,
+        },
+      });
+      expect(prefs.teachingStyle).toBe('DIRECT');
+      expect(prefs.dailyStudyTargetMinutes).toBe(45);
+      expect(prefs.studyReminders).toBe(false);
+      expect(prefs.updatedAt).toBe(updatedAt.toISOString());
     });
   });
 });

@@ -21,7 +21,9 @@ import type {
   TutorChunkDetailDto,
   UpdateReadingProgressDto,
   UpdateProfileRequestDto,
+  UpdateUserPreferencesRequestDto,
   UserDto,
+  UserPreferencesDto,
   ConversationSummaryDto,
   ConversationDetailDto,
   ConversationMessageDto,
@@ -374,6 +376,22 @@ export const api = {
 
     getMe: (token: string): Promise<UserDto> =>
       request<UserDto>('/auth/me', { method: 'GET' }, token),
+
+    getPreferences: (token: string): Promise<UserPreferencesDto> =>
+      request<UserPreferencesDto>('/auth/preferences', { method: 'GET' }, token),
+
+    updatePreferences: (
+      data: UpdateUserPreferencesRequestDto,
+      token: string,
+    ): Promise<UserPreferencesDto> =>
+      request<UserPreferencesDto>(
+        '/auth/preferences',
+        {
+          method: 'PATCH',
+          body: JSON.stringify(data),
+        },
+        token,
+      ),
 
     getGoogleAuthUrl: (): string => `${API_BASE_URL}/auth/google`,
   },

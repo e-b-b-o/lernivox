@@ -13,8 +13,17 @@ import { PrismaService } from '../common/prisma/prisma.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { UpdatePreferencesDto } from './dto/update-preferences.dto';
 import type { ValidatedGoogleUser } from './strategies/google.strategy';
-import type { JwtPayload, UserDto } from '@lernivox/contracts';
+import type {
+  DifficultyPreference,
+  ExplanationLengthPreference,
+  JwtPayload,
+  TeachingStylePreference,
+  ThemePreferenceType,
+  UserDto,
+  UserPreferencesDto,
+} from '@lernivox/contracts';
 
 export interface AuthSessionResult {
   user: UserDto;
@@ -557,5 +566,75 @@ export class AuthService {
     }
 
     return this.sanitizeUser(user);
+  }
+
+  // --- User Learning & Schedule Preferences ---
+
+  private formatPreferences(pref: {
+    teachingStyle: string;
+    explanationLength: string;
+    difficulty: string;
+    dailyStudyTargetMinutes: number;
+    studyReminders: boolean;
+    reviewReminders: boolean;
+    theme: string;
+    updatedAt: Date;
+  }): UserPreferencesDto {
+    return {
+      teachingStyle: pref.teachingStyle as TeachingStylePreference,
+      explanationLength: pref.explanationLength as ExplanationLengthPreference,
+      difficulty: pref.difficulty as DifficultyPreference,
+      dailyStudyTargetMinutes: pref.dailyStudyTargetMinutes,
+      studyReminders: pref.studyReminders,
+      reviewReminders: pref.reviewReminders,
+      theme: pref.theme as ThemePreferenceType,
+      updatedAt: pref.updatedAt.toISOString(),
+    };
+  }
+
+  async getPreferences(userId: string): Promise<UserPreferencesDto> {
+    const pref = await this.prisma.userPreference.upsert({
+      where: { userId },
+      create: { userId },
+      update: {},
+    });
+
+    return this.formatPreferences(pref);
+  }
+
+  async updatePreferences(
+    userId: string,
+    dto: UpdatePreferencesDto,
+  ): Promise<UserPreferencesDto> {
+    const fields: {
+      teachingStyle?: TeachingStylePreference;
+      explanationLength?: ExplanationLengthPreference;
+      difficulty?: DifficultyPreference;
+      dailyStudyTargetMinutes?: number;
+      studyReminders?: boolean;
+      reviewReminders?: boolean;
+      theme?: ThemePreferenceType;
+    } = {};
+
+    if (dto.teachingStyle !== undefined) fields.teachingStyle = dto.teachingStyle;
+    if (dto.explanationLength !== undefined) fields.explanationLength = dto.explanationLength;
+    if (dto.difficulty !== undefined) fields.difficulty = dto.difficulty;
+    if (dto.dailyStudyTargetMinutes !== undefined) {
+      fields.dailyStudyTargetMinutes = dto.dailyStudyTargetMinutes;
+    }
+    if (dto.studyReminders !== undefined) fields.studyReminders = dto.studyReminders;
+    if (dto.reviewReminders !== undefined) fields.reviewReminders = dto.reviewReminders;
+    if (dto.theme !== undefined) fields.theme = dto.theme;
+
+    const pref = await this.prisma.userPreference.upsert({
+      where: { userId },
+      create: {
+        userId,
+        ...fields,
+      },
+      update: fields,
+    });
+
+    return this.formatPreferences(pref);
   }
 }
