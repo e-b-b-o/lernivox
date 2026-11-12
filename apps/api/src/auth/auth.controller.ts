@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Ip,
+  Patch,
   Post,
   Req,
   Res,
@@ -28,8 +29,10 @@ import {
   LogoutSuccessDto,
   UserResponseDto,
 } from './dto/auth-response.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import type { ValidatedGoogleUser } from './strategies/google.strategy';
@@ -219,6 +222,52 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   getMe(@CurrentUser() user: UserDto): UserDto {
     return user;
+  }
+
+  @Patch('profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update profile information for current authenticated user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Profile updated successfully.',
+    type: UserResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Validation failed' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async updateProfile(
+    @CurrentUser() user: UserDto,
+    @Body() dto: UpdateProfileDto,
+  ): Promise<UserDto> {
+    return this.authService.updateProfile(user.id, dto.name);
+  }
+
+  @Post('change-password')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Change password for current authenticated user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Password changed successfully. New session tokens issued.',
+  })
+  @ApiResponse({ status: 400, description: 'Validation failed or not password-authenticated' })
+  @ApiResponse({ status: 401, description: 'Incorrect current password or unauthorized' })
+  async changePassword(
+    @CurrentUser() user: UserDto,
+    @Body() dto: ChangePasswordDto,
+    @Ip() ip: string,
+    @Headers('user-agent') userAgent: string,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ success: boolean; message: string; accessToken: string; user: UserDto }> {
+    const result = await this.authService.changePassword(user.id, dto, ip, userAgent);
+    this.setRefreshTokenCookie(res, result.refreshToken);
+    return {
+      success: true,
+      message: result.message,
+      accessToken: result.accessToken,
+      user: result.user,
+    };
   }
 
   @Get('google')

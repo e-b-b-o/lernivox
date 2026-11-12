@@ -16,6 +16,7 @@ describe('AuthService', () => {
       user: {
         findUnique: jest.fn(),
         create: jest.fn(),
+        update: jest.fn(),
       },
       userIdentity: {
         findUnique: jest.fn(),
@@ -119,8 +120,19 @@ describe('AuthService', () => {
         authService.register({
           email: 'alex@lernivox.test',
           password: 'Password123!',
+          name: 'Alex Johnson',
         }),
       ).rejects.toThrow(ConflictException);
+    });
+
+    it('should throw BadRequestException if full name is empty or only whitespace', async () => {
+      await expect(
+        authService.register({
+          email: 'newuser@lernivox.test',
+          password: 'Password123!',
+          name: '   ',
+        }),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should register users with ordinary email providers (Gmail, Outlook, Yahoo, Proton)', async () => {
@@ -268,7 +280,7 @@ describe('AuthService', () => {
       expect(mockPrisma.userSession.update).toHaveBeenCalled();
     });
 
-    it('should revoke ALL user sessions and throw on reuse of revoked token', async () => {
+    it('should revoke ALL user sessions and throw on reuse of revoked token after grace window', async () => {
       const rawToken = 'compromised-token';
       const tokenHash = authService.hashToken(rawToken);
 
@@ -277,6 +289,7 @@ describe('AuthService', () => {
         userId: 'user-victim',
         tokenHash,
         isRevoked: true, // ALREADY REVOKED!
+        updatedAt: new Date(Date.now() - 60000), // Revoked 60s ago (beyond 30s grace period)
         expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
         user: { id: 'user-victim', isActive: true },
       };
@@ -290,6 +303,34 @@ describe('AuthService', () => {
       // Verify reuse detection invalidated all sessions for the victim
       expect(mockPrisma.userSession.updateMany).toHaveBeenCalledWith({
         where: { userId: 'user-victim' },
+        data: { isRevoked: true },
+      });
+    });
+
+    it('should gracefully handle concurrent refresh within 30s grace window without revoking all sessions', async () => {
+      const rawToken = 'concurrent-rotated-token';
+      const tokenHash = authService.hashToken(rawToken);
+
+      const recentlyRotatedSession = {
+        id: 'session-recent',
+        userId: 'user-concurrent',
+        tokenHash,
+        isRevoked: true,
+        updatedAt: new Date(Date.now() - 1000), // Rotated only 1 second ago (within 30s grace period)
+        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
+        user: { id: 'user-concurrent', email: 'user@test.com', role: 'USER', planTier: 'FREE', isActive: true, createdAt: new Date() },
+      };
+
+      mockPrisma.userSession.findUnique.mockResolvedValue(recentlyRotatedSession);
+      mockPrisma.userSession.create.mockResolvedValue({ id: 'session-new-concurrent' });
+
+      const result = await authService.refreshTokens(rawToken);
+
+      expect(result.accessToken).toBe('mock-jwt-token');
+      expect(result.refreshToken).toBeDefined();
+      // Crucial: updateMany should NOT be called to revoke all sessions
+      expect(mockPrisma.userSession.updateMany).not.toHaveBeenCalledWith({
+        where: { userId: 'user-concurrent' },
         data: { isRevoked: true },
       });
     });
@@ -492,6 +533,84 @@ describe('AuthService', () => {
           }),
         }),
       );
+    });
+  });
+
+  describe('Profile and Password Management', () => {
+    it('should update user profile name and reject empty name', async () => {
+      mockPrisma.user.update.mockResolvedValue({
+        id: 'u-1',
+        email: 'test@example.com',
+        name: 'Jane Doe',
+        role: 'USER',
+        planTier: 'FREE',
+        createdAt: new Date(),
+      });
+
+      const updated = await authService.updateProfile('u-1', '  Jane Doe  ');
+      expect(updated.name).toBe('Jane Doe');
+      expect(mockPrisma.user.update).toHaveBeenCalledWith({
+        where: { id: 'u-1' },
+        data: { name: 'Jane Doe' },
+      });
+
+      await expect(authService.updateProfile('u-1', '   ')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should change password, verify old password, and invalidate existing sessions', async () => {
+      const currentPassword = 'OldPassword123!';
+      const newPassword = 'NewPassword456!';
+      const oldHash = await authService.hashPassword(currentPassword);
+
+      mockPrisma.user.findUnique.mockResolvedValue({
+        id: 'u-1',
+        email: 'test@example.com',
+        name: 'Jane Doe',
+        role: 'USER',
+        planTier: 'FREE',
+        isActive: true,
+        createdAt: new Date(),
+        identities: [
+          {
+            id: 'ident-1',
+            provider: 'EMAIL_PASSWORD',
+            passwordHash: oldHash,
+          },
+        ],
+      });
+      mockPrisma.userIdentity.update.mockResolvedValue({});
+      mockPrisma.userSession.updateMany.mockResolvedValue({ count: 2 });
+      mockPrisma.userSession.create.mockResolvedValue({ id: 'session-new-pass' });
+
+      const result = await authService.changePassword('u-1', {
+        currentPassword,
+        newPassword,
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.accessToken).toBeDefined();
+      expect(mockPrisma.userSession.updateMany).toHaveBeenCalledWith({
+        where: { userId: 'u-1' },
+        data: { isRevoked: true },
+      });
+
+      // Incorrect current password
+      await expect(
+        authService.changePassword('u-1', {
+          currentPassword: 'WrongPassword!',
+          newPassword,
+        }),
+      ).rejects.toThrow(UnauthorizedException);
+
+      // Same new password as current
+      await expect(
+        authService.changePassword('u-1', {
+          currentPassword,
+          newPassword: currentPassword,
+        }),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 });

@@ -10,6 +10,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import * as crypto from 'crypto';
 import { PrismaService } from '../common/prisma/prisma.service';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import type { ValidatedGoogleUser } from './strategies/google.strategy';
@@ -131,6 +132,10 @@ export class AuthService {
     userAgent?: string,
   ): Promise<AuthSessionResult> {
     const normalizedEmail = dto.email.toLowerCase().trim();
+    const trimmedName = dto.name?.trim();
+    if (!trimmedName) {
+      throw new BadRequestException('Enter your full name to continue.');
+    }
 
     const existingUser = await this.prisma.user.findUnique({
       where: { email: normalizedEmail },
@@ -146,7 +151,7 @@ export class AuthService {
       const newUser = await tx.user.create({
         data: {
           email: normalizedEmail,
-          name: dto.name?.trim() || null,
+          name: trimmedName,
           role: 'USER',
           planTier: 'FREE',
         },
@@ -252,10 +257,25 @@ export class AuthService {
       throw new UnauthorizedException('Invalid session token.');
     }
 
-    // Reuse Detection: If revoked token is used, terminate all user sessions
+    // Reuse Detection: If revoked token is used, handle concurrency grace window or terminate all user sessions
     if (session.isRevoked) {
+      const elapsedSinceRevocation = Date.now() - session.updatedAt.getTime();
+      const REFRESH_ROTATION_GRACE_PERIOD_MS = 30000; // 30 seconds
+
+      if (elapsedSinceRevocation < REFRESH_ROTATION_GRACE_PERIOD_MS) {
+        this.logger.debug(
+          `Concurrent refresh request detected for userId=${session.userId} (${elapsedSinceRevocation}ms since rotation). Issuing fresh session without revocation.`,
+        );
+        const tokens = await this.issueSessionTokens(session.user, ip, userAgent);
+        return {
+          user: this.sanitizeUser(session.user),
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+        };
+      }
+
       this.logger.warn(
-        `Possible token reuse detected for userId=${session.userId}. Revoking all sessions.`,
+        `Possible token reuse detected for userId=${session.userId} (token revoked ${Math.round(elapsedSinceRevocation / 1000)}s ago). Revoking all sessions.`,
       );
       await this.prisma.userSession.updateMany({
         where: { userId: session.userId },
@@ -326,6 +346,91 @@ export class AuthService {
     return {
       success: true,
       message: 'Logged out successfully',
+    };
+  }
+
+  // --- Profile & Password Management ---
+
+  async updateProfile(userId: string, name: string): Promise<UserDto> {
+    const trimmed = name?.trim();
+    if (!trimmed) {
+      throw new BadRequestException('Name cannot be empty.');
+    }
+
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: { name: trimmed },
+    });
+
+    return this.sanitizeUser(user);
+  }
+
+  async changePassword(
+    userId: string,
+    dto: ChangePasswordDto,
+    ip?: string,
+    userAgent?: string,
+  ): Promise<{
+    success: boolean;
+    message: string;
+    accessToken: string;
+    refreshToken: string;
+    user: UserDto;
+  }> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { identities: true },
+    });
+
+    if (!user || !user.isActive || user.deletedAt) {
+      throw new UnauthorizedException('User account not found or inactive.');
+    }
+
+    const emailIdentity = user.identities.find(
+      (id) => id.provider === 'EMAIL_PASSWORD',
+    );
+
+    if (!emailIdentity || !emailIdentity.passwordHash) {
+      throw new BadRequestException('This account does not use password authentication.');
+    }
+
+    const isCurrentValid = await this.verifyPassword(
+      emailIdentity.passwordHash,
+      dto.currentPassword,
+    );
+
+    if (!isCurrentValid) {
+      throw new UnauthorizedException('Incorrect current password.');
+    }
+
+    if (dto.currentPassword === dto.newPassword) {
+      throw new BadRequestException('New password must be different from your current password.');
+    }
+
+    const newPasswordHash = await this.hashPassword(dto.newPassword);
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.userIdentity.update({
+        where: { id: emailIdentity.id },
+        data: { passwordHash: newPasswordHash, updatedAt: new Date() },
+      });
+
+      // Revoke all existing sessions to invalidate other devices
+      await tx.userSession.updateMany({
+        where: { userId },
+        data: { isRevoked: true },
+      });
+    });
+
+    // Issue fresh active session tokens for the current device
+    const tokens = await this.issueSessionTokens(user, ip, userAgent);
+
+    return {
+      success: true,
+      message: 'Your password has been updated.',
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      user: this.sanitizeUser(user),
     };
   }
 

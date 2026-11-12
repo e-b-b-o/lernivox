@@ -1,5 +1,5 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail, IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
 import type { RegisterRequestDto } from '@lernivox/contracts';
 
 export class RegisterDto implements RegisterRequestDto {
@@ -20,12 +20,12 @@ export class RegisterDto implements RegisterRequestDto {
   @MaxLength(72, { message: 'Password must not exceed 72 characters' })
   password!: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     example: 'Alex Johnson',
-    description: 'Display name of the user',
+    description: 'Full name of the user',
   })
-  @IsOptional()
-  @IsString({ message: 'Name must be a string' })
+  @IsString({ message: 'Full name must be a string' })
+  @IsNotEmpty({ message: 'Enter your full name to continue.' })
   @MaxLength(100, { message: 'Name must not exceed 100 characters' })
-  name?: string;
+  name!: string;
 }

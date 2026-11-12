@@ -18,6 +18,8 @@ describe('AuthController', () => {
       logout: jest.fn(),
       handleGoogleUser: jest.fn(),
       getProfile: jest.fn(),
+      updateProfile: jest.fn(),
+      changePassword: jest.fn(),
     };
 
     mockConfigService = {
@@ -48,7 +50,7 @@ describe('AuthController', () => {
     });
 
     const result = await controller.register(
-      { email: 'test@example.com', password: 'Password123!' },
+      { email: 'test@example.com', password: 'Password123!', name: 'Test User' },
       '127.0.0.1',
       'agent',
       mockResponse as Response,
@@ -269,6 +271,49 @@ describe('AuthController', () => {
           domain: 'lernivox.com',
           maxAge: 14 * 24 * 60 * 60 * 1000,
         }),
+      );
+    });
+
+    it('should update profile name', async () => {
+      mockAuthService.updateProfile.mockResolvedValue({
+        id: 'u1',
+        email: 'test@example.com',
+        name: 'New Name',
+        role: 'USER',
+        planTier: 'FREE',
+        createdAt: new Date().toISOString(),
+      });
+
+      const user: any = { id: 'u1', email: 'test@example.com', role: 'USER' };
+      const res = await controller.updateProfile(user, { name: 'New Name' });
+      expect(res.name).toBe('New Name');
+      expect(mockAuthService.updateProfile).toHaveBeenCalledWith('u1', 'New Name');
+    });
+
+    it('should change password and update refresh cookie', async () => {
+      mockAuthService.changePassword.mockResolvedValue({
+        success: true,
+        message: 'Your password has been updated.',
+        accessToken: 'new-access-jwt',
+        refreshToken: 'new-refresh-token',
+        user: { id: 'u1', email: 'test@example.com', role: 'USER' },
+      });
+
+      const user: any = { id: 'u1', email: 'test@example.com', role: 'USER' };
+      const res = await controller.changePassword(
+        user,
+        { currentPassword: 'OldPassword123!', newPassword: 'NewPassword456!' },
+        '127.0.0.1',
+        'agent',
+        mockResponse as Response,
+      );
+
+      expect(res.success).toBe(true);
+      expect(res.accessToken).toBe('new-access-jwt');
+      expect(mockResponse.cookie).toHaveBeenCalledWith(
+        'refreshToken',
+        'new-refresh-token',
+        expect.any(Object),
       );
     });
   });

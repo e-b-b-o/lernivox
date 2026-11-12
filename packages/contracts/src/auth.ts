@@ -19,7 +19,21 @@ export interface AuthResponseDto {
 export interface RegisterRequestDto {
   email: string;
   password: string;
-  name?: string;
+  name: string;
+}
+
+export interface UpdateProfileRequestDto {
+  name: string;
+}
+
+export interface ChangePasswordRequestDto {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface ChangePasswordResponseDto {
+  success: boolean;
+  message: string;
 }
 
 export interface LoginRequestDto {
