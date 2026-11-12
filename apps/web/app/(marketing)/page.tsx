@@ -50,11 +50,22 @@ export default function MarketingPage() {
       {/* ======================================================== */}
       {/* SECTION 1: HERO & UPLOAD ENTRY POINT */}
       {/* ======================================================== */}
-      <section className="relative overflow-hidden pt-[120px] lg:pt-[146px] pb-12 px-4 sm:px-6 md:px-10">
+      <section className="relative isolate overflow-hidden pt-[120px] lg:pt-[146px] pb-12 px-4 sm:px-6 md:px-10">
+        {/* Reference Cozy Room Hero Background */}
+        <div
+          className="absolute inset-0 pointer-events-none -z-10 bg-cover bg-center sm:bg-top bg-no-repeat opacity-95 transition-opacity"
+          style={{
+            backgroundImage: `url('/images/library-cozy-bg.jpg')`,
+          }}
+        >
+          {/* Subtle warm wash allowing perfect readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#F4EFE4]/35 via-[#F4EFE4]/20 to-[#F4EFE4]" />
+        </div>
+
         {/* Subtle decorative background gradient glow */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-[#F9D8C0]/30 rounded-full blur-3xl pointer-events-none -z-10" />
 
-        <div className="mx-auto max-w-[1380px] text-center">
+        <div className="mx-auto max-w-[1380px] text-center relative z-10">
           {/* Main Headline — Three intentional lines on mobile (28-34px), two lines on tablet/desktop */}
           <ScrollReveal id="hero-headline" delay={0.1}>
             <h1 className="font-display font-extrabold text-[clamp(1.75rem,1.25rem+2.5vw,2.125rem)] sm:text-[clamp(2.5rem,5.6vw,3.9rem)] lg:text-[clamp(3.9rem,5.2vw,5.25rem)] leading-[1.15] sm:leading-[1.12] tracking-tight text-[#14261D] max-w-6xl mx-auto text-center mb-6">

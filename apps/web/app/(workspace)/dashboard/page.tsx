@@ -565,22 +565,28 @@ function MyBooksDashboardContent() {
             </div>
           </div>
         ) : (
-          <div className="relative pb-6 after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[6px] after:bg-gradient-to-b after:from-[#1B3428]/15 after:to-transparent after:rounded-full grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5 sm:gap-7">
-            {filteredMyBooks.map((item) => (
-              <BookCard
-                key={item.id}
-                document={item.document}
-                workspaceId={item.id}
-                workspaceType={item.type}
-                isOwner={item.isOwner}
-                readingProgress={item.myReadingProgress}
-                onDelete={(docId, title) => setDeletingDoc({ id: docId, title })}
-                isDeleting={isDeleting && deletingDoc?.id === item.document.id}
-                onRetry={handleRetryDocument}
-                isRetrying={retryingDocId === item.document.id}
-                onCheckStatus={handleCheckStatus}
-              />
-            ))}
+          <div className="relative pb-6 after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[6px] after:bg-gradient-to-b after:from-[#1B3428]/15 after:to-transparent after:rounded-full">
+            <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5 sm:gap-7 pb-2">
+              {filteredMyBooks.map((item) => (
+                <BookCard
+                  key={item.id}
+                  document={item.document}
+                  workspaceId={item.id}
+                  workspaceType={item.type}
+                  isOwner={item.isOwner}
+                  readingProgress={item.myReadingProgress}
+                  onDelete={(docId, title) => setDeletingDoc({ id: docId, title })}
+                  isDeleting={isDeleting && deletingDoc?.id === item.document.id}
+                  onRetry={handleRetryDocument}
+                  isRetrying={retryingDocId === item.document.id}
+                  onCheckStatus={handleCheckStatus}
+                />
+              ))}
+            </div>
+            {/* Wooden Bookshelf Ledge Grounding */}
+            <div className="mt-3 w-full h-3 sm:h-3.5 rounded-sm bg-gradient-to-b from-[#8C5835] via-[#6E4226] to-[#452714] shadow-[0_6px_12px_rgba(20,38,29,0.22),inset_0_1px_1px_rgba(255,255,255,0.35)] border-t border-[#B0764A]/60 relative overflow-hidden">
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/15 via-transparent to-black/25 pointer-events-none" />
+            </div>
           </div>
         )}
       </section>
@@ -679,18 +685,24 @@ function MyBooksDashboardContent() {
             </p>
           </div>
         ) : (
-          <div className="relative pb-6 after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[6px] after:bg-gradient-to-b after:from-[#1B3428]/15 after:to-transparent after:rounded-full grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5 sm:gap-7">
-            {filteredSharedWithMe.map((item) => (
-              <BookCard
-                key={item.id}
-                document={item.document}
-                workspaceId={item.id}
-                workspaceType={item.type}
-                isOwner={false}
-                readingProgress={item.myReadingProgress}
-                onCheckStatus={handleCheckStatus}
-              />
-            ))}
+          <div className="relative pb-6 after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[6px] after:bg-gradient-to-b after:from-[#1B3428]/15 after:to-transparent after:rounded-full">
+            <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5 sm:gap-7 pb-2">
+              {filteredSharedWithMe.map((item) => (
+                <BookCard
+                  key={item.id}
+                  document={item.document}
+                  workspaceId={item.id}
+                  workspaceType={item.type}
+                  isOwner={false}
+                  readingProgress={item.myReadingProgress}
+                  onCheckStatus={handleCheckStatus}
+                />
+              ))}
+            </div>
+            {/* Wooden Bookshelf Ledge Grounding */}
+            <div className="mt-3 w-full h-3 sm:h-3.5 rounded-sm bg-gradient-to-b from-[#8C5835] via-[#6E4226] to-[#452714] shadow-[0_6px_12px_rgba(20,38,29,0.22),inset_0_1px_1px_rgba(255,255,255,0.35)] border-t border-[#B0764A]/60 relative overflow-hidden">
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/15 via-transparent to-black/25 pointer-events-none" />
+            </div>
           </div>
         )}
       </section>

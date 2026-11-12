@@ -223,20 +223,24 @@ export function BookCard({
               )}
             </span>
           </div>
-          {/* Subtle Bookmark Ribbon */}
-          <div className={`w-2.5 sm:w-3.5 h-4 sm:h-5 ${theme.ribbon} rounded-b-xs shadow-xs shrink-0`} />
+          {/* Triangular Notched Bookmark Ribbon */}
+          <div
+            className={`w-3 sm:w-3.5 h-5 sm:h-6 ${theme.ribbon} shadow-xs shrink-0 -mt-3 sm:-mt-4 transition-transform group-hover:translate-y-0.5`}
+            style={{
+              clipPath: 'polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%)',
+            }}
+          />
         </div>
 
         {/* Center: Book Title inside Cover with Natural Serif Wrapping */}
-        <div className="my-auto pl-2 sm:pl-3 pr-1.5 relative z-10 min-w-0 w-full">
+        <div className="my-auto pl-2 sm:pl-3 pr-1.5 relative z-10 min-w-0 w-full space-y-1">
+          <div className="w-4 h-0.5 bg-white/30 rounded-full mb-1" />
           <h3 className="font-serif font-bold text-xs sm:text-sm md:text-[15px] text-white leading-snug line-clamp-3 drop-shadow-xs break-words">
             {doc.title}
           </h3>
-          {doc.fileName && (
-            <p className="font-mono text-[8px] sm:text-[9px] text-white/60 truncate mt-1">
-              {doc.fileName}
-            </p>
-          )}
+          <p className="font-sans text-[8px] sm:text-[9px] font-medium tracking-wide uppercase text-white/60 truncate pt-0.5">
+            {doc.fileName ? doc.fileName.replace(/\.[^/.]+$/, '') : 'Lernivox Edition'}
+          </p>
         </div>
 
         {/* Bottom Meta inside Cover */}
@@ -353,23 +357,28 @@ export function BookCard({
               </p>
             </div>
           ) : (
-            /* Ready: Page numbers or Unread */
-            <div className="flex items-center justify-between text-[10px] font-mono text-[#14261D]/70">
-              <span>
-                {currentPage && totalPages ? (
-                  <span className="font-bold text-[#1B3428]">
-                    Page {currentPage}/{totalPages} ({progressPercent}%)
-                  </span>
-                ) : (
-                  <span className="text-[#14261D]/50">Unread</span>
-                )}
-              </span>
-              {lastAccessed && (
-                <span className="flex items-center gap-0.5 text-[9px] text-[#14261D]/50 truncate">
-                  <Clock className="w-2.5 h-2.5 shrink-0" />
-                  <span>{lastAccessed}</span>
+            /* Ready: Page numbers or Unread with clean progress bar */
+            <div className="space-y-1 pt-0.5">
+              <div className="flex items-center justify-between text-[10px] font-mono text-[#14261D]/70">
+                <span>
+                  {currentPage && totalPages ? (
+                    <span className="font-bold text-[#1B3428]">
+                      Page {currentPage}/{totalPages}
+                    </span>
+                  ) : (
+                    <span className="text-[#14261D]/55">Ready to study</span>
+                  )}
                 </span>
-              )}
+                <span className="font-bold text-[#497E64]">
+                  {progressPercent > 0 ? `${progressPercent}%` : '0%'}
+                </span>
+              </div>
+              <div className="h-1.5 w-full rounded-full bg-[#1B3428]/10 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-[#497E64] transition-all duration-300"
+                  style={{ width: `${Math.max(progressPercent, currentPage ? 4 : 0)}%` }}
+                />
+              </div>
             </div>
           )}
         </div>

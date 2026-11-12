@@ -28,6 +28,8 @@ function RegisterForm() {
   const [showGoogleModal, setShowGoogleModal] = useState(false);
 
   // Field-level error & touched states
+  const [nameTouched, setNameTouched] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
   const [emailTouched, setEmailTouched] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
   const [confirmPasswordTouched, setConfirmPasswordTouched] = useState(false);
@@ -36,6 +38,14 @@ function RegisterForm() {
   const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
 
   const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const validateName = (val: string): string | null => {
+    const trimmed = val.trim();
+    if (!trimmed) {
+      return 'Enter your full name to continue.';
+    }
+    return null;
+  };
 
   const validateEmail = (val: string): string | null => {
     const trimmed = val.trim();
@@ -81,17 +91,25 @@ function RegisterForm() {
     setIsConflict(false);
 
     // Mark all fields touched
+    setNameTouched(true);
     setEmailTouched(true);
     setPasswordTouched(true);
     setConfirmPasswordTouched(true);
 
+    const nameErr = validateName(name);
     const emailErr = validateEmail(email);
     const passErr = validatePassword(password);
     const confErr = validateConfirmPassword(confirmPassword, password);
 
+    setNameError(nameErr);
     setEmailError(emailErr);
     setPasswordError(passErr);
     setConfirmPasswordError(confErr);
+
+    if (nameErr) {
+      document.getElementById('name')?.focus();
+      return;
+    }
 
     if (emailErr) {
       document.getElementById('email')?.focus();
@@ -113,7 +131,7 @@ function RegisterForm() {
       await register({
         email: email.trim(),
         password,
-        name: name.trim() || undefined,
+        name: name.trim(),
       });
       router.push(redirectUrl);
     } catch (err: unknown) {
@@ -264,7 +282,7 @@ function RegisterForm() {
             htmlFor="name"
             className="block text-xs font-bold text-[#14261D] uppercase tracking-wider mb-1"
           >
-            Full name (optional)
+            Full name
           </label>
           <input
             id="name"
@@ -272,11 +290,27 @@ function RegisterForm() {
             type="text"
             autoComplete="name"
             value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Alex Johnson"
+            onChange={(e) => {
+              setName(e.target.value);
+              if (nameTouched) {
+                setNameError(validateName(e.target.value));
+              }
+            }}
+            onBlur={() => {
+              setNameTouched(true);
+              setNameError(validateName(name));
+            }}
+            placeholder="Enter your full name"
             disabled={isSubmitting}
-            className="w-full bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/20 rounded-2xl px-4 py-3 text-sm text-[#14261D] placeholder-[#14261D]/40 focus:outline-none focus:border-[#497E64] focus:ring-2 focus:ring-[#497E64]/20 shadow-sm transition-all disabled:opacity-50"
+            className={`w-full bg-[#FAF8F4] border-[1.5px] rounded-2xl px-4 py-3 text-sm text-[#14261D] placeholder-[#14261D]/40 focus:outline-none focus:ring-2 shadow-sm transition-all disabled:opacity-50 ${
+              nameError
+                ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                : 'border-[#1B3428]/20 focus:border-[#497E64] focus:ring-[#497E64]/20'
+            }`}
           />
+          {nameError && (
+            <p className="mt-1 text-xs text-red-600 font-medium">{nameError}</p>
+          )}
         </div>
 
         <div>
@@ -485,9 +519,17 @@ function RegisterForm() {
 
 export default function RegisterPage() {
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-[#FAF8F4]">
+    <div className="relative isolate min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-[#FAF8F4]">
+      {/* Reference Library Atmosphere Background */}
+      <div
+        className="fixed inset-0 pointer-events-none -z-10 bg-cover bg-center sm:bg-top bg-no-repeat opacity-65"
+        style={{ backgroundImage: `url('/images/library-cozy-bg.jpg')` }}
+      >
+        <div className="absolute inset-0 bg-[#FAF8F4]/75 backdrop-blur-[1px]" />
+      </div>
+
       {/* LEFT COLUMN: Perfectly Centered Form Container */}
-      <div className="relative flex flex-col items-center justify-center min-h-screen w-full px-6 py-12 lg:col-span-6 bg-[#FAF8F4]">
+      <div className="relative flex flex-col items-center justify-center min-h-screen w-full px-6 py-12 lg:col-span-6 bg-[#FAF8F4]/85 backdrop-blur-sm border-r border-[#1B3428]/10">
         {/* Absolute Nav Link (Does not impact vertical centering) */}
         <Link
           href="/"

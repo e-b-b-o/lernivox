@@ -366,9 +366,17 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-[#FAF8F4]">
+    <div className="relative isolate min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-[#FAF8F4]">
+      {/* Reference Library Atmosphere Background */}
+      <div
+        className="fixed inset-0 pointer-events-none -z-10 bg-cover bg-center sm:bg-top bg-no-repeat opacity-65"
+        style={{ backgroundImage: `url('/images/library-cozy-bg.jpg')` }}
+      >
+        <div className="absolute inset-0 bg-[#FAF8F4]/75 backdrop-blur-[1px]" />
+      </div>
+
       {/* LEFT COLUMN: Perfectly Centered Form Container */}
-      <div className="relative flex flex-col items-center justify-center min-h-screen w-full px-6 py-12 lg:col-span-6 bg-[#FAF8F4]">
+      <div className="relative flex flex-col items-center justify-center min-h-screen w-full px-6 py-12 lg:col-span-6 bg-[#FAF8F4]/85 backdrop-blur-sm border-r border-[#1B3428]/10">
         {/* Absolute Nav Link (Does not impact vertical centering) */}
         <Link
           href="/"

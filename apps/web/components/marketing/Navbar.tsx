@@ -87,7 +87,7 @@ export function Navbar() {
 
   return (
     <>
-      <header className="w-full bg-[#F4EFE4]/95 backdrop-blur-sm sticky top-0 z-50 border-b-[1.5px] border-[#1B3428]/10 transition-colors px-4 sm:px-6 md:px-10">
+      <header className="w-full bg-[#F4EFE4]/85 backdrop-blur-md sticky top-0 z-50 border-b-[1.5px] border-[#1B3428]/10 transition-colors px-4 sm:px-6 md:px-10">
         <div className="w-full max-w-[1380px] mx-auto h-16 md:h-20 flex lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center justify-between">
           
           {/* Zone 1 — Left: Logo Lockup anchored to left boundary */}
