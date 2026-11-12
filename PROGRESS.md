@@ -87,78 +87,75 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 
 ## 6. Current Task Record
 
-- **Task**: Reliable Document Processing, Premium Digital Bookshelf, Dashboard Layout, and Mobile Review Improvements
+- **Task**: Fix Local Development Environment, Asset Path & Stacking Context, API/Worker Port Collision & CORS, and Redis Resilience
 - **Status**: **Complete**
 - **Objective**:
-  1. *Investigate Document `7bb29c0c-0a8a-467f-a7ce-39d9fefcea7a` Processing Root Cause*:
-     - Queried live Upstash Redis queues: Job 6 (`2-Text Operations (3).pdf`) was successfully queued into `bull:document-ingestion:wait`, but remained pending because the Render Free worker service was asleep.
-     - Discovered worker wake failure: Render Free API sent wake `POST /internal/wake`, but Cloudflare edge responded with HTTP 429 (`Retry-After: 30s`).
-     - Diagnosed bug in `WorkerWakeService`: line 189 clamped retry delay to `Math.min(coolDownSec * 1000, 15000) = 15000ms`, causing early retries after 15s instead of respecting the 30s header. Attempt 2 and 3 failed with 429, exhausting retries and leaving the worker asleep.
-     - Verified Cloudinary: file exists in cloud storage.
-     - When `GET /healthz` was probed on `lernivox-worker.onrender.com`, Render booted the worker, which immediately consumed Job 6 from Upstash Redis and successfully processed the document to `READY`.
-  2. *Worker Wake-Up & Queue Reliability Fixes (`apps/api/src/common/worker-wake/worker-wake.service.ts`)*:
-     - Added robust `parseRetryAfter()` supporting integer seconds (`"30"`, `"30s"`) and RFC 7231 HTTP-Date timestamps, bounded between 5s and 120s.
-     - Fixed retry backoff: removed 15s clamp, now waits `coolDownSec * 1000 + jitterMs` (30s+), fully respecting Cloudflare headers.
-     - Added active worker awareness: skips redundant wake calls if worker was confirmed active within the last 3 minutes (`Date.now() - workerConfirmedActiveAt < 180000`).
-     - Increased `probeWorkerHealth` timeout from 6000ms to 15000ms for Render Free container cold-starts.
-     - Authored unit tests in `worker-wake.service.spec.ts` (9 tests, all passing).
-  3. *Graceful Google OAuth Fallback (`apps/api/src/auth/guards/google-auth.guard.ts`)*:
-     - When Google OAuth is not configured, redirects 302 to `${frontendUrl}/login` instead of throwing an unhandled `ServiceUnavailableException` (HTTP 503).
-  4. *Redesigned User-Facing Processing States & Card Alignment (`apps/web/components/workspace/BookCard.tsx`)*:
-     - Disentangled 5 distinct states: `Waiting`, `Processing`, `Delayed / Stale`, `Failed`, and `Ready`.
-     - Eliminated fake 0% progress display: waiting books show "Waiting to prepare..." with a gentle indeterminate pulse.
-     - Delayed state (> 40s waiting or > 75s processing) displays honest feedback ("Taking longer than expected. Your upload is safe. We're checking what happened.") with actionable "Check status" or "Retry processing" controls and "Delete" button.
-     - Genuinely functional "Check status" button: calls `api.documents.getStatus`, shows `Checking...` spinner, reads real server stage/progress, and renders a visible human result badge ("Your book is still waiting...", "Your book is now being prepared", "Your book is ready!").
-     - Card baseline alignment: uniform title clamping (`line-clamp-2 min-h-[2.5rem]`), reserved status slot (`min-h-[3.25rem]`), and pinned bottom action row (`mt-auto`) ensuring all buttons across a bookshelf row align at the exact same horizontal baseline.
-     - Removed redundant secondary processing pill/button ("Preparing Material") from the card footer.
-  5. *Fluid Dashboard Search Toolbar & Aligned Container Widths (`apps/web/app/(workspace)/dashboard/page.tsx` & `settings/page.tsx`)*:
-     - Search input container updated to `flex-1 min-w-0 w-full` so it expands fluidly across remaining width next to format filters.
-     - Removed 40px desktop container padding discrepancy: outer wrapper provides `w-full px-4 sm:px-6 md:px-10` while inner container uses `w-full max-w-[1380px] mx-auto`, aligning perfectly with the navbar brand logo and profile menu on all screen sizes.
-  6. *Client-Side In-Memory Cache (`apps/web/lib/client-cache.ts`)*:
-     - Built zero-dependency client cache module for dashboard workspaces list and individual workspaces.
-     - Reuses valid cached data when navigating between Dashboard, Settings, and Workspaces, completely eliminating the flash of skeleton loaders.
-     - Automatic mutation invalidation on document upload, deletion, status checks, and retries.
-     - Strict multi-user isolation and immediate purge on logout or session expiration (`clientCache.clearAll()`).
-  7. *Mobile Review Bottom Sheet Repairs (`apps/web/app/(workspace)/dashboard/workspaces/[workspaceId]/page.tsx`)*:
-     - Fixed blank initial view: bottom dock "Review" button and sheet content body default to `quizzes` tab if current view is not already a review mode.
-     - Fixed tab clipping on narrow screens (320px–430px): added `overflow-x-auto scrollbar-none min-w-0 max-w-[calc(100%-36px)]` and `shrink-0` to tabs.
+  1. *Fix Missing Reference Library Background Locally*:
+     - Diagnosed two root causes: (a) container wrappers on homepage (`apps/web/app/(marketing)/layout.tsx`), auth pages (`login`, `register`), and non-workspace layout (`apps/web/app/(workspace)/layout.tsx`) had opaque background classes without CSS `isolate`, causing `-z-10` background image layers to paint behind the container backgrounds; (b) `library-cozy-bg.jpg` (1376x768, 558,667 bytes) was only present under `apps/web/public/assets/` and missing from `apps/web/public/images/`.
+     - Copied `library-cozy-bg.jpg` and `.png` into `apps/web/public/images/` (preserving `apps/web/public/assets/` intact), added `isolate` + `relative z-10` foreground stacking, updated image paths to `/images/library-cozy-bg.jpg`, and added `bg-center sm:bg-top` focal framing across homepage Hero, auth pages, and non-workspace layout while keeping `/dashboard/workspaces/[workspaceId]` reader clean.
+  2. *Fix Local API 404 & Missing CORS Headers on `POST /api/v1/auth/refresh`*:
+     - Diagnosed root cause: root `.env` sets `PORT=4000`; both `apps/api` and `apps/worker` loaded root `.env`, causing `WorkerHttpService` to bind `0.0.0.0:4000` first and `apps/api` to fail with `EADDRINUSE`. Browser requests to `http://localhost:4000/api/v1/auth/refresh` therefore hit the Node `WorkerHttpService` HTTP control server (404 without CORS headers).
+     - Updated `WorkerHttpService` (`apps/worker/src/server/worker-http.service.ts`) and `apps/worker/src/main.ts` so the worker uses `WORKER_PORT` (defaulting to `4001` in non-production when `PORT=4000` is shared from root `.env`), freeing port `4000` exclusively for `@lernivox/api`.
+     - Updated `apps/api/src/main.ts` `enableCors` to explicitly permit `CORS_ORIGIN` plus `http://localhost:*` and `http://127.0.0.1:*` in non-production (strict origin validation retained in production) with `credentials: true` and explicit `methods`, `allowedHeaders`, and `exposedHeaders`.
+     - Configured `WORKER_PORT=4001` in root `.env` (removed stray pasted JS snippet) and `.env.example`, and set `NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1` in gitignored `apps/web/.env.local`.
+  3. *Fix Local Worker Redis Connection Timeouts & Readiness Tracking*:
+     - Added IPv4 resolution preference (`family: 4`), `connectTimeout: 30000`, `keepAlive: 30000`, `REDIS_URL` trimming, and bounded `retryStrategy` to shared Redis builders in `apps/worker/src/config/redis.config.ts` and `apps/api/src/config/redis.config.ts`.
+     - Updated `WorkerHealthService` (`apps/worker/src/health/worker-health.service.ts`) to log the real parsed `redisHost:redisPort`, await queue client readiness with throttled `ready`/`close`/`error` logging, and report `ready: true` cleanly once connected (`ready: false` / HTTP 503 when disconnected).
 - **Files Created/Modified**:
-  - `apps/web/lib/client-cache.ts` (created) — Zero-dependency client caching layer for dashboard and workspaces.
-  - `apps/web/context/AuthContext.tsx` (modified) — Clears client cache on logout and session expiration.
-  - `apps/api/src/common/worker-wake/worker-wake.service.ts` (modified) — Retry-After parsing, 3-minute active worker skip, 15s health timeout budget.
-  - `apps/api/src/common/worker-wake/worker-wake.service.spec.ts` (modified) — Unit tests for Retry-After parsing and active worker wake deduplication.
-  - `apps/api/src/auth/guards/google-auth.guard.ts` (modified) — Graceful 302 redirect on unconfigured Google OAuth.
-  - `apps/web/components/workspace/BookCard.tsx` (modified) — Honest waiting states, delayed threshold, removed redundant secondary pill, functional Check status with visible feedback, baseline alignment.
-  - `apps/web/app/(workspace)/dashboard/page.tsx` (modified) — Fluid flex-1 search toolbar, client cache integration, zero-offset navbar alignment, handleCheckStatus callback.
-  - `apps/web/app/(workspace)/dashboard/settings/page.tsx` (modified) — Zero-offset navbar alignment.
-  - `apps/web/app/(workspace)/dashboard/workspaces/[workspaceId]/page.tsx` (modified) — Default Quizzes tab on review sheet open, horizontal overflow scrolling on review tabs, workspace cache recovery.
-  - `apps/web/test/loading-and-404-experience.test.ts` (modified) — Automated architectural invariant tests for caching, toolbar, review sheet defaults, and honest card states.
+  - `apps/web/public/images/library-cozy-bg.jpg` (created) — Canonical static background asset (558,667 bytes) matching `/images/library-cozy-bg.jpg`.
+  - `apps/web/public/images/library-cozy-bg.png` (created) — High-res PNG asset copy under `/images/`.
+  - `apps/web/app/(marketing)/page.tsx` (modified) — Added `isolate` stacking context, `relative z-10`, `/images/library-cozy-bg.jpg`, and `bg-center sm:bg-top`.
+  - `apps/web/app/(workspace)/layout.tsx` (modified) — Added `isolate` stacking context, `relative z-10`, `/images/library-cozy-bg.jpg`, and `bg-center sm:bg-top`.
+  - `apps/web/app/(auth)/login/page.tsx` (modified) — Added `isolate` stacking context, `/images/library-cozy-bg.jpg`, and `bg-center sm:bg-top`.
+  - `apps/web/app/(auth)/register/page.tsx` (modified) — Added `isolate` stacking context, `/images/library-cozy-bg.jpg`, and `bg-center sm:bg-top`.
+  - `apps/api/src/main.ts` (modified) — Dev localhost CORS origin allowance with credentials and explicit headers.
+  - `apps/api/src/config/redis.config.ts` (modified) — `family: 4`, `connectTimeout: 30000`, `keepAlive: 30000`, `retryStrategy`, URL trim.
+  - `apps/worker/src/config/redis.config.ts` (modified) — `family: 4`, `connectTimeout: 30000`, `keepAlive: 30000`, `retryStrategy`, URL trim.
+  - `apps/worker/src/server/worker-http.service.ts` (modified) — Resolved port separation (`WORKER_PORT` / dev default `4001`) and `getListeningPort()`.
+  - `apps/worker/src/main.ts` (modified) — Log accurate `httpService.getListeningPort()` instead of reading `PORT` directly.
+  - `apps/worker/src/health/worker-health.service.ts` (modified) — Queue connection readiness state tracking and real `redisHost:redisPort` logging.
+  - `.env.example` (modified) — Documented `WORKER_PORT=4001`.
+  - `PROGRESS.md` (modified) — Recorded local dev fixes, verification outputs, and port cleanup audit.
 - **Verification**:
-  - `pnpm --filter @lernivox/api test`: 14 suites, 181/181 tests passed.
-  - `pnpm --filter @lernivox/worker test`: 5 suites, 21/21 tests passed.
-  - `pnpm --filter @lernivox/web test`: 4 suites, 44/44 tests passed.
-  - `pnpm type-check`: 11/11 package tasks passed with 0 errors.
-  - `pnpm build`: 7/7 package builds passed, 17/17 Next.js static and dynamic routes generated.
-  - Live Neon PostgreSQL & Upstash Redis verification: confirmed document `7bb29c0c-0a8a-467f-a7ce-39d9fefcea7a` successfully processed to `READY`.
-- **Processes and Ports**: Port audit confirmed clean via `ss -tulpn` (0 lingering background processes).
-- **Known Issues / Blockers**: None.
+  - Live `pnpm dev` verification (`@lernivox/web` on `:3000`, `@lernivox/api` on `:4000`, `@lernivox/worker` on `:4001` connected to Upstash Redis `noted-scorpion-188917.upstash.io:6379` with zero `ETIMEDOUT`):
+    - `curl -sI http://localhost:3000/images/library-cozy-bg.jpg` & `/assets/library-cozy-bg.jpg`: `HTTP/1.1 200 OK`, `image/jpeg`, `558667` bytes.
+    - `curl -s http://localhost:3000/`, `/login`, `/register`, `/dashboard`: SSR markup verified containing `isolate` and `library-cozy-bg.jpg`.
+    - `curl -si http://localhost:4000/api/v1/health`: `HTTP/1.1 200 OK`.
+    - `OPTIONS http://localhost:4000/api/v1/auth/refresh` (`Origin: http://localhost:3000`): `HTTP/1.1 204 No Content` with `Access-Control-Allow-Origin: http://localhost:3000` and `Access-Control-Allow-Credentials: true`.
+    - `POST http://localhost:4000/api/v1/auth/refresh` (`Origin: http://localhost:3000`): `HTTP/1.1 401 Unauthorized` (`No refresh token provided.`) with `Access-Control-Allow-Origin: http://localhost:3000`.
+    - `GET http://localhost:4001/healthz` & `/readyz`: HTTP 200, `"ready":true`, `"redisHost":"noted-scorpion-188917.upstash.io"`, `"redisPort":6379`.
+  - Unit tests & Type-check & Builds (post final edit):
+    - `pnpm --filter @lernivox/api test`: 14/14 suites, 187/187 tests passed.
+    - `pnpm --filter @lernivox/worker test`: 5/5 suites, 21/21 tests passed.
+    - `pnpm --filter @lernivox/web test`: 4/4 suites, 44/44 tests passed.
+    - `pnpm type-check`: 11/11 tasks passed.
+    - `pnpm --filter @lernivox/api build` & `pnpm --filter @lernivox/worker build`: succeeded.
+    - `pnpm --filter @lernivox/web build`: succeeded (Next.js generated all 17/17 static/dynamic routes).
+  - Processes and Ports: Temporary `pnpm dev` stopped cleanly via task termination; `ss -tulpn` confirmed ports `3000`, `4000`, and `4001` released.
+- **Known Issues / Blockers**:
+  - Interactive Chrome visual inspection (`browser` subagent) could not run because Chrome remote debugging (`DevToolsActivePort`) was unavailable in this session; pixel/viewport checks across `320px`–`1440px` should be eyeballed in a live Chrome window.
 
 ---
 
 ## 7. Next Recommended Action
 
-Deploy the verified commits to Render (`lernivox-api` and `lernivox-worker`) and Vercel (`lernivox-web`), then perform live smoke test of book upload and background ingestion on Render Free.
+Open `http://localhost:3000` via `pnpm dev` in Google Chrome to visually confirm responsive framing (`320px`–`1440px`) and then review and commit the verified changes cleanly when ready.
 
 ---
 
 ## 8. Update History
-  - Reliable Document Processing, Premium Digital Bookshelf, Dashboard Layout & Mobile Review Improvements:
-    - Resolved worker wake 429 bug with RFC 7231 `Retry-After` parsing and 3-minute active worker awareness.
-    - Built `client-cache.ts` in `@lernivox/web` eliminating skeleton flash across dashboard and settings navigation.
-    - Implemented genuinely functional "Check status" with visible human feedback badges and status synchronization.
-    - Enforced consistent card baseline alignment (uniform title clamping, reserved status slot, pinned action row).
-    - Aligned dashboard and settings container widths with header navbar (0px offset).
-    - Verified all 181 API tests, 21 Worker tests, 44 Web tests, 11 type-check tasks, and full Next.js 15 production build.
+  - Local Development Environment, Background Rendering, Port Separation, CORS & Redis Resilience:
+    - Fixed `-z-10` background occlusion by adding `isolate` stacking contexts and placed `library-cozy-bg.jpg` in `apps/web/public/images/`.
+    - Separated `@lernivox/worker` HTTP control server onto `WORKER_PORT=4001` in non-production so `@lernivox/api` owns `4000` cleanly.
+    - Updated `apps/api` CORS for localhost/127.0.0.1 in non-production and verified `OPTIONS`/`POST /api/v1/auth/refresh`.
+    - Hardened Redis options (`family: 4`, `connectTimeout: 30000`, `keepAlive: 30000`, bounded retries) and verified `/readyz` against Upstash TLS Redis without `ETIMEDOUT`.
+  - Production Reliability, Account Management, and Reference-Based Visual Transformation:
+    - Resolved authentication concurrency false-positives with 30s token rotation grace period and single-flight refresh coalescing.
+    - Implemented full name requirement, profile editing, and secure password changing with Argon2id and session revocation.
+    - Eliminated worker wake 429 rate-limiting loops with healthz probing.
+    - Generated and applied cozy library room scene atmosphere to Hero, non-workspace layout, and auth pages.
+    - Upgraded bookshelf with triangular notched bookmark ribbons, cover typography, live reading progress, and wooden shelf ledge.
+    - Verified all 187 API tests, 21 Worker tests, 44 Web tests, 11 type-check tasks, and full Next.js 15 production build.
   - `package.json` (modified) — Updated root `"db:migrate"`.
   - `PROGRESS.md` (modified)
 - **Verification**:
