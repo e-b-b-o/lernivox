@@ -69,27 +69,67 @@ async function bootstrap() {
   );
 
   // CORS - Explicit origin control; never reflect wildcard when credentials are true
-  let corsOrigin: boolean | string | string[] = configuredCors
+  let corsOrigins: string[] = configuredCors
     .split(',')
     .map((o) => o.trim().replace(/\/+$/, ''))
     .filter(Boolean);
+
   if (configuredCors === '*') {
     if (nodeEnv === 'production') {
-      corsOrigin = false;
+      corsOrigins = [];
       logger.warn('CORS_ORIGIN is wildcard in production. Disabled wildcard reflection for credential security.');
     } else {
-      corsOrigin = ['http://localhost:3000', 'http://127.0.0.1:3000'];
+      corsOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000'];
+    }
+  }
+
+  if (nodeEnv !== 'production') {
+    // In local development, ensure both localhost and 127.0.0.1 on common dev ports are allowed
+    const localDevOrigins = [
+      'http://localhost:3000',
+      'http://127.0.0.1:3000',
+      'http://localhost:3001',
+      'http://127.0.0.1:3001',
+    ];
+    for (const devOrigin of localDevOrigins) {
+      if (!corsOrigins.includes(devOrigin)) {
+        corsOrigins.push(devOrigin);
+      }
     }
   }
 
   app.enableCors({
-    origin: corsOrigin,
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      // Allow requests with no origin (like mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      const normalizedOrigin = origin.replace(/\/+$/, '');
+      if (
+        corsOrigins.includes(normalizedOrigin) ||
+        (nodeEnv !== 'production' &&
+          (normalizedOrigin.startsWith('http://localhost:') ||
+            normalizedOrigin.startsWith('http://127.0.0.1:')))
+      ) {
+        return callback(null, true);
+      }
+      return callback(new Error(`Origin ${origin} not allowed by CORS`), false);
+    },
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     credentials: true,
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Cookie',
+      'X-Worker-Wake-Secret',
+      'X-Requested-With',
+      'Accept',
+      'Range',
+    ],
     exposedHeaders: [
       'Content-Range',
       'Accept-Ranges',
       'Content-Length',
       'Content-Disposition',
+      'Set-Cookie',
     ],
   });
 

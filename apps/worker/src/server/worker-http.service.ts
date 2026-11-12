@@ -14,6 +14,7 @@ export class WorkerHttpService implements OnApplicationBootstrap, OnApplicationS
   private readonly logger = new Logger(WorkerHttpService.name);
   private server: http.Server | null = null;
   private isListening = false;
+  private listeningPort: number | null = null;
 
   constructor(
     private readonly configService: ConfigService,
@@ -29,12 +30,31 @@ export class WorkerHttpService implements OnApplicationBootstrap, OnApplicationS
     await this.stopServer();
   }
 
+  public getListeningPort(): number {
+    if (this.listeningPort !== null) {
+      return this.listeningPort;
+    }
+
+    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
+    const workerPort = this.configService.get<string | number>('WORKER_PORT');
+    const configuredPort = this.configService.get<string | number>('PORT');
+    return Number(
+      workerPort ||
+        (isProduction
+          ? configuredPort || 4001
+          : configuredPort && Number(configuredPort) !== 4000
+          ? configuredPort
+          : 4001),
+    );
+  }
+
   public startServer(): Promise<void> {
     if (this.isListening && this.server) {
       return Promise.resolve();
     }
 
-    const port = Number(this.configService.get<string | number>('PORT', 4001));
+    const port = this.getListeningPort();
+    this.listeningPort = port;
     const host = '0.0.0.0';
 
     return new Promise((resolve, reject) => {

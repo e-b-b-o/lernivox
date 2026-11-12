@@ -9,10 +9,24 @@ export interface RedisConnectionConfig {
   lazyConnect?: boolean;
   maxRetriesPerRequest?: number | null;
   enableReadyCheck?: boolean;
+  connectTimeout?: number;
+  family?: number;
+  keepAlive?: number;
+  retryStrategy?: (times: number) => number | void;
 }
 
 export function buildRedisConnectionOptions(configService: ConfigService): RedisConnectionConfig {
-  const redisUrl = configService.get<string>('REDIS_URL');
+  const commonOptions = {
+    lazyConnect: true,
+    maxRetriesPerRequest: null,
+    enableReadyCheck: false,
+    connectTimeout: 30000,
+    family: 4,
+    keepAlive: 30000,
+    retryStrategy: (times: number) => Math.min(times * 1000, 5000),
+  };
+
+  const redisUrl = configService.get<string>('REDIS_URL')?.trim();
   if (redisUrl) {
     try {
       const parsed = new URL(redisUrl);
@@ -23,9 +37,7 @@ export function buildRedisConnectionOptions(configService: ConfigService): Redis
         ...(parsed.username ? { username: decodeURIComponent(parsed.username) } : {}),
         ...(parsed.password ? { password: decodeURIComponent(parsed.password) } : {}),
         ...(isTls ? { tls: { rejectUnauthorized: false } } : {}),
-        lazyConnect: true,
-        maxRetriesPerRequest: null,
-        enableReadyCheck: false,
+        ...commonOptions,
       };
     } catch {
       // Fallback to discrete parameters if URL parsing fails
@@ -44,9 +56,7 @@ export function buildRedisConnectionOptions(configService: ConfigService): Redis
     ...(username ? { username } : {}),
     ...(password ? { password } : {}),
     ...(useTls ? { tls: { rejectUnauthorized: false } } : {}),
-    lazyConnect: true,
-    maxRetriesPerRequest: null,
-    enableReadyCheck: false,
+    ...commonOptions,
   };
 }
 

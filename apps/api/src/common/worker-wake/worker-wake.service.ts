@@ -136,11 +136,27 @@ export class WorkerWakeService {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       const now = Date.now();
 
-      // If we are currently rate-limited on the wake URL, probe /healthz directly instead of hammering
+      // If we are currently rate-limited on the wake URL, probe /healthz directly instead of hammering POST
       if (now < this.rateLimitedUntil) {
         const isLive = await this.probeWorkerHealth();
         if (isLive) {
           return true;
+        }
+        const remainingWaitMs = this.rateLimitedUntil - now;
+        if (remainingWaitMs > 0 && attempt < maxAttempts) {
+          const pollDelay = Math.min(remainingWaitMs, 10000);
+          this.logger.log(
+            `Worker wake rate-limited by upstream proxy. Waiting ${pollDelay}ms before probing /healthz...`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, pollDelay));
+          const retryLive = await this.probeWorkerHealth();
+          if (retryLive) {
+            return true;
+          }
+        }
+        // Still rate-limited: do not hammer POST endpoint
+        if (Date.now() < this.rateLimitedUntil) {
+          continue;
         }
       }
 
