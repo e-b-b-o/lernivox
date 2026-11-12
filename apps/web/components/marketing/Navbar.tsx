@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { UserCircle, ChevronDown, BookOpen } from 'lucide-react';
@@ -15,48 +15,40 @@ const NAV_ITEMS = [
   { num: '05', label: 'FAQ', href: '#faq' },
 ];
 
+const useIsomorphicLayoutEffect =
+  typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+
 export function Navbar() {
   const pathname = usePathname();
   const isHomepage = pathname === '/';
   const { isAuthenticated, isLoading, logout } = useAuth();
   const [activeSection, setActiveSection] = useState<string | null>(null);
-  const [isOverHero, setIsOverHero] = useState<boolean>(isHomepage);
+  const [isAtTop, setIsAtTop] = useState<boolean>(isHomepage);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Seamless transparent header while overlapping homepage hero section via IntersectionObserver
-  useEffect(() => {
+  // Transparent strictly at the actual top of the homepage; solid as soon as scrolling begins
+  useIsomorphicLayoutEffect(() => {
     if (!isHomepage) {
-      setIsOverHero(false);
+      setIsAtTop(false);
       return;
     }
 
-    const heroEl = document.getElementById('hero-section');
-    if (!heroEl) {
-      setIsOverHero(false);
-      return;
-    }
+    const syncTopState = () => {
+      const scrollTop = Math.max(
+        0,
+        window.scrollY ?? document.documentElement.scrollTop ?? 0,
+      );
+      const nextAtTop = scrollTop <= 1;
+      setIsAtTop((prev) => (prev === nextAtTop ? prev : nextAtTop));
+    };
 
-    if (typeof IntersectionObserver === 'undefined') {
-      setIsOverHero(false);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        if (entry) {
-          setIsOverHero(entry.isIntersecting);
-        }
-      },
-      {
-        root: null,
-        rootMargin: '-72px 0px 0px 0px',
-        threshold: 0,
-      },
-    );
-
-    observer.observe(heroEl);
-    return () => observer.disconnect();
+    syncTopState();
+    window.addEventListener('scroll', syncTopState, { passive: true });
+    window.addEventListener('resize', syncTopState, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', syncTopState);
+      window.removeEventListener('resize', syncTopState);
+    };
   }, [isHomepage]);
 
   // Section Tracking Scroll-Spy Engine
@@ -125,14 +117,16 @@ export function Navbar() {
     }
   };
 
+  const isTransparent = isHomepage && isAtTop && !mobileMenuOpen;
+
   return (
     <>
       <header
         className={`w-full z-50 transition-[background-color,border-color,backdrop-filter,box-shadow] duration-300 motion-reduce:transition-none px-4 sm:px-6 md:px-10 ${
           isHomepage ? 'fixed top-0 left-0 right-0' : 'sticky top-0'
         } ${
-          isOverHero
-            ? 'bg-transparent border-b border-transparent'
+          isTransparent
+            ? 'bg-transparent border-b-[1.5px] border-transparent'
             : 'bg-[#F4EFE4]/85 backdrop-blur-md border-b-[1.5px] border-[#1B3428]/10 shadow-[0_2px_12px_rgba(27,52,40,0.05)]'
         }`}
       >

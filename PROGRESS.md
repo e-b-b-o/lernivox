@@ -87,42 +87,41 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 
 ## 6. Current Task Record
 
-- **Task**: Professional Login & Registration Background Integration, Editorial Center Divider & Portrait Seamless Blending
-- **Status**: **Complete (with documented sandbox Chrome verification limits)**
+- **Task**: Homepage Navbar Scroll-Top Transparency Correction & Professional Root `README.md`
+- **Status**: **Complete (with documented sandbox Chrome scroll-interaction limits)**
 - **Objective**:
-  1. *Reuse Shared Cozy Library Background*:
-     - Created `apps/web/components/auth/AuthSplitShell.tsx` to wrap both `apps/web/app/(auth)/login/page.tsx` and `apps/web/app/(auth)/register/page.tsx` around a single shared fixed `/images/library-cozy-bg.webp` backdrop (`opacity-95`, warm `#F4EFE4` atmospheric gradient wash matching Homepage Hero/Dashboard without dark overlay or duplicated image requests).
-  2. *Localized Form Readability & Desktop Editorial Vertical Divider*:
-     - Added a clean `lg+` hairline center divider (`hidden lg:flex pointer-events-none absolute inset-y-8 xl:inset-y-12 left-1/2`) combining a subtle deep-forest line and warm specular highlight without double borders (`border-r` / `border-l` removed).
-     - Positioned the `"Back to homepage"` pill in normal flow above a localized frosted warm-cream form card (`bg-[#FAF8F4]/92 backdrop-blur-md border border-[#1B3428]/12`) so all headings, inputs, eye toggles, error alerts, and CTAs stay high-contrast and never collide with smaller viewports (`320px+`).
-  3. *Seamless Right-Side Portrait Integration*:
-     - Updated `apps/web/components/auth/AuthShowcase.tsx` to remove the opaque `bg-[#EAE4D3]` right-half rectangle and `border-l`, letting `/images/student-reading.png` sit in a translucent warm frosted arch with soft bottom grounding shadow and gentle bottom-edge feathering (`[mask-image:linear-gradient(to_top,transparent_0%,black_6%,black_100%)]`) directly over the library shelves, plus a localized frosted scrim behind the Bricolage Grotesque headline lockup.
+  1. *Homepage Navbar Scroll-Position Behavior (`apps/web/components/marketing/Navbar.tsx`)*:
+     - Replaced `IntersectionObserver` (`isOverHero`) with top-of-page scroll-position tracking (`isAtTop` via `window.scrollY <= 1` and `useIsomorphicLayoutEffect`), ensuring the homepage header is transparent **only** at the actual top of the homepage (`isHomepage && isAtTop && !mobileMenuOpen`) and switches immediately to the existing frosted cream surface (`bg-[#F4EFE4]/85 backdrop-blur-md border-b-[1.5px] border-[#1B3428]/10 shadow-[0_2px_12px_rgba(27,52,40,0.05)]`) on scroll down, scroll up anywhere below top, when opening the mobile drawer, or on non-homepage routes.
+     - Matched `border-b-[1.5px]` across both transparent (`border-transparent`) and solid states to eliminate subpixel layout shift during transition, and updated the regression assertion in `apps/web/test/loading-and-404-experience.test.ts`.
+  2. *Professional Project `README.md` (`README.md`)*:
+     - Rewrote root `README.md` based strictly on verified repository configuration (`package.json`, `.nvmrc`, `pnpm-workspace.yaml`, `turbo.json`, `.env.example`, `render.yaml`, `infra/docker/docker-compose.yml`, app/package dependencies, and implemented modules), covering document-first product overview, live demo URL (`https://lernivox.vercel.app`), problem statement, implemented features, technology stack with engineering rationales, async BullMQ/Redis ingestion architecture & document lifecycle, real monorepo directory layout, verified local setup commands, and deployment architecture without placeholders or unverified claims.
 - **Files Created/Modified**:
-  - `apps/web/components/auth/AuthSplitShell.tsx` (new)
-  - `apps/web/components/auth/AuthShowcase.tsx`
-  - `apps/web/app/(auth)/login/page.tsx`
-  - `apps/web/app/(auth)/register/page.tsx`
+  - `apps/web/components/marketing/Navbar.tsx`
   - `apps/web/test/loading-and-404-experience.test.ts`
+  - `README.md`
+  - `PROGRESS.md`
 - **Verification**:
-  - `pnpm --filter @lernivox/web test`: **4/4 suites passed, 45/45 tests passed, 0 failed, 0 skipped** (includes Test `9. Unified Auth Background Integration, Editorial Vertical Divider & Seamless Portrait Showcase` in `loading-and-404-experience.test.ts`).
-  - `pnpm --filter @lernivox/web lint`: **passed** (`0 errors`; pre-existing `@next/next/no-img-element` & `react-hooks/exhaustive-deps` warnings only).
+  - `pnpm --filter @lernivox/web test`: **4/4 suites passed, 45/45 tests passed, 0 failed, 0 skipped**.
+  - `pnpm --filter @lernivox/web lint`: **passed** (`0 errors`; pre-existing warnings only).
   - `pnpm --filter @lernivox/web type-check`: **passed** (`0 errors`).
   - `pnpm --filter @lernivox/web build`: **succeeded** (`17/17` static/dynamic routes built).
-  - Ephemeral `next start -p 3099` verification (stopped cleanly, `ss -tulpn | grep 3099` clean): `GET /login` (`200`, `bgMatches: 1`, `hasNoOldBg: true`, `hasStudent: true`), `GET /register` (`200`, `bgMatches: 1`, `hasNoOldBg: true`, `hasStudent: true`), `GET /images/library-cozy-bg.webp` (`200`, `image/webp`, `41352` bytes), `GET /images/student-reading.png` (`200`, `image/png`, `1085593` bytes).
+  - Ephemeral `next start -p 3099` verification (stopped cleanly, `ss -tulpn | grep 3099` clean): `GET /` returned `HTTP 200` with SSR `<header>` rendering `fixed top-0 left-0 right-0 bg-transparent border-b-[1.5px] border-transparent`.
 - **Processes and Ports**:
-  - Ephemeral `next start -p 3099` started for verification and terminated cleanly; `ss -tulpn | grep 3099` confirmed port `3099` released.
+  - Ephemeral `next start -p 3099` terminated cleanly; `ss -tulpn | grep 3099` confirmed port `3099` released.
 - **Known Issues / Blockers**:
-  - Live Chrome DevTools visual inspection across `320px–1440px+` could not run in this container because Chrome DevTools / `/opt/google/chrome/google-chrome` is unavailable here; visual contrast, divider balance, and portrait bottom feathering over `/images/library-cozy-bg.webp` should be visually spot-checked in a local browser.
+  - Live interactive Chrome scroll testing (scrolling down inside the hero, scrolling back up on desktop & mobile, and opening the mobile menu) could not run in this container because headless Chrome / Chrome DevTools is unavailable here; verify live scroll transitions visually in a local browser.
 
 ---
 
 ## 7. Next Recommended Action
 
-Visually spot-check `/login` and `/register` across desktop (`1280px–1440px+`), tablet (`768px`, `1024px`), and mobile (`320px–430px`) in a local browser, commit and push changes, and verify the deployed site at `https://lernivox.vercel.app/`.
+Visually verify homepage navbar transparent-at-top and solid-on-scroll behavior across desktop and mobile in a local browser, review `README.md` rendering, and commit/push changes when ready.
 
 ---
 
 ## 8. Update History
+  - Homepage Navbar Scroll-Top Correction & Root `README.md`:
+    - Switched `Navbar` from hero `IntersectionObserver` to `window.scrollY <= 1` top-of-page detection with pre-paint `useLayoutEffect` sync, solid fallback while `mobileMenuOpen` is active, and zero border-width shift; authored a comprehensive, repository-verified root `README.md`.
   - Professional Login & Registration Background Integration:
     - Extracted shared `AuthSplitShell` reusing a single fixed `/images/library-cozy-bg.webp` atmosphere backdrop for `/login` and `/register`, replaced conflicting double borders with a subtle desktop center hairline divider, wrapped left forms in a localized frosted warm-cream surface, and removed the opaque `#EAE4D3` panel in `AuthShowcase` so `/images/student-reading.png` blends naturally into the library backdrop.
   - Final Typography (`Bricolage Grotesque`) & Full-Bleed Hero Strip Corrections:

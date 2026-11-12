@@ -199,10 +199,12 @@ describe('Google Coming Soon, Branded 404 & Responsive Loading Architecture', ()
     assert.match(layoutCode, /library-cozy-bg\.webp/);
     assert.match(marketingPageCode, /library-cozy-bg\.webp/);
 
-    // 2. Homepage Navbar overlays hero seamlessly and transitions on scroll via IntersectionObserver
-    assert.match(navbarCode, /IntersectionObserver/);
-    assert.match(navbarCode, /isOverHero/);
-    assert.match(navbarCode, /bg-transparent border-b border-transparent/);
+    // 2. Homepage Navbar stays transparent strictly at top of homepage and turns solid immediately on scroll
+    assert.doesNotMatch(navbarCode, /IntersectionObserver/);
+    assert.match(navbarCode, /window\.scrollY/);
+    assert.match(navbarCode, /isAtTop/);
+    assert.match(navbarCode, /isHomepage && isAtTop && !mobileMenuOpen/);
+    assert.match(navbarCode, /bg-transparent border-b-\[1\.5px\] border-transparent/);
 
     // 3. Homepage How It Works auto-rotates examples cleanly every 2s with reduced-motion and visibility support
     assert.match(heroUploadCode, /function RotatingSampleShowcase/);
