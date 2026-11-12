@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { api, ApiError } from '../../../lib/api';
-import { AuthShowcase } from '../../../components/auth/AuthShowcase';
+import { AuthSplitShell } from '../../../components/auth/AuthSplitShell';
 import { GoogleComingSoonModal } from '../../../components/auth/GoogleComingSoonModal';
 
 function RegisterForm() {
@@ -519,42 +519,17 @@ function RegisterForm() {
 
 export default function RegisterPage() {
   return (
-    <div className="relative isolate min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-[#FAF8F4]">
-      {/* Reference Library Atmosphere Background */}
-      <div
-        className="fixed inset-0 pointer-events-none -z-10 bg-cover bg-center sm:bg-top bg-no-repeat opacity-65"
-        style={{ backgroundImage: `url('/images/library-cozy-bg.jpg')` }}
+    <AuthSplitShell mode="register">
+      <Suspense
+        fallback={
+          <div className="flex flex-1 items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-[#14261D]" />
+          </div>
+        }
       >
-        <div className="absolute inset-0 bg-[#FAF8F4]/75 backdrop-blur-[1px]" />
-      </div>
-
-      {/* LEFT COLUMN: Perfectly Centered Form Container */}
-      <div className="relative flex flex-col items-center justify-center min-h-screen w-full px-6 py-12 lg:col-span-6 bg-[#FAF8F4]/85 backdrop-blur-sm border-r border-[#1B3428]/10">
-        {/* Absolute Nav Link (Does not impact vertical centering) */}
-        <Link
-          href="/"
-          className="absolute top-6 sm:top-8 left-6 sm:left-8 text-xs font-semibold text-[#14261D]/60 hover:text-[#14261D] flex items-center gap-1.5 transition-colors"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          Back to homepage
-        </Link>
-
-        <Suspense
-          fallback={
-            <div className="flex flex-1 items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-[#14261D]" />
-            </div>
-          }
-        >
-          <RegisterForm />
-        </Suspense>
-      </div>
-
-      {/* Right Column: Cleaned & Decluttered Visual Showcase */}
-      <AuthShowcase mode="register" />
-    </div>
+        <RegisterForm />
+      </Suspense>
+    </AuthSplitShell>
   );
 }
 
