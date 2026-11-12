@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { UserCircle, ChevronDown, BookOpen } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { ProfileMenu } from '../workspace/ProfileMenu';
@@ -15,9 +16,48 @@ const NAV_ITEMS = [
 ];
 
 export function Navbar() {
+  const pathname = usePathname();
+  const isHomepage = pathname === '/';
   const { isAuthenticated, isLoading, logout } = useAuth();
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [isOverHero, setIsOverHero] = useState<boolean>(isHomepage);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Seamless transparent header while overlapping homepage hero section via IntersectionObserver
+  useEffect(() => {
+    if (!isHomepage) {
+      setIsOverHero(false);
+      return;
+    }
+
+    const heroEl = document.getElementById('hero-section');
+    if (!heroEl) {
+      setIsOverHero(false);
+      return;
+    }
+
+    if (typeof IntersectionObserver === 'undefined') {
+      setIsOverHero(false);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry) {
+          setIsOverHero(entry.isIntersecting);
+        }
+      },
+      {
+        root: null,
+        rootMargin: '-72px 0px 0px 0px',
+        threshold: 0,
+      },
+    );
+
+    observer.observe(heroEl);
+    return () => observer.disconnect();
+  }, [isHomepage]);
 
   // Section Tracking Scroll-Spy Engine
   useEffect(() => {
@@ -87,7 +127,15 @@ export function Navbar() {
 
   return (
     <>
-      <header className="w-full bg-[#F4EFE4]/85 backdrop-blur-md sticky top-0 z-50 border-b-[1.5px] border-[#1B3428]/10 transition-colors px-4 sm:px-6 md:px-10">
+      <header
+        className={`w-full z-50 transition-[background-color,border-color,backdrop-filter,box-shadow] duration-300 motion-reduce:transition-none px-4 sm:px-6 md:px-10 ${
+          isHomepage ? 'fixed top-0 left-0 right-0' : 'sticky top-0'
+        } ${
+          isOverHero
+            ? 'bg-transparent border-b border-transparent'
+            : 'bg-[#F4EFE4]/85 backdrop-blur-md border-b-[1.5px] border-[#1B3428]/10 shadow-[0_2px_12px_rgba(27,52,40,0.05)]'
+        }`}
+      >
         <div className="w-full max-w-[1380px] mx-auto h-16 md:h-20 flex lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center justify-between">
           
           {/* Zone 1 — Left: Logo Lockup anchored to left boundary */}

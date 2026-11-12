@@ -86,14 +86,11 @@ export function Footer() {
         {/* Lower Section: Wordmark on Left, Navigation Columns & Copyright on Right */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-x-12 lg:gap-y-8 items-end">
           
-          {/* Massive Brand Wordmark & Concise Description */}
+          {/* Prominent Brand Wordmark (Cleaner, Stronger Visual Balance) */}
           <ScrollReveal id="footer-wordmark" delay={0.1} className="order-2 lg:order-1 lg:col-span-5 xl:col-span-6 select-none self-end">
-            <span className="font-display font-extrabold text-5xl sm:text-7xl md:text-8xl lg:text-[96px] xl:text-[116px] tracking-tight leading-none text-[#FAF8F4] block -ml-0.5 sm:-ml-1 select-none">
+            <span className="font-display font-extrabold text-5xl xs:text-6xl sm:text-7xl md:text-8xl lg:text-[108px] xl:text-[128px] tracking-tighter leading-[0.88] text-[#FAF8F4] block -ml-0.5 sm:-ml-1 select-none">
               Lernivox
             </span>
-            <p className="font-sans text-xs sm:text-sm text-[#FAF8F4]/75 max-w-sm mt-3 leading-relaxed">
-              Bring your books and notes. Read, ask your AI tutor questions, and understand more as you learn.
-            </p>
           </ScrollReveal>
 
           {/* 3 Navigation Columns & Attribution: Order 1 on mobile, right side on desktop */}

@@ -21,6 +21,13 @@ export function WavingRibbon() {
     let animId: number | null = null;
     let offset = 0;
     let isVisible = true;
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (prefersReducedMotion) {
+      return;
+    }
 
     // Dynamically compute exact text phrase length for completely seamless looping
     let cycleLength = 1350;
@@ -83,14 +90,13 @@ export function WavingRibbon() {
   return (
     <div
       ref={containerRef}
-      className="absolute top-[48%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[125%] min-w-[1300px] max-w-[2200px] overflow-visible pointer-events-none z-0"
+      className="absolute top-[48%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[125%] min-w-[1300px] overflow-visible pointer-events-none z-0"
     >
       <div className="w-full flex items-center justify-center -rotate-[3.5deg]">
         <svg
           width="100%"
-          height="300"
           viewBox="-160 0 1920 300"
-          className="w-full overflow-visible select-none"
+          className="w-full h-auto overflow-visible select-none"
           style={{ willChange: 'transform' }}
           aria-hidden="true"
         >
@@ -104,7 +110,7 @@ export function WavingRibbon() {
             style={{
               fontFamily: 'var(--font-bricolage), sans-serif',
               fontSize: '20px',
-              fontWeight: 600,
+              fontWeight: 700,
               letterSpacing: '1px',
               visibility: 'hidden',
               position: 'absolute',
@@ -132,7 +138,7 @@ export function WavingRibbon() {
             style={{
               fontFamily: 'var(--font-bricolage), sans-serif',
               fontSize: '20px',
-              fontWeight: 600,
+              fontWeight: 700,
               letterSpacing: '1px',
             }}
             fill="#F4F0E5"
