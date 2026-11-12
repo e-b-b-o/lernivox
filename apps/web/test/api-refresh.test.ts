@@ -321,6 +321,7 @@ describe('Centralized API Silent Refresh & Concurrency Guard', () => {
           await api.auth.register({
             email: 'existing@gmail.com',
             password: 'Password123!',
+            name: 'Existing User',
           });
         },
         (err: any) => {

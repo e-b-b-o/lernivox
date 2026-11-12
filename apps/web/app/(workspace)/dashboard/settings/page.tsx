@@ -10,9 +10,11 @@ import {
   CheckCircle2,
   Save,
   Shield,
-  Sparkles,
-  BookOpen,
-  Bell,
+  Key,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  Loader2,
 } from 'lucide-react';
 import { useAuth } from '../../../../context/AuthContext';
 
@@ -21,15 +23,34 @@ type SettingsCategory = 'account' | 'tutor' | 'schedule';
 const SETTINGS_STORAGE_KEY = 'lernivox_user_preferences';
 
 export default function SettingsPage() {
-  const { user } = useAuth();
+  const { user, updateProfile, changePassword } = useAuth();
 
   // Active Category State for Master-Detail Information Architecture
   const [activeCategory, setActiveCategory] = useState<SettingsCategory>('account');
 
-  // Account State
-  const [displayName, setDisplayName] = useState(user?.name || 'Student');
-  const [email] = useState(user?.email || 'student@lernivox.com');
-  const [savedSuccess, setSavedSuccess] = useState(false);
+  // Profile State
+  const [fullName, setFullName] = useState(user?.name || '');
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
+
+  // Sync with user name when context updates
+  useEffect(() => {
+    if (user?.name) {
+      setFullName(user.name);
+    }
+  }, [user?.name]);
+
+  // Password State
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPass, setShowCurrentPass] = useState(false);
+  const [showNewPass, setShowNewPass] = useState(false);
+  const [showConfirmPass, setShowConfirmPass] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   // Learning Preferences State
   const [teachingStyle, setTeachingStyle] = useState<'SOCRATIC' | 'DIRECT' | 'ANALOGICAL'>('SOCRATIC');
@@ -40,6 +61,7 @@ export default function SettingsPage() {
   // Schedule & Notifications State
   const [studyReminders, setStudyReminders] = useState(true);
   const [reviewReminders, setReviewReminders] = useState(true);
+  const [prefSavedSuccess, setPrefSavedSuccess] = useState(false);
 
   // Load saved preferences from localStorage if present
   useEffect(() => {
@@ -47,7 +69,6 @@ export default function SettingsPage() {
       const stored = localStorage.getItem(SETTINGS_STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (parsed.displayName) setDisplayName(parsed.displayName);
         if (parsed.teachingStyle) setTeachingStyle(parsed.teachingStyle);
         if (parsed.explanationLength) setExplanationLength(parsed.explanationLength);
         if (parsed.difficulty) setDifficulty(parsed.difficulty);
@@ -60,13 +81,76 @@ export default function SettingsPage() {
     }
   }, []);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleProfileSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setProfileError(null);
+    setProfileSuccess(null);
+
+    const trimmed = fullName.trim();
+    if (!trimmed) {
+      setProfileError('Enter your full name to continue.');
+      return;
+    }
+
+    setIsSavingProfile(true);
+    try {
+      await updateProfile(trimmed);
+      setProfileSuccess('Profile updated successfully.');
+      setTimeout(() => setProfileSuccess(null), 4000);
+    } catch (err: unknown) {
+      setProfileError(err instanceof Error ? err.message : 'Failed to update profile.');
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError(null);
+    setPasswordSuccess(null);
+
+    if (!currentPassword) {
+      setPasswordError('Enter your current password.');
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPasswordError('New password must be at least 8 characters long.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('New passwords do not match.');
+      return;
+    }
+    if (currentPassword === newPassword) {
+      setPasswordError('New password must be different from your current password.');
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      await changePassword(currentPassword, newPassword);
+      setPasswordSuccess('Your password has been updated.');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => setPasswordSuccess(null), 5000);
+    } catch (err: unknown) {
+      setPasswordError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to update password. Please check your current password.',
+      );
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
+  const handleSavePreferences = (e: React.FormEvent) => {
     e.preventDefault();
     try {
       localStorage.setItem(
         SETTINGS_STORAGE_KEY,
         JSON.stringify({
-          displayName,
           teachingStyle,
           explanationLength,
           difficulty,
@@ -79,8 +163,8 @@ export default function SettingsPage() {
     } catch {
       // ignore storage errors
     }
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 3000);
+    setPrefSavedSuccess(true);
+    setTimeout(() => setPrefSavedSuccess(false), 3000);
   };
 
   const categories = [
@@ -126,7 +210,7 @@ export default function SettingsPage() {
             </p>
           </div>
 
-          {savedSuccess && (
+          {prefSavedSuccess && (
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#E2EBD8] border border-[#497E64]/30 text-[#497E64] text-xs font-display font-bold shadow-xs animate-in fade-in duration-150">
               <CheckCircle2 className="w-3.5 h-3.5 text-[#497E64]" />
               <span>Preferences saved</span>
@@ -194,267 +278,480 @@ export default function SettingsPage() {
 
         {/* Right Detail Pane */}
         <main className="min-w-0">
-          <form onSubmit={handleSave} className="space-y-6">
+          <div className="space-y-6">
             {/* CATEGORY 1: Profile & Account */}
             {activeCategory === 'account' && (
-              <div className="rounded-[24px] bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/15 p-6 sm:p-7 shadow-xs space-y-6">
-                <div className="flex items-center gap-2.5 pb-4 border-b border-[#1B3428]/10">
-                  <User className="w-5 h-5 text-[#E8722C]" />
-                  <div>
-                    <h2 className="font-display font-bold text-base text-[#14261D]">
-                      Student Profile & Account
-                    </h2>
-                    <p className="font-sans text-xs text-[#14261D]/70">
-                      Your public name and authenticated account details.
-                    </p>
+              <div className="space-y-6">
+                {/* 1.1 Personal Information / Profile Editing */}
+                <div className="rounded-[24px] bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/15 p-6 sm:p-7 shadow-xs space-y-6">
+                  <div className="flex items-center gap-2.5 pb-4 border-b border-[#1B3428]/10">
+                    <User className="w-5 h-5 text-[#E8722C]" />
+                    <div>
+                      <h2 className="font-display font-bold text-base text-[#14261D]">
+                        Personal Information
+                      </h2>
+                      <p className="font-sans text-xs text-[#14261D]/70">
+                        Update your full name and view your registered account details.
+                      </p>
+                    </div>
                   </div>
+
+                  {profileSuccess && (
+                    <div className="p-3.5 rounded-xl bg-[#E2EBD8] border border-[#497E64]/30 text-[#497E64] text-xs font-display font-bold flex items-center gap-2 animate-in fade-in duration-150">
+                      <CheckCircle2 className="w-4 h-4 shrink-0" />
+                      <span>{profileSuccess}</span>
+                    </div>
+                  )}
+
+                  {profileError && (
+                    <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-sans font-medium flex items-center gap-2 animate-in fade-in duration-150">
+                      <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                      <span>{profileError}</span>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleProfileSave} className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label
+                          htmlFor="fullName"
+                          className="block text-xs font-display font-bold text-[#14261D]"
+                        >
+                          Full Name
+                        </label>
+                        <input
+                          id="fullName"
+                          type="text"
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                          disabled={isSavingProfile}
+                          className="w-full h-11 px-4 text-xs sm:text-sm bg-white border-[1.5px] border-[#1B3428]/20 rounded-xl text-[#14261D] focus:outline-none focus:border-[#E8722C] focus:ring-1 focus:ring-[#E8722C]/20 transition-all disabled:opacity-50"
+                          placeholder="Enter your full name"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label
+                          htmlFor="emailAddress"
+                          className="block text-xs font-display font-bold text-[#14261D]"
+                        >
+                          Email Address
+                        </label>
+                        <input
+                          id="emailAddress"
+                          type="email"
+                          value={user?.email || 'student@lernivox.com'}
+                          disabled
+                          className="w-full h-11 px-4 text-xs sm:text-sm bg-[#1B3428]/5 border-[1.5px] border-[#1B3428]/10 rounded-xl text-[#14261D]/60 cursor-not-allowed font-mono"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-2 flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-xs text-[#14261D]/65">
+                        <Shield className="w-3.5 h-3.5 text-[#497E64]" />
+                        <span>Changes sync immediately across your workspaces</span>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={isSavingProfile}
+                        className="px-5 py-2.5 rounded-full bg-[#E8722C] text-white font-display font-bold text-xs shadow-[0_2px_0_0_#B26E45] hover:bg-[#d66522] active:translate-y-0.5 active:shadow-none transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                      >
+                        {isSavingProfile ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>Saving...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-3.5 h-3.5" />
+                            <span>Save Profile</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-display font-bold text-[#14261D]">
-                      Display Name
-                    </label>
-                    <input
-                      type="text"
-                      value={displayName}
-                      onChange={(e) => setDisplayName(e.target.value)}
-                      className="w-full h-11 px-4 text-xs sm:text-sm bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/20 rounded-xl text-[#14261D] focus:outline-none focus:bg-white focus:border-[#E8722C] transition-all"
-                      placeholder="Your full name"
-                    />
+                {/* 1.2 Change Password Section */}
+                <div className="rounded-[24px] bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/15 p-6 sm:p-7 shadow-xs space-y-6">
+                  <div className="flex items-center gap-2.5 pb-4 border-b border-[#1B3428]/10">
+                    <Key className="w-5 h-5 text-[#E8722C]" />
+                    <div>
+                      <h2 className="font-display font-bold text-base text-[#14261D]">
+                        Change Password
+                      </h2>
+                      <p className="font-sans text-xs text-[#14261D]/70">
+                        Update your password to keep your personal study materials secure.
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-display font-bold text-[#14261D]">
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      value={email}
-                      disabled
-                      className="w-full h-11 px-4 text-xs sm:text-sm bg-[#1B3428]/5 border-[1.5px] border-[#1B3428]/10 rounded-xl text-[#14261D]/60 cursor-not-allowed font-mono"
-                    />
-                  </div>
-                </div>
+                  {passwordSuccess && (
+                    <div className="p-3.5 rounded-xl bg-[#E2EBD8] border border-[#497E64]/30 text-[#497E64] text-xs font-display font-bold flex items-center gap-2 animate-in fade-in duration-150">
+                      <CheckCircle2 className="w-4 h-4 shrink-0" />
+                      <span>{passwordSuccess}</span>
+                    </div>
+                  )}
 
-                <div className="pt-4 border-t border-[#1B3428]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                  <div className="flex items-center gap-2 text-[#14261D]/70">
-                    <Shield className="w-4 h-4 text-[#497E64]" />
-                    <span>Protected with JWT session authentication</span>
-                  </div>
-                  <span className="px-2.5 py-1 rounded-full bg-[#E2EBD8] text-[#497E64] font-mono text-[11px] font-bold self-start sm:self-auto">
-                    Active Student
-                  </span>
+                  {passwordError && (
+                    <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-sans font-medium flex items-center gap-2 animate-in fade-in duration-150">
+                      <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                      <span>{passwordError}</span>
+                    </div>
+                  )}
+
+                  <form onSubmit={handlePasswordChange} className="space-y-4">
+                    {/* Current Password */}
+                    <div className="space-y-1.5">
+                      <label
+                        htmlFor="currentPassword"
+                        className="block text-xs font-display font-bold text-[#14261D]"
+                      >
+                        Current Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="currentPassword"
+                          type={showCurrentPass ? 'text' : 'password'}
+                          value={currentPassword}
+                          onChange={(e) => setCurrentPassword(e.target.value)}
+                          disabled={isChangingPassword}
+                          className="w-full h-11 pl-4 pr-10 text-xs sm:text-sm bg-white border-[1.5px] border-[#1B3428]/20 rounded-xl text-[#14261D] focus:outline-none focus:border-[#E8722C] focus:ring-1 focus:ring-[#E8722C]/20 transition-all disabled:opacity-50"
+                          placeholder="Enter your current password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowCurrentPass(!showCurrentPass)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#14261D]/40 hover:text-[#14261D] p-1"
+                          aria-label={showCurrentPass ? 'Hide password' : 'Show password'}
+                        >
+                          {showCurrentPass ? (
+                            <EyeOff className="w-4 h-4" />
+                          ) : (
+                            <Eye className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* New Password & Confirm Password */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label
+                          htmlFor="newPassword"
+                          className="block text-xs font-display font-bold text-[#14261D]"
+                        >
+                          New Password
+                        </label>
+                        <div className="relative">
+                          <input
+                            id="newPassword"
+                            type={showNewPass ? 'text' : 'password'}
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            disabled={isChangingPassword}
+                            className="w-full h-11 pl-4 pr-10 text-xs sm:text-sm bg-white border-[1.5px] border-[#1B3428]/20 rounded-xl text-[#14261D] focus:outline-none focus:border-[#E8722C] focus:ring-1 focus:ring-[#E8722C]/20 transition-all disabled:opacity-50"
+                            placeholder="Minimum 8 characters"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowNewPass(!showNewPass)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#14261D]/40 hover:text-[#14261D] p-1"
+                            aria-label={showNewPass ? 'Hide password' : 'Show password'}
+                          >
+                            {showNewPass ? (
+                              <EyeOff className="w-4 h-4" />
+                            ) : (
+                              <Eye className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label
+                          htmlFor="confirmPassword"
+                          className="block text-xs font-display font-bold text-[#14261D]"
+                        >
+                          Confirm New Password
+                        </label>
+                        <div className="relative">
+                          <input
+                            id="confirmPassword"
+                            type={showConfirmPass ? 'text' : 'password'}
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            disabled={isChangingPassword}
+                            className="w-full h-11 pl-4 pr-10 text-xs sm:text-sm bg-white border-[1.5px] border-[#1B3428]/20 rounded-xl text-[#14261D] focus:outline-none focus:border-[#E8722C] focus:ring-1 focus:ring-[#E8722C]/20 transition-all disabled:opacity-50"
+                            placeholder="Confirm your new password"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmPass(!showConfirmPass)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#14261D]/40 hover:text-[#14261D] p-1"
+                            aria-label={showConfirmPass ? 'Hide password' : 'Show password'}
+                          >
+                            {showConfirmPass ? (
+                              <EyeOff className="w-4 h-4" />
+                            ) : (
+                              <Eye className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 flex items-center justify-between">
+                      <p className="text-[11px] font-sans text-[#14261D]/60">
+                        Must be at least 8 characters. Other sessions will be invalidated.
+                      </p>
+
+                      <button
+                        type="submit"
+                        disabled={isChangingPassword}
+                        className="px-5 py-2.5 rounded-full bg-[#1B3428] text-white font-display font-bold text-xs shadow-[0_2px_0_0_#0D1B14] hover:bg-[#264838] active:translate-y-0.5 active:shadow-none transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                      >
+                        {isChangingPassword ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-[#E8722C]" />
+                            <span>Updating...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Key className="w-3.5 h-3.5" />
+                            <span>Update Password</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
                 </div>
               </div>
             )}
 
             {/* CATEGORY 2: AI Tutor & Learning Preferences */}
             {activeCategory === 'tutor' && (
-              <div className="rounded-[24px] bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/15 p-6 sm:p-7 shadow-xs space-y-6">
-                <div className="flex items-center gap-2.5 pb-4 border-b border-[#1B3428]/10">
-                  <Sliders className="w-5 h-5 text-[#E8722C]" />
-                  <div>
-                    <h2 className="font-display font-bold text-base text-[#14261D]">
-                      AI Tutor & Learning Style
-                    </h2>
-                    <p className="font-sans text-xs text-[#14261D]/70">
-                      Configure how the AI tutor guides your understanding and generates practice.
-                    </p>
-                  </div>
-                </div>
-
-                {/* 1. Primary Teaching Style */}
-                <div className="space-y-2">
-                  <label className="block text-xs font-display font-bold text-[#14261D]">
-                    Primary Teaching Style
-                  </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {[
-                      {
-                        id: 'SOCRATIC' as const,
-                        title: 'Socratic Tutor',
-                        desc: 'Guides through questions, hints, and checks understanding step-by-step.',
-                      },
-                      {
-                        id: 'DIRECT' as const,
-                        title: 'Direct & Concise',
-                        desc: 'Provides authoritative, clear, and high-density textbook summaries.',
-                      },
-                      {
-                        id: 'ANALOGICAL' as const,
-                        title: 'Intuitive & Analogies',
-                        desc: 'Uses real-world metaphors and practical stories to build intuition.',
-                      },
-                    ].map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => setTeachingStyle(item.id)}
-                        className={`p-4 rounded-2xl border-[1.5px] text-left transition-all cursor-pointer ${
-                          teachingStyle === item.id
-                            ? 'bg-[#14261D] text-white border-[#14261D] shadow-xs'
-                            : 'bg-white text-[#14261D] border-[#1B3428]/20 hover:border-[#1B3428]/40'
-                        }`}
-                      >
-                        <p className="font-display font-bold text-xs sm:text-sm">{item.title}</p>
-                        <p
-                          className={`text-[11px] mt-1 leading-relaxed ${
-                            teachingStyle === item.id ? 'text-white/80' : 'text-[#14261D]/70'
-                          }`}
-                        >
-                          {item.desc}
-                        </p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 2. Unified Segmented Controls: Explanation Depth & Difficulty */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div className="space-y-2">
-                    <label className="block text-xs font-display font-bold text-[#14261D]">
-                      Explanation Depth
-                    </label>
-                    <div className="flex rounded-xl bg-[#1B3428]/5 p-1 border border-[#1B3428]/10">
-                      {(['CONCISE', 'BALANCED', 'DETAILED'] as const).map((len) => {
-                        const isSelected = explanationLength === len;
-                        return (
-                          <button
-                            key={len}
-                            type="button"
-                            onClick={() => setExplanationLength(len)}
-                            className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-display font-bold transition-all cursor-pointer ${
-                              isSelected
-                                ? 'bg-[#14261D] text-[#FAF8F4] shadow-xs'
-                                : 'text-[#14261D]/70 hover:text-[#14261D]'
-                            }`}
-                          >
-                            {len === 'CONCISE' ? 'Quick' : len === 'BALANCED' ? 'Standard' : 'Deep Dive'}
-                          </button>
-                        );
-                      })}
+              <form onSubmit={handleSavePreferences} className="space-y-6">
+                <div className="rounded-[24px] bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/15 p-6 sm:p-7 shadow-xs space-y-6">
+                  <div className="flex items-center gap-2.5 pb-4 border-b border-[#1B3428]/10">
+                    <Sliders className="w-5 h-5 text-[#E8722C]" />
+                    <div>
+                      <h2 className="font-display font-bold text-base text-[#14261D]">
+                        AI Tutor & Learning Style
+                      </h2>
+                      <p className="font-sans text-xs text-[#14261D]/70">
+                        Configure how the AI tutor guides your understanding and generates practice.
+                      </p>
                     </div>
                   </div>
 
+                  {/* 1. Primary Teaching Style */}
                   <div className="space-y-2">
                     <label className="block text-xs font-display font-bold text-[#14261D]">
-                      Question Difficulty
+                      Primary Teaching Style
                     </label>
-                    <div className="flex rounded-xl bg-[#1B3428]/5 p-1 border border-[#1B3428]/10">
-                      {(['BEGINNER', 'INTERMEDIATE', 'ADVANCED'] as const).map((diff) => {
-                        const isSelected = difficulty === diff;
-                        return (
-                          <button
-                            key={diff}
-                            type="button"
-                            onClick={() => setDifficulty(diff)}
-                            className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-display font-bold transition-all cursor-pointer ${
-                              isSelected
-                                ? 'bg-[#14261D] text-[#FAF8F4] shadow-xs'
-                                : 'text-[#14261D]/70 hover:text-[#14261D]'
-                            }`}
-                          >
-                            {diff === 'BEGINNER' ? 'Foundational' : diff === 'INTERMEDIATE' ? 'Standard' : 'Rigorous'}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3. Daily Study Target */}
-                <div className="space-y-2">
-                  <label className="block text-xs font-display font-bold text-[#14261D]">
-                    Daily Study Target
-                  </label>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {[15, 30, 45, 60].map((mins) => {
-                      const isSelected = dailyMinutes === mins;
-                      return (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {[
+                        {
+                          id: 'SOCRATIC' as const,
+                          title: 'Socratic Tutor',
+                          desc: 'Guides through questions, hints, and checks understanding step-by-step.',
+                        },
+                        {
+                          id: 'DIRECT' as const,
+                          title: 'Direct & Concise',
+                          desc: 'Provides authoritative, clear, and high-density textbook summaries.',
+                        },
+                        {
+                          id: 'ANALOGICAL' as const,
+                          title: 'Intuitive & Analogies',
+                          desc: 'Uses real-world metaphors and practical stories to build intuition.',
+                        },
+                      ].map((item) => (
                         <button
-                          key={mins}
+                          key={item.id}
                           type="button"
-                          onClick={() => setDailyMinutes(mins)}
-                          className={`px-4 py-2 rounded-xl text-xs font-display font-bold border-[1.5px] transition-all cursor-pointer ${
-                            isSelected
-                              ? 'bg-[#14261D] text-[#FAF8F4] border-[#14261D] shadow-xs'
+                          onClick={() => setTeachingStyle(item.id)}
+                          className={`p-4 rounded-2xl border-[1.5px] text-left transition-all cursor-pointer ${
+                            teachingStyle === item.id
+                              ? 'bg-[#14261D] text-white border-[#14261D] shadow-xs'
                               : 'bg-white text-[#14261D] border-[#1B3428]/20 hover:border-[#1B3428]/40'
                           }`}
                         >
-                          {mins} Minutes / Day
+                          <p className="font-display font-bold text-xs sm:text-sm">{item.title}</p>
+                          <p
+                            className={`text-[11px] mt-1 leading-relaxed ${
+                              teachingStyle === item.id ? 'text-white/80' : 'text-[#14261D]/70'
+                            }`}
+                          >
+                            {item.desc}
+                          </p>
                         </button>
-                      );
-                    })}
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 2. Unified Segmented Controls: Explanation Depth & Difficulty */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div className="space-y-2">
+                      <label className="block text-xs font-display font-bold text-[#14261D]">
+                        Explanation Depth
+                      </label>
+                      <div className="flex rounded-xl bg-[#1B3428]/5 p-1 border border-[#1B3428]/10">
+                        {(['CONCISE', 'BALANCED', 'DETAILED'] as const).map((len) => {
+                          const isSelected = explanationLength === len;
+                          return (
+                            <button
+                              key={len}
+                              type="button"
+                              onClick={() => setExplanationLength(len)}
+                              className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-display font-bold transition-all cursor-pointer ${
+                                isSelected
+                                  ? 'bg-[#14261D] text-[#FAF8F4] shadow-xs'
+                                  : 'text-[#14261D]/70 hover:text-[#14261D]'
+                              }`}
+                            >
+                              {len === 'CONCISE' ? 'Quick' : len === 'BALANCED' ? 'Standard' : 'Deep Dive'}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-xs font-display font-bold text-[#14261D]">
+                        Question Difficulty
+                      </label>
+                      <div className="flex rounded-xl bg-[#1B3428]/5 p-1 border border-[#1B3428]/10">
+                        {(['BEGINNER', 'INTERMEDIATE', 'ADVANCED'] as const).map((diff) => {
+                          const isSelected = difficulty === diff;
+                          return (
+                            <button
+                              key={diff}
+                              type="button"
+                              onClick={() => setDifficulty(diff)}
+                              className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-display font-bold transition-all cursor-pointer ${
+                                isSelected
+                                  ? 'bg-[#14261D] text-[#FAF8F4] shadow-xs'
+                                  : 'text-[#14261D]/70 hover:text-[#14261D]'
+                              }`}
+                            >
+                              {diff === 'BEGINNER' ? 'Foundational' : diff === 'INTERMEDIATE' ? 'Standard' : 'Rigorous'}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 3. Daily Study Target */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-display font-bold text-[#14261D]">
+                      Daily Study Target
+                    </label>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {[15, 30, 45, 60].map((mins) => {
+                        const isSelected = dailyMinutes === mins;
+                        return (
+                          <button
+                            key={mins}
+                            type="button"
+                            onClick={() => setDailyMinutes(mins)}
+                            className={`px-4 py-2 rounded-xl text-xs font-display font-bold border-[1.5px] transition-all cursor-pointer ${
+                              isSelected
+                                ? 'bg-[#14261D] text-[#FAF8F4] border-[#14261D] shadow-xs'
+                                : 'bg-white text-[#14261D] border-[#1B3428]/20 hover:border-[#1B3428]/40'
+                            }`}
+                          >
+                            {mins} Minutes / Day
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
-              </div>
+
+                {/* Tutor Save Button */}
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <button
+                    type="submit"
+                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#E8722C] hover:bg-[#D65E1E] text-white font-display font-bold text-xs sm:text-sm shadow-xs hover:-translate-y-0.5 active:translate-y-0.5 transition-all cursor-pointer"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>Save Preferences</span>
+                  </button>
+                </div>
+              </form>
             )}
 
             {/* CATEGORY 3: Study Schedule & Reviews */}
             {activeCategory === 'schedule' && (
-              <div className="rounded-[24px] bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/15 p-6 sm:p-7 shadow-xs space-y-6">
-                <div className="flex items-center gap-2.5 pb-4 border-b border-[#1B3428]/10">
-                  <Clock className="w-5 h-5 text-[#E8722C]" />
-                  <div>
-                    <h2 className="font-display font-bold text-base text-[#14261D]">
-                      Study Schedule & Spaced Repetition
-                    </h2>
-                    <p className="font-sans text-xs text-[#14261D]/70">
-                      Configure retention alerts and learning plan pacing.
-                    </p>
+              <form onSubmit={handleSavePreferences} className="space-y-6">
+                <div className="rounded-[24px] bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/15 p-6 sm:p-7 shadow-xs space-y-6">
+                  <div className="flex items-center gap-2.5 pb-4 border-b border-[#1B3428]/10">
+                    <Clock className="w-5 h-5 text-[#E8722C]" />
+                    <div>
+                      <h2 className="font-display font-bold text-base text-[#14261D]">
+                        Study Schedule & Spaced Repetition
+                      </h2>
+                      <p className="font-sans text-xs text-[#14261D]/70">
+                        Configure retention alerts and learning plan pacing.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="flex items-center justify-between p-4 rounded-xl bg-white border border-[#1B3428]/15 cursor-pointer hover:border-[#1B3428]/30 transition-colors">
+                      <div className="pr-4">
+                        <p className="font-display font-bold text-xs text-[#14261D]">
+                          Daily Study Prompts
+                        </p>
+                        <p className="font-sans text-[11px] text-[#14261D]/60 mt-0.5">
+                          In-app highlights suggesting your next recommended chapter or quiz session.
+                        </p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={studyReminders}
+                        onChange={(e) => setStudyReminders(e.target.checked)}
+                        className="w-4 h-4 rounded text-[#E8722C] focus:ring-[#E8722C] cursor-pointer"
+                      />
+                    </label>
+
+                    <label className="flex items-center justify-between p-4 rounded-xl bg-white border border-[#1B3428]/15 cursor-pointer hover:border-[#1B3428]/30 transition-colors">
+                      <div className="pr-4">
+                        <p className="font-display font-bold text-xs text-[#14261D]">
+                          Spaced Repetition Review Alerts
+                        </p>
+                        <p className="font-sans text-[11px] text-[#14261D]/60 mt-0.5">
+                          Alerts when flashcards or concepts approach memory decay thresholds.
+                        </p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={reviewReminders}
+                        onChange={(e) => setReviewReminders(e.target.checked)}
+                        className="w-4 h-4 rounded text-[#E8722C] focus:ring-[#E8722C] cursor-pointer"
+                      />
+                    </label>
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <label className="flex items-center justify-between p-4 rounded-xl bg-white border border-[#1B3428]/15 cursor-pointer hover:border-[#1B3428]/30 transition-colors">
-                    <div className="pr-4">
-                      <p className="font-display font-bold text-xs text-[#14261D]">
-                        Daily Study Prompts
-                      </p>
-                      <p className="font-sans text-[11px] text-[#14261D]/60 mt-0.5">
-                        In-app highlights suggesting your next recommended chapter or quiz session.
-                      </p>
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={studyReminders}
-                      onChange={(e) => setStudyReminders(e.target.checked)}
-                      className="w-4 h-4 rounded text-[#E8722C] focus:ring-[#E8722C] cursor-pointer"
-                    />
-                  </label>
-
-                  <label className="flex items-center justify-between p-4 rounded-xl bg-white border border-[#1B3428]/15 cursor-pointer hover:border-[#1B3428]/30 transition-colors">
-                    <div className="pr-4">
-                      <p className="font-display font-bold text-xs text-[#14261D]">
-                        Spaced Repetition Review Alerts
-                      </p>
-                      <p className="font-sans text-[11px] text-[#14261D]/60 mt-0.5">
-                        Alerts when flashcards or concepts approach memory decay thresholds.
-                      </p>
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={reviewReminders}
-                      onChange={(e) => setReviewReminders(e.target.checked)}
-                      className="w-4 h-4 rounded text-[#E8722C] focus:ring-[#E8722C] cursor-pointer"
-                    />
-                  </label>
+                {/* Schedule Save Button */}
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <button
+                    type="submit"
+                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#E8722C] hover:bg-[#D65E1E] text-white font-display font-bold text-xs sm:text-sm shadow-xs hover:-translate-y-0.5 active:translate-y-0.5 transition-all cursor-pointer"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>Save Preferences</span>
+                  </button>
                 </div>
-              </div>
+              </form>
             )}
-
-            {/* Persistent Save Button Row */}
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <button
-                type="submit"
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#E8722C] hover:bg-[#D65E1E] text-white font-display font-bold text-xs sm:text-sm shadow-xs hover:-translate-y-0.5 active:translate-y-0.5 transition-all cursor-pointer"
-              >
-                <Save className="w-4 h-4" />
-                <span>Save Preferences</span>
-              </button>
-            </div>
-          </form>
+          </div>
         </main>
       </div>
     </div>

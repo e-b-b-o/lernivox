@@ -1,5 +1,7 @@
 import type {
   AuthResponseDto,
+  ChangePasswordRequestDto,
+  ChangePasswordResponseDto,
   CreateBookmarkDto,
   CreateConversationDto,
   CreatePastedTextDto,
@@ -18,6 +20,7 @@ import type {
   SendTutorMessageDto,
   TutorChunkDetailDto,
   UpdateReadingProgressDto,
+  UpdateProfileRequestDto,
   UserDto,
   ConversationSummaryDto,
   ConversationDetailDto,
@@ -105,6 +108,35 @@ export function onSessionExpired(cb: SessionExpiredCallback): () => void {
   };
 }
 
+// Cross-tab authentication coordination channel
+let authBroadcastChannel: BroadcastChannel | null = null;
+if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+  try {
+    authBroadcastChannel = new BroadcastChannel('lernivox_auth_sync');
+    authBroadcastChannel.onmessage = (event) => {
+      if (event.data?.type === 'TOKEN_REFRESHED' && event.data?.accessToken) {
+        for (const listener of tokenRefreshedListeners) {
+          try {
+            listener(event.data.accessToken, event.data.user);
+          } catch (e) {
+            console.error('Error in onTokenRefreshed cross-tab listener', e);
+          }
+        }
+      } else if (event.data?.type === 'SESSION_EXPIRED') {
+        for (const listener of sessionExpiredListeners) {
+          try {
+            listener();
+          } catch (e) {
+            console.error('Error in onSessionExpired cross-tab listener', e);
+          }
+        }
+      }
+    };
+  } catch {
+    // BroadcastChannel blocked or unavailable
+  }
+}
+
 function notifyTokenRefreshed(token: string, user?: UserDto) {
   for (const listener of tokenRefreshedListeners) {
     try {
@@ -117,6 +149,15 @@ function notifyTokenRefreshed(token: string, user?: UserDto) {
     window.dispatchEvent(
       new CustomEvent('auth:token-refreshed', { detail: { accessToken: token, user } }),
     );
+    try {
+      authBroadcastChannel?.postMessage({
+        type: 'TOKEN_REFRESHED',
+        accessToken: token,
+        user,
+      });
+    } catch {
+      // Ignore broadcast errors
+    }
   }
 }
 
@@ -130,14 +171,21 @@ function notifySessionExpired() {
   }
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('auth:session-expired'));
+    try {
+      authBroadcastChannel?.postMessage({
+        type: 'SESSION_EXPIRED',
+      });
+    } catch {
+      // Ignore broadcast errors
+    }
   }
 }
 
-let refreshPromise: Promise<string | null> | null = null;
+let refreshSessionPromise: Promise<AuthResponseDto | null> | null = null;
 
-export async function silentRefreshToken(): Promise<string | null> {
-  if (!refreshPromise) {
-    refreshPromise = (async () => {
+export async function refreshAuthSession(): Promise<AuthResponseDto | null> {
+  if (!refreshSessionPromise) {
+    refreshSessionPromise = (async () => {
       try {
         const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
           method: 'POST',
@@ -151,15 +199,20 @@ export async function silentRefreshToken(): Promise<string | null> {
         if (newToken) {
           notifyTokenRefreshed(newToken, data.user);
         }
-        return newToken;
+        return data;
       } catch {
         return null;
       } finally {
-        refreshPromise = null;
+        refreshSessionPromise = null;
       }
     })();
   }
-  return refreshPromise;
+  return refreshSessionPromise;
+}
+
+export async function silentRefreshToken(): Promise<string | null> {
+  const result = await refreshAuthSession();
+  return result?.accessToken || null;
 }
 
 function isAuthEndpoint(endpoint: string): boolean {
@@ -280,10 +333,39 @@ export const api = {
         body: JSON.stringify(data),
       }),
 
-    refresh: (): Promise<AuthResponseDto> =>
-      request<AuthResponseDto>('/auth/refresh', {
-        method: 'POST',
-      }),
+    refresh: async (): Promise<AuthResponseDto> => {
+      const result = await refreshAuthSession();
+      if (!result) {
+        throw new ApiError(401, 'Your session has expired. Please sign in again.');
+      }
+      return result;
+    },
+
+    updateProfile: (
+      data: UpdateProfileRequestDto,
+      accessToken: string,
+    ): Promise<UserDto> =>
+      request<UserDto>(
+        '/auth/profile',
+        {
+          method: 'PATCH',
+          body: JSON.stringify(data),
+        },
+        accessToken,
+      ),
+
+    changePassword: (
+      data: ChangePasswordRequestDto,
+      accessToken: string,
+    ): Promise<ChangePasswordResponseDto & { accessToken?: string; user?: UserDto }> =>
+      request<ChangePasswordResponseDto & { accessToken?: string; user?: UserDto }>(
+        '/auth/change-password',
+        {
+          method: 'POST',
+          body: JSON.stringify(data),
+        },
+        accessToken,
+      ),
 
     logout: (): Promise<LogoutResponseDto> =>
       request<LogoutResponseDto>('/auth/logout', {

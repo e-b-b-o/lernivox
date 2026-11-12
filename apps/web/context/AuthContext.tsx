@@ -25,6 +25,8 @@ interface AuthContextValue {
   register: (data: RegisterRequestDto) => Promise<void>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<boolean>;
+  updateProfile: (name: string) => Promise<UserDto>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -115,6 +117,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const updateProfile = useCallback(
+    async (name: string): Promise<UserDto> => {
+      if (!accessToken) throw new Error('Not authenticated.');
+      const updatedUser = await api.auth.updateProfile({ name }, accessToken);
+      setUser(updatedUser);
+      return updatedUser;
+    },
+    [accessToken],
+  );
+
+  const changePassword = useCallback(
+    async (currentPassword: string, newPassword: string): Promise<void> => {
+      if (!accessToken) throw new Error('Not authenticated.');
+      const res = await api.auth.changePassword(
+        { currentPassword, newPassword },
+        accessToken,
+      );
+      if (res.accessToken) {
+        setAccessToken(res.accessToken);
+      }
+      if (res.user) {
+        setUser(res.user);
+      }
+    },
+    [accessToken],
+  );
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
@@ -125,8 +154,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       register,
       logout,
       refreshSession,
+      updateProfile,
+      changePassword,
     }),
-    [user, accessToken, isLoading, login, register, logout, refreshSession],
+    [
+      user,
+      accessToken,
+      isLoading,
+      login,
+      register,
+      logout,
+      refreshSession,
+      updateProfile,
+      changePassword,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
