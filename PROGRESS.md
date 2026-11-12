@@ -87,63 +87,52 @@ The repository has been transitioned into a clean, canonical monorepo. All legac
 
 ## 6. Current Task Record
 
-- **Task**: Fix Local Development Environment, Asset Path & Stacking Context, API/Worker Port Collision & CORS, and Redis Resilience
-- **Status**: **Complete**
+- **Task**: Professional Login & Registration Background Integration, Editorial Center Divider & Portrait Seamless Blending
+- **Status**: **Complete (with documented sandbox Chrome verification limits)**
 - **Objective**:
-  1. *Fix Missing Reference Library Background Locally*:
-     - Diagnosed two root causes: (a) container wrappers on homepage (`apps/web/app/(marketing)/layout.tsx`), auth pages (`login`, `register`), and non-workspace layout (`apps/web/app/(workspace)/layout.tsx`) had opaque background classes without CSS `isolate`, causing `-z-10` background image layers to paint behind the container backgrounds; (b) `library-cozy-bg.jpg` (1376x768, 558,667 bytes) was only present under `apps/web/public/assets/` and missing from `apps/web/public/images/`.
-     - Copied `library-cozy-bg.jpg` and `.png` into `apps/web/public/images/` (preserving `apps/web/public/assets/` intact), added `isolate` + `relative z-10` foreground stacking, updated image paths to `/images/library-cozy-bg.jpg`, and added `bg-center sm:bg-top` focal framing across homepage Hero, auth pages, and non-workspace layout while keeping `/dashboard/workspaces/[workspaceId]` reader clean.
-  2. *Fix Local API 404 & Missing CORS Headers on `POST /api/v1/auth/refresh`*:
-     - Diagnosed root cause: root `.env` sets `PORT=4000`; both `apps/api` and `apps/worker` loaded root `.env`, causing `WorkerHttpService` to bind `0.0.0.0:4000` first and `apps/api` to fail with `EADDRINUSE`. Browser requests to `http://localhost:4000/api/v1/auth/refresh` therefore hit the Node `WorkerHttpService` HTTP control server (404 without CORS headers).
-     - Updated `WorkerHttpService` (`apps/worker/src/server/worker-http.service.ts`) and `apps/worker/src/main.ts` so the worker uses `WORKER_PORT` (defaulting to `4001` in non-production when `PORT=4000` is shared from root `.env`), freeing port `4000` exclusively for `@lernivox/api`.
-     - Updated `apps/api/src/main.ts` `enableCors` to explicitly permit `CORS_ORIGIN` plus `http://localhost:*` and `http://127.0.0.1:*` in non-production (strict origin validation retained in production) with `credentials: true` and explicit `methods`, `allowedHeaders`, and `exposedHeaders`.
-     - Configured `WORKER_PORT=4001` in root `.env` (removed stray pasted JS snippet) and `.env.example`, and set `NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1` in gitignored `apps/web/.env.local`.
-  3. *Fix Local Worker Redis Connection Timeouts & Readiness Tracking*:
-     - Added IPv4 resolution preference (`family: 4`), `connectTimeout: 30000`, `keepAlive: 30000`, `REDIS_URL` trimming, and bounded `retryStrategy` to shared Redis builders in `apps/worker/src/config/redis.config.ts` and `apps/api/src/config/redis.config.ts`.
-     - Updated `WorkerHealthService` (`apps/worker/src/health/worker-health.service.ts`) to log the real parsed `redisHost:redisPort`, await queue client readiness with throttled `ready`/`close`/`error` logging, and report `ready: true` cleanly once connected (`ready: false` / HTTP 503 when disconnected).
+  1. *Reuse Shared Cozy Library Background*:
+     - Created `apps/web/components/auth/AuthSplitShell.tsx` to wrap both `apps/web/app/(auth)/login/page.tsx` and `apps/web/app/(auth)/register/page.tsx` around a single shared fixed `/images/library-cozy-bg.webp` backdrop (`opacity-95`, warm `#F4EFE4` atmospheric gradient wash matching Homepage Hero/Dashboard without dark overlay or duplicated image requests).
+  2. *Localized Form Readability & Desktop Editorial Vertical Divider*:
+     - Added a clean `lg+` hairline center divider (`hidden lg:flex pointer-events-none absolute inset-y-8 xl:inset-y-12 left-1/2`) combining a subtle deep-forest line and warm specular highlight without double borders (`border-r` / `border-l` removed).
+     - Positioned the `"Back to homepage"` pill in normal flow above a localized frosted warm-cream form card (`bg-[#FAF8F4]/92 backdrop-blur-md border border-[#1B3428]/12`) so all headings, inputs, eye toggles, error alerts, and CTAs stay high-contrast and never collide with smaller viewports (`320px+`).
+  3. *Seamless Right-Side Portrait Integration*:
+     - Updated `apps/web/components/auth/AuthShowcase.tsx` to remove the opaque `bg-[#EAE4D3]` right-half rectangle and `border-l`, letting `/images/student-reading.png` sit in a translucent warm frosted arch with soft bottom grounding shadow and gentle bottom-edge feathering (`[mask-image:linear-gradient(to_top,transparent_0%,black_6%,black_100%)]`) directly over the library shelves, plus a localized frosted scrim behind the Bricolage Grotesque headline lockup.
 - **Files Created/Modified**:
-  - `apps/web/public/images/library-cozy-bg.jpg` (created) — Canonical static background asset (558,667 bytes) matching `/images/library-cozy-bg.jpg`.
-  - `apps/web/public/images/library-cozy-bg.png` (created) — High-res PNG asset copy under `/images/`.
-  - `apps/web/app/(marketing)/page.tsx` (modified) — Added `isolate` stacking context, `relative z-10`, `/images/library-cozy-bg.jpg`, and `bg-center sm:bg-top`.
-  - `apps/web/app/(workspace)/layout.tsx` (modified) — Added `isolate` stacking context, `relative z-10`, `/images/library-cozy-bg.jpg`, and `bg-center sm:bg-top`.
-  - `apps/web/app/(auth)/login/page.tsx` (modified) — Added `isolate` stacking context, `/images/library-cozy-bg.jpg`, and `bg-center sm:bg-top`.
-  - `apps/web/app/(auth)/register/page.tsx` (modified) — Added `isolate` stacking context, `/images/library-cozy-bg.jpg`, and `bg-center sm:bg-top`.
-  - `apps/api/src/main.ts` (modified) — Dev localhost CORS origin allowance with credentials and explicit headers.
-  - `apps/api/src/config/redis.config.ts` (modified) — `family: 4`, `connectTimeout: 30000`, `keepAlive: 30000`, `retryStrategy`, URL trim.
-  - `apps/worker/src/config/redis.config.ts` (modified) — `family: 4`, `connectTimeout: 30000`, `keepAlive: 30000`, `retryStrategy`, URL trim.
-  - `apps/worker/src/server/worker-http.service.ts` (modified) — Resolved port separation (`WORKER_PORT` / dev default `4001`) and `getListeningPort()`.
-  - `apps/worker/src/main.ts` (modified) — Log accurate `httpService.getListeningPort()` instead of reading `PORT` directly.
-  - `apps/worker/src/health/worker-health.service.ts` (modified) — Queue connection readiness state tracking and real `redisHost:redisPort` logging.
-  - `.env.example` (modified) — Documented `WORKER_PORT=4001`.
-  - `PROGRESS.md` (modified) — Recorded local dev fixes, verification outputs, and port cleanup audit.
+  - `apps/web/components/auth/AuthSplitShell.tsx` (new)
+  - `apps/web/components/auth/AuthShowcase.tsx`
+  - `apps/web/app/(auth)/login/page.tsx`
+  - `apps/web/app/(auth)/register/page.tsx`
+  - `apps/web/test/loading-and-404-experience.test.ts`
 - **Verification**:
-  - Live `pnpm dev` verification (`@lernivox/web` on `:3000`, `@lernivox/api` on `:4000`, `@lernivox/worker` on `:4001` connected to Upstash Redis `noted-scorpion-188917.upstash.io:6379` with zero `ETIMEDOUT`):
-    - `curl -sI http://localhost:3000/images/library-cozy-bg.jpg` & `/assets/library-cozy-bg.jpg`: `HTTP/1.1 200 OK`, `image/jpeg`, `558667` bytes.
-    - `curl -s http://localhost:3000/`, `/login`, `/register`, `/dashboard`: SSR markup verified containing `isolate` and `library-cozy-bg.jpg`.
-    - `curl -si http://localhost:4000/api/v1/health`: `HTTP/1.1 200 OK`.
-    - `OPTIONS http://localhost:4000/api/v1/auth/refresh` (`Origin: http://localhost:3000`): `HTTP/1.1 204 No Content` with `Access-Control-Allow-Origin: http://localhost:3000` and `Access-Control-Allow-Credentials: true`.
-    - `POST http://localhost:4000/api/v1/auth/refresh` (`Origin: http://localhost:3000`): `HTTP/1.1 401 Unauthorized` (`No refresh token provided.`) with `Access-Control-Allow-Origin: http://localhost:3000`.
-    - `GET http://localhost:4001/healthz` & `/readyz`: HTTP 200, `"ready":true`, `"redisHost":"noted-scorpion-188917.upstash.io"`, `"redisPort":6379`.
-  - Unit tests & Type-check & Builds (post final edit):
-    - `pnpm --filter @lernivox/api test`: 14/14 suites, 187/187 tests passed.
-    - `pnpm --filter @lernivox/worker test`: 5/5 suites, 21/21 tests passed.
-    - `pnpm --filter @lernivox/web test`: 4/4 suites, 44/44 tests passed.
-    - `pnpm type-check`: 11/11 tasks passed.
-    - `pnpm --filter @lernivox/api build` & `pnpm --filter @lernivox/worker build`: succeeded.
-    - `pnpm --filter @lernivox/web build`: succeeded (Next.js generated all 17/17 static/dynamic routes).
-  - Processes and Ports: Temporary `pnpm dev` stopped cleanly via task termination; `ss -tulpn` confirmed ports `3000`, `4000`, and `4001` released.
+  - `pnpm --filter @lernivox/web test`: **4/4 suites passed, 45/45 tests passed, 0 failed, 0 skipped** (includes Test `9. Unified Auth Background Integration, Editorial Vertical Divider & Seamless Portrait Showcase` in `loading-and-404-experience.test.ts`).
+  - `pnpm --filter @lernivox/web lint`: **passed** (`0 errors`; pre-existing `@next/next/no-img-element` & `react-hooks/exhaustive-deps` warnings only).
+  - `pnpm --filter @lernivox/web type-check`: **passed** (`0 errors`).
+  - `pnpm --filter @lernivox/web build`: **succeeded** (`17/17` static/dynamic routes built).
+  - Ephemeral `next start -p 3099` verification (stopped cleanly, `ss -tulpn | grep 3099` clean): `GET /login` (`200`, `bgMatches: 1`, `hasNoOldBg: true`, `hasStudent: true`), `GET /register` (`200`, `bgMatches: 1`, `hasNoOldBg: true`, `hasStudent: true`), `GET /images/library-cozy-bg.webp` (`200`, `image/webp`, `41352` bytes), `GET /images/student-reading.png` (`200`, `image/png`, `1085593` bytes).
+- **Processes and Ports**:
+  - Ephemeral `next start -p 3099` started for verification and terminated cleanly; `ss -tulpn | grep 3099` confirmed port `3099` released.
 - **Known Issues / Blockers**:
-  - Interactive Chrome visual inspection (`browser` subagent) could not run because Chrome remote debugging (`DevToolsActivePort`) was unavailable in this session; pixel/viewport checks across `320px`–`1440px` should be eyeballed in a live Chrome window.
+  - Live Chrome DevTools visual inspection across `320px–1440px+` could not run in this container because Chrome DevTools / `/opt/google/chrome/google-chrome` is unavailable here; visual contrast, divider balance, and portrait bottom feathering over `/images/library-cozy-bg.webp` should be visually spot-checked in a local browser.
 
 ---
 
 ## 7. Next Recommended Action
 
-Open `http://localhost:3000` via `pnpm dev` in Google Chrome to visually confirm responsive framing (`320px`–`1440px`) and then review and commit the verified changes cleanly when ready.
+Visually spot-check `/login` and `/register` across desktop (`1280px–1440px+`), tablet (`768px`, `1024px`), and mobile (`320px–430px`) in a local browser, commit and push changes, and verify the deployed site at `https://lernivox.vercel.app/`.
 
 ---
 
 ## 8. Update History
+  - Professional Login & Registration Background Integration:
+    - Extracted shared `AuthSplitShell` reusing a single fixed `/images/library-cozy-bg.webp` atmosphere backdrop for `/login` and `/register`, replaced conflicting double borders with a subtle desktop center hairline divider, wrapped left forms in a localized frosted warm-cream surface, and removed the opaque `#EAE4D3` panel in `AuthShowcase` so `/images/student-reading.png` blends naturally into the library backdrop.
+  - Final Typography (`Bricolage Grotesque`) & Full-Bleed Hero Strip Corrections:
+    - Eliminated duplicate `@import url(...)`, competing `:root` font variables, and unlayered `p, span` rule in `globals.css` blocking `h1` inheritance of `next/font` `Bricolage Grotesque`; moved `#hero-section` padding into text/card inner wrappers and removed `max-w-[2200px]` / fixed `height="300"` constraints from `WavingRibbon` for edge-to-edge coverage at all widths without horizontal overflow.
+  - Final UI Corrections (Dashboard `My BOOKS`, 2-Col Mobile Bookshelf, 2s Subject Rotation):
+    - Restored `My` (`#1B2A23`) before tilted `#4A7D64` `BOOKS` with `#E8722C` underline; updated bookshelf grids and `BookCard` / `BookCardSkeleton` sizing to 2 proportional columns on mobile (`320px–430px`); accelerated `RotatingSampleShowcase` interval to `2000ms` with stabilized badge heights and `cycleSeed` timer reset.
+  - Final Homepage, Dashboard, Responsive UI & Ingestion Reliability Refinements:
+    - Added hero-overlaid transparent-to-cream marketing navbar, `RotatingSampleShowcase`, `41.4 KB` WebP cozy library backdrop, transparent dashboard navbar, sage-green tilted `BOOKS` heading + aligned unified `BookCard` bookshelf, simplified `Footer`, `WorkerWakeService` `/readyz` 95s wake polling, BullMQ `jobId` deduplication + DB `READY` idempotency guard + lock/concurrency tuning, and bounded adaptive dashboard status polling.
+  - Audit Remediation (Worker Retries, ESLint, HNSW Indexes, Group Auth, Backend Preferences):
+    - Enabled BullMQ retry re-throws in quiz & flashcard worker processors; installed workspace ESLint 8 + TypeScript/Next configs (`pnpm lint` 7/7 passing); added HNSW pgvector & `UserPreference` reminder migrations; unified group workspace access in `TutorService.getChunkDetail` & `QuizzesService.getDocumentQuizzes`; wired `/api/v1/auth/preferences` end-to-end in `SettingsPage`.
   - Local Development Environment, Background Rendering, Port Separation, CORS & Redis Resilience:
     - Fixed `-z-10` background occlusion by adding `isolate` stacking contexts and placed `library-cozy-bg.jpg` in `apps/web/public/images/`.
     - Separated `@lernivox/worker` HTTP control server onto `WORKER_PORT=4001` in non-production so `@lernivox/api` owns `4000` cleanly.
