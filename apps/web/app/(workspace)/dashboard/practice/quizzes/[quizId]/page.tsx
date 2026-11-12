@@ -405,7 +405,7 @@ export default function QuizTakingPage({ params }: PageProps) {
                         <BookOpen className="w-3 h-3" />
                         <span>Source Citation {q.pageNumber ? `(Page ${q.pageNumber})` : ''}</span>
                       </div>
-                      <p className="italic text-[#14261D]/80">"{q.sourceExcerpt}"</p>
+                      <p className="italic text-[#14261D]/80">&quot;{q.sourceExcerpt}&quot;</p>
                     </div>
 
                     {result.documentId && q.pageNumber && (

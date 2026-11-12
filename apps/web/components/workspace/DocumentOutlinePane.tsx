@@ -284,7 +284,7 @@ function DocumentOutlinePaneComponent({
                     </div>
                     {bm.snippet && (
                       <p className="font-serif text-[11px] text-[#14261D]/70 line-clamp-2 italic">
-                        "{bm.snippet}"
+                        &quot;{bm.snippet}&quot;
                       </p>
                     )}
                   </button>

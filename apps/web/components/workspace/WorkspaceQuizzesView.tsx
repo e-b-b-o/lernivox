@@ -363,7 +363,7 @@ export function WorkspaceQuizzesView({
                       Missed {fq.failCount} {fq.failCount === 1 ? 'time' : 'times'}
                     </span>
                     <div className="font-sans text-[11px] text-[#14261D]/50 flex items-center gap-1">
-                      <span className="truncate max-w-[140px]">From "{fq.quizTitle}"</span>
+                      <span className="truncate max-w-[140px]">From &quot;{fq.quizTitle}&quot;</span>
                       {fq.pageNumber && (
                         <button
                           type="button"
@@ -445,7 +445,7 @@ export function WorkspaceQuizzesView({
             </div>
 
             <p className="font-sans text-xs text-[#14261D]/80 leading-relaxed">
-              Are you sure you want to delete <strong className="text-[#14261D]">"{quizToDelete.title}"</strong>?
+              Are you sure you want to delete <strong className="text-[#14261D]">&quot;{quizToDelete.title}&quot;</strong>?
             </p>
 
             {/* Assessment Preservation Notice */}

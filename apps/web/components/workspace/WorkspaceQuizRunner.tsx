@@ -362,7 +362,7 @@ export function WorkspaceQuizRunner({
                         <Quote className="w-3 h-3 text-[#14261D]/40 shrink-0 mt-0.5" />
                         <div className="flex-1">
                           <p className="italic text-[#14261D]/85 font-serif text-[10.5px]">
-                            "{q.sourceExcerpt}"
+                            &quot;{q.sourceExcerpt}&quot;
                           </p>
                           {q.pageNumber && (
                             <button

@@ -17,6 +17,7 @@
     "infra:logs": "docker compose -f infra/docker/docker-compose.yml logs -f"
   },
   "devDependencies": {
+    "eslint": "^8.57.1",
     "prettier": "^3.4.2",
     "turbo": "^2.11.10",
     "typescript": "^5.7.0"
