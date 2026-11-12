@@ -1,4 +1,4 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import {
@@ -14,7 +14,11 @@ import { FlashcardGenerationProcessor } from './flashcard-generation.processor';
  * Dispatches incoming jobs strictly by job.name to prevent competing worker
  * collisions and job stealing between quiz and flashcard pipelines.
  */
-@Processor(QueueName.AI_ORCHESTRATION)
+@Processor(QueueName.AI_ORCHESTRATION, {
+  concurrency: 1,
+  lockDuration: 90000,
+  stalledInterval: 30000,
+})
 export class AiOrchestrationProcessor extends WorkerHost {
   private readonly logger = new Logger(AiOrchestrationProcessor.name);
 
@@ -23,6 +27,27 @@ export class AiOrchestrationProcessor extends WorkerHost {
     private readonly flashcardProcessor: FlashcardGenerationProcessor,
   ) {
     super();
+  }
+
+  @OnWorkerEvent('active')
+  onActive(job: Job): void {
+    this.logger.log(
+      `Worker picked up AI job [queue=${QueueName.AI_ORCHESTRATION}, jobId=${job.id}, name=${job.name}, attempt=${(job.attemptsMade ?? 0) + 1}]`,
+    );
+  }
+
+  @OnWorkerEvent('failed')
+  onFailed(job: Job | undefined, error: Error): void {
+    this.logger.error(
+      `AI orchestration job failed [queue=${QueueName.AI_ORCHESTRATION}, jobId=${job?.id ?? 'unknown'}, name=${job?.name ?? 'unknown'}]: ${error?.message || 'Unknown error'}`,
+    );
+  }
+
+  @OnWorkerEvent('error')
+  onError(error: Error): void {
+    this.logger.error(
+      `AI orchestration worker error [queue=${QueueName.AI_ORCHESTRATION}]: ${error?.message || 'Unknown error'}`,
+    );
   }
 
   async process(job: Job): Promise<JobExecutionResult> {

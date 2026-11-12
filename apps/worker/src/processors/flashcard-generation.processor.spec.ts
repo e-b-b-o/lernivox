@@ -105,4 +105,24 @@ describe('FlashcardGenerationProcessor', () => {
     expect(result.success).toBe(false);
     expect(result.error?.code).toBe('DOCUMENT_NOT_FOUND');
   });
+
+  it('re-throws transient execution errors so BullMQ retries can execute', async () => {
+    mockPrisma.documentChunk.findMany.mockRejectedValue(new Error('Upstream AI timeout'));
+
+    const mockJob = {
+      id: 'job-fc-retry',
+      attemptsMade: 0,
+      opts: { attempts: 2 },
+      data: {
+        deckId: 'deck-retry',
+        userId: 'user-1',
+        workspaceId: 'ws-1',
+        documentId: 'doc-123',
+        title: 'Retry Deck',
+        cardCount: 5,
+      } as GenerateFlashcardsJobPayload,
+    } as unknown as Job<GenerateFlashcardsJobPayload, JobExecutionResult>;
+
+    await expect(processor.process(mockJob)).rejects.toThrow('Upstream AI timeout');
+  });
 });

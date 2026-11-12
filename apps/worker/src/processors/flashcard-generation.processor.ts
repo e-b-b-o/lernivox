@@ -179,15 +179,7 @@ export class FlashcardGenerationProcessor {
       });
 
       if (!genResult.success || genResult.cards.length === 0) {
-        return {
-          success: false,
-          jobId: job.id ?? 'unknown',
-          durationMs: Date.now() - startTime,
-          error: {
-            code: 'GENERATION_FAILED',
-            message: genResult.error || 'Failed to generate flashcards.',
-          },
-        };
+        throw new Error(genResult.error || 'Failed to generate flashcards.');
       }
 
       // 5. Persist flashcard items in database
@@ -227,17 +219,18 @@ export class FlashcardGenerationProcessor {
           cardCount: genResult.cards.length,
         },
       };
-    } catch (error: any) {
-      this.logger.error(`[Job ${job.id}] Flashcard generation error: ${error.message}`, error.stack);
-      return {
-        success: false,
-        jobId: job.id ?? 'unknown',
-        durationMs: Date.now() - startTime,
-        error: {
-          code: 'EXECUTION_ERROR',
-          message: error.message || 'Flashcard generation failed.',
-        },
-      };
+    } catch (error: unknown) {
+      const rawMessage = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+      const maxAttempts = job.opts?.attempts ?? 1;
+      const currentAttempt = (job.attemptsMade ?? 0) + 1;
+
+      this.logger.error(
+        `[Job ${job.id}] Flashcard generation error (attempt ${currentAttempt}/${maxAttempts}): ${rawMessage}`,
+        stack,
+      );
+
+      throw error instanceof Error ? error : new Error(rawMessage);
     }
   }
 }

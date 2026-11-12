@@ -169,4 +169,30 @@ describe('DocumentIngestionProcessor', () => {
       process.env.NODE_ENV = origEnv;
     }
   });
+
+  it('skips duplicate processing cleanly when document is already READY', async () => {
+    mockPrisma.document.findUnique = (jest.fn() as any).mockResolvedValue({
+      status: 'READY',
+      pageCount: 12,
+      totalTokens: 2400,
+    });
+
+    const mockJob = {
+      id: 'ingest-doc-already-ready',
+      attemptsMade: 0,
+      data: {
+        documentId: 'doc-already-ready',
+        storagePath: 'documents/user-1/doc.txt',
+        mimeType: 'text/plain',
+        userId: 'user-1',
+      } as DocumentIngestionJobPayload,
+    } as unknown as Job<DocumentIngestionJobPayload, JobExecutionResult>;
+
+    const result = await processor.process(mockJob);
+
+    expect(result.success).toBe(true);
+    expect((result.data as any)?.status).toBe('READY');
+    expect(mockStorage.download).not.toHaveBeenCalled();
+    expect(mockPrisma.document.update).not.toHaveBeenCalled();
+  });
 });

@@ -154,4 +154,52 @@ describe('QuizGenerationProcessor', () => {
       },
     });
   });
+
+  it('re-throws unexpected errors without marking FAILED while BullMQ retries remain', async () => {
+    mockPrisma.documentChunk.findMany.mockRejectedValue(new Error('Transient DB error'));
+
+    const mockJob = {
+      id: 'job-quiz-retry-1',
+      attemptsMade: 0,
+      opts: { attempts: 2 },
+      data: {
+        quizId: 'quiz-retry',
+        userId: 'user-1',
+        documentId: 'doc-123',
+        numQuestions: 3,
+        difficulty: 'BEGINNER',
+        questionTypes: ['MULTIPLE_CHOICE'],
+      } as GenerateQuizJobPayload,
+    } as unknown as Job<GenerateQuizJobPayload, JobExecutionResult>;
+
+    await expect(processor.process(mockJob)).rejects.toThrow('Transient DB error');
+    expect(mockPrisma.quiz.update).not.toHaveBeenCalled();
+  });
+
+  it('marks quiz FAILED and re-throws when the final BullMQ attempt fails', async () => {
+    mockPrisma.documentChunk.findMany.mockRejectedValue(new Error('429 rate limit exceeded'));
+
+    const mockJob = {
+      id: 'job-quiz-retry-2',
+      attemptsMade: 1,
+      opts: { attempts: 2 },
+      data: {
+        quizId: 'quiz-retry-final',
+        userId: 'user-1',
+        documentId: 'doc-123',
+        numQuestions: 3,
+        difficulty: 'BEGINNER',
+        questionTypes: ['MULTIPLE_CHOICE'],
+      } as GenerateQuizJobPayload,
+    } as unknown as Job<GenerateQuizJobPayload, JobExecutionResult>;
+
+    await expect(processor.process(mockJob)).rejects.toThrow('429 rate limit exceeded');
+    expect(mockPrisma.quiz.update).toHaveBeenCalledWith({
+      where: { id: 'quiz-retry-final' },
+      data: {
+        status: 'FAILED',
+        errorMessage: 'AI provider quota or rate limit reached. Please wait a moment and retry.',
+      },
+    });
+  });
 });

@@ -209,22 +209,7 @@ export class QuizGenerationProcessor {
       });
 
       if (!genResult.success || genResult.questions.length === 0) {
-        await this.prisma.quiz.update({
-          where: { id: quizId },
-          data: {
-            status: 'FAILED',
-            errorMessage: genResult.error || 'Failed to generate questions from passages.',
-          },
-        });
-        return {
-          success: false,
-          jobId: job.id ?? 'unknown',
-          durationMs: Date.now() - startTime,
-          error: {
-            code: 'GENERATION_FAILED',
-            message: genResult.error || 'Failed to generate questions.',
-          },
-        };
+        throw new Error(genResult.error || 'Failed to generate questions from passages.');
       }
 
       // 5. Persist questions and options in Prisma transaction
@@ -288,38 +273,43 @@ export class QuizGenerationProcessor {
           status: 'READY',
         },
       };
-    } catch (error: any) {
-      this.logger.error(`[Job ${job.id}] Quiz generation error: ${error.message}`, error.stack);
-      try {
-        let userMessage = error.message || 'An unexpected error occurred during quiz generation.';
-        if (
-          userMessage.includes('429') ||
-          userMessage.includes('Resource has been exhausted') ||
-          userMessage.includes('rate limit') ||
-          userMessage.includes('RESOURCE_EXHAUSTED')
-        ) {
-          userMessage = 'AI provider quota or rate limit reached. Please wait a moment and retry.';
+    } catch (error: unknown) {
+      const rawMessage = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+      const maxAttempts = job.opts?.attempts ?? 1;
+      const currentAttempt = (job.attemptsMade ?? 0) + 1;
+      const isFinalAttempt = currentAttempt >= maxAttempts;
+
+      this.logger.error(
+        `[Job ${job.id}] Quiz generation error (attempt ${currentAttempt}/${maxAttempts}): ${rawMessage}`,
+        stack,
+      );
+
+      // Keep quiz in GENERATING while BullMQ retries remain; persist FAILED only on the final attempt
+      if (isFinalAttempt && quizId) {
+        try {
+          let userMessage = rawMessage || 'An unexpected error occurred during quiz generation.';
+          if (
+            userMessage.includes('429') ||
+            userMessage.includes('Resource has been exhausted') ||
+            userMessage.includes('rate limit') ||
+            userMessage.includes('RESOURCE_EXHAUSTED')
+          ) {
+            userMessage = 'AI provider quota or rate limit reached. Please wait a moment and retry.';
+          }
+          await this.prisma.quiz.update({
+            where: { id: quizId },
+            data: {
+              status: 'FAILED',
+              errorMessage: userMessage,
+            },
+          });
+        } catch (dbErr) {
+          this.logger.error(`Failed to update quiz failure status: ${dbErr}`);
         }
-        await this.prisma.quiz.update({
-          where: { id: quizId },
-          data: {
-            status: 'FAILED',
-            errorMessage: userMessage,
-          },
-        });
-      } catch (dbErr) {
-        this.logger.error(`Failed to update quiz failure status: ${dbErr}`);
       }
 
-      return {
-        success: false,
-        jobId: job.id ?? 'unknown',
-        durationMs: Date.now() - startTime,
-        error: {
-          code: 'EXECUTION_ERROR',
-          message: error.message || 'Quiz generation failed.',
-        },
-      };
+      throw error instanceof Error ? error : new Error(rawMessage);
     }
   }
 }

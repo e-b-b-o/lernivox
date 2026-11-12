@@ -1,4 +1,4 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Inject, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Job } from 'bullmq';
@@ -23,7 +23,12 @@ async function streamToBuffer(stream: Readable): Promise<Buffer> {
   return Buffer.concat(chunks);
 }
 
-@Processor(QueueName.DOCUMENT_INGESTION)
+@Processor(QueueName.DOCUMENT_INGESTION, {
+  concurrency: 1,
+  lockDuration: 120000,
+  stalledInterval: 30000,
+  maxStalledCount: 2,
+})
 export class DocumentIngestionProcessor extends WorkerHost {
   private readonly logger = new Logger(DocumentIngestionProcessor.name);
 
@@ -33,6 +38,41 @@ export class DocumentIngestionProcessor extends WorkerHost {
     private readonly config: ConfigService,
   ) {
     super();
+  }
+
+  @OnWorkerEvent('active')
+  onActive(job: Job<DocumentIngestionJobPayload, JobExecutionResult>): void {
+    this.logger.log(
+      `Worker picked up job [queue=${QueueName.DOCUMENT_INGESTION}, jobId=${job.id}, documentId=${job.data?.documentId ?? 'unknown'}, attempt=${(job.attemptsMade ?? 0) + 1}]`,
+    );
+  }
+
+  @OnWorkerEvent('completed')
+  onCompleted(job: Job<DocumentIngestionJobPayload, JobExecutionResult>): void {
+    this.logger.log(
+      `Worker completed job [queue=${QueueName.DOCUMENT_INGESTION}, jobId=${job.id}, documentId=${job.data?.documentId ?? 'unknown'}]`,
+    );
+  }
+
+  @OnWorkerEvent('failed')
+  onFailed(job: Job<DocumentIngestionJobPayload, JobExecutionResult> | undefined, error: Error): void {
+    this.logger.error(
+      `Worker job failed [queue=${QueueName.DOCUMENT_INGESTION}, jobId=${job?.id ?? 'unknown'}, documentId=${job?.data?.documentId ?? 'unknown'}, attemptsMade=${job?.attemptsMade ?? 0}]: ${error?.message || 'Unknown error'}`,
+    );
+  }
+
+  @OnWorkerEvent('stalled')
+  onStalled(jobId: string): void {
+    this.logger.warn(
+      `Worker job stalled [queue=${QueueName.DOCUMENT_INGESTION}, jobId=${jobId}]. Re-queuing if attempts remain.`,
+    );
+  }
+
+  @OnWorkerEvent('error')
+  onWorkerError(error: Error): void {
+    this.logger.error(
+      `Worker queue listener error [queue=${QueueName.DOCUMENT_INGESTION}]: ${error?.message || 'Unknown error'}`,
+    );
   }
 
   private async updateDocumentProgress(
@@ -93,9 +133,34 @@ export class DocumentIngestionProcessor extends WorkerHost {
   ): Promise<JobExecutionResult> {
     const startTime = Date.now();
     const { documentId, storagePath, mimeType } = job.data;
-    this.logger.log(`[Job ${job.id}] Starting ingestion for document: ${documentId}`);
+    this.logger.log(
+      `[Job ${job.id}] Starting ingestion [queue=${QueueName.DOCUMENT_INGESTION}, documentId=${documentId}, attempt=${(job.attemptsMade ?? 0) + 1}]`,
+    );
 
     try {
+      // Idempotency guard: if already marked READY in DB, skip duplicate processing cleanly
+      if (typeof this.prisma.document?.findUnique === 'function') {
+        const existingDoc = await this.prisma.document.findUnique({
+          where: { id: documentId },
+          select: { status: true, pageCount: true, totalTokens: true },
+        });
+        if (existingDoc?.status === 'READY') {
+          const durationMs = Date.now() - startTime;
+          this.logger.log(`[Job ${job.id}] Document ${documentId} is already READY. Skipping duplicate run.`);
+          return {
+            success: true,
+            jobId: String(job.id),
+            durationMs,
+            data: {
+              documentId,
+              status: 'READY',
+              pageCount: existingDoc.pageCount ?? null,
+              totalTokens: existingDoc.totalTokens ?? null,
+            },
+          };
+        }
+      }
+
       // 1. Mark status as PROCESSING / QUEUED (5%)
       await this.updateDocumentProgress(documentId, job, {
         status: 'PROCESSING',

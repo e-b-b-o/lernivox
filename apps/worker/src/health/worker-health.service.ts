@@ -52,8 +52,17 @@ export class WorkerHealthService implements OnApplicationBootstrap, OnApplicatio
       client.on('ready', () => {
         if (!this.ready) {
           this.ready = true;
-          this.logger.log(`Redis connection established (${status.redisHost}:${status.redisPort}). Worker is ready.`);
+          this.logger.log(
+            `Redis connection established (${status.redisHost}:${status.redisPort}, queue=${QueueName.DOCUMENT_INGESTION}). Worker is ready to consume jobs.`,
+          );
         }
+      });
+
+      client.on('reconnecting', () => {
+        this.ready = false;
+        this.logger.warn(
+          `Redis reconnecting (${status.redisHost}:${status.redisPort}, queue=${QueueName.DOCUMENT_INGESTION}). Readiness temporarily paused.`,
+        );
       });
 
       client.on('close', () => {
