@@ -190,4 +190,81 @@ describe('WorkerWakeService', () => {
     service.wake('second-upload-soon-after');
     expect(mockFetch).toHaveBeenCalledTimes(1); // Still 1!
   });
+
+  it('polls /readyz after receiving 202 waking and confirms ready only on 200 readyz', async () => {
+    let callCount = 0;
+    const mockFetch = (jest.fn() as any).mockImplementation(async (url: string) => {
+      callCount += 1;
+      if (url.endsWith('/internal/wake')) {
+        return { status: 202, statusText: 'Accepted' };
+      }
+      if (url.endsWith('/readyz') && callCount === 2) {
+        return {
+          status: 503,
+          json: async () => ({ status: 'not_ready', details: { ready: false } }),
+        };
+      }
+      return {
+        status: 200,
+        json: async () => ({ status: 'ready', uptime: 12, details: { ready: true } }),
+      };
+    });
+    global.fetch = mockFetch as unknown as typeof fetch;
+
+    const service = createService('https://worker.onrender.com', 'secret');
+    const result = await service.executeWakeWithRetries('cold-start-202', 1, 0, {
+      readinessPollIntervalMs: 5,
+      maxWakeWindowMs: 5000,
+    });
+
+    expect(result).toBe(true);
+    expect(callCount).toBe(3);
+    expect(service.getWorkerConfirmedActiveAt()).toBeGreaterThan(0);
+    expect(service.getWakeTelemetry().state).toBe('ready');
+  });
+
+  it('does not mark worker confirmed active when /readyz returns 503', async () => {
+    const mockFetch = (jest.fn() as any).mockResolvedValue({
+      status: 503,
+      json: async () => ({ status: 'not_ready', details: { ready: false } }),
+    });
+    global.fetch = mockFetch as unknown as typeof fetch;
+
+    const service = createService('https://worker.onrender.com', 'secret');
+    const ready = await service.probeWorkerHealth();
+
+    expect(ready).toBe(false);
+    expect(service.getWorkerConfirmedActiveAt()).toBe(0);
+    expect(service.getWakeTelemetry().lastErrorCategory).toBe('REDIS_NOT_READY');
+  });
+
+  it('respects 429 Retry-After and recovers via /readyz probe', async () => {
+    let callCount = 0;
+    const mockFetch = (jest.fn() as any).mockImplementation(async (url: string) => {
+      callCount += 1;
+      if (url.endsWith('/internal/wake')) {
+        return {
+          status: 429,
+          statusText: 'Too Many Requests',
+          headers: new Map([
+            ['retry-after', '10'],
+            ['server', 'cloudflare'],
+          ]),
+          text: async () => 'Rate limited',
+        };
+      }
+      return {
+        status: 200,
+        json: async () => ({ status: 'ready', uptime: 45, details: { ready: true } }),
+      };
+    });
+    global.fetch = mockFetch as unknown as typeof fetch;
+
+    const service = createService('https://worker.onrender.com', 'secret');
+    const result = await service.executeWakeWithRetries('rate-limit-test', 1, 0);
+
+    expect(result).toBe(true);
+    expect(callCount).toBe(2);
+    expect(service.getWakeTelemetry().state).toBe('ready');
+  });
 });

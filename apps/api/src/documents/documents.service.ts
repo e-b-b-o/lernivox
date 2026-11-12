@@ -261,32 +261,75 @@ export class DocumentsService {
       },
     });
 
-    // Enqueue BullMQ background ingestion job
+    // Enqueue BullMQ background ingestion job with deterministic jobId for deduplication
+    const jobPayload: DocumentIngestionJobPayload = {
+      documentId: document.id,
+      userId: user.id,
+      storagePath: storageKey,
+      originalFileName: file.originalname,
+      mimeType: file.mimetype,
+      fileSizeBytes: file.size,
+    };
+    const jobId = `ingest-${document.id}`;
+    const jobOpts = {
+      jobId,
+      attempts: 3,
+      backoff: { type: 'exponential' as const, delay: 2000 },
+      removeOnComplete: true,
+      removeOnFail: 3,
+    };
+
     try {
-      await this.ingestionQueue.add(
-        'process-document',
-        {
-          documentId: document.id,
-          userId: user.id,
-          storagePath: storageKey,
-          originalFileName: file.originalname,
-          mimeType: file.mimetype,
-          fileSizeBytes: file.size,
-        },
-        {
-          attempts: 3,
-          backoff: { type: 'exponential', delay: 2000 },
-          removeOnComplete: true,
-        },
+      await this.enqueueWithSingleRetry(jobPayload, jobOpts, document.id);
+      this.logger.log(
+        `Enqueued ingestion job [jobId=${jobId}, documentId=${document.id}, queue=${QueueName.DOCUMENT_INGESTION}]`,
       );
-      this.logger.log(`Enqueued ingestion job for document ${document.id}`);
       this.workerWakeService?.wake('document-upload');
     } catch (err) {
-      this.logger.error(`Failed to enqueue ingestion job for document ${document.id}`, err);
-      // Even if queue dispatch fails temporarily, document is safely recorded as UPLOADED
+      this.logger.error(
+        `Failed to enqueue ingestion job [jobId=${jobId}, documentId=${document.id}]: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      await this.markEnqueuePendingRetry(document.id);
     }
 
     return this.sanitizeDocument(document);
+  }
+
+  private async enqueueWithSingleRetry(
+    payload: DocumentIngestionJobPayload,
+    options: {
+      jobId: string;
+      attempts: number;
+      backoff: { type: 'exponential'; delay: number };
+      removeOnComplete: boolean;
+      removeOnFail?: number;
+    },
+    documentId: string,
+  ): Promise<void> {
+    try {
+      await this.ingestionQueue.add('process-document', payload, options);
+    } catch (firstErr) {
+      this.logger.warn(
+        `Transient queue add failure for document ${documentId}; retrying once in 400ms: ${firstErr instanceof Error ? firstErr.message : String(firstErr)}`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      await this.ingestionQueue.add('process-document', payload, options);
+    }
+  }
+
+  private async markEnqueuePendingRetry(documentId: string): Promise<void> {
+    try {
+      await this.prisma.document.update({
+        where: { id: documentId },
+        data: {
+          processingStage: 'ENQUEUE_FAILED',
+          processingMessage:
+            'Saved safely, but queue dispatch failed temporarily. Use Retry processing to re-queue.',
+        },
+      });
+    } catch {
+      // ignore fallback status update errors
+    }
   }
 
   async createFromText(
@@ -349,27 +392,37 @@ export class DocumentsService {
       },
     });
 
+    const textJobPayload: DocumentIngestionJobPayload = {
+      documentId: document.id,
+      userId: user.id,
+      storagePath: storageKey,
+      originalFileName: 'pasted_text.txt',
+      mimeType: 'text/plain',
+      fileSizeBytes: buffer.length,
+    };
+    const textJobId = `ingest-${document.id}`;
+
     try {
-      await this.ingestionQueue.add(
-        'process-document',
+      await this.enqueueWithSingleRetry(
+        textJobPayload,
         {
-          documentId: document.id,
-          userId: user.id,
-          storagePath: storageKey,
-          originalFileName: 'pasted_text.txt',
-          mimeType: 'text/plain',
-          fileSizeBytes: buffer.length,
-        },
-        {
+          jobId: textJobId,
           attempts: 3,
           backoff: { type: 'exponential', delay: 2000 },
           removeOnComplete: true,
+          removeOnFail: 3,
         },
+        document.id,
       );
-      this.logger.log(`Enqueued ingestion job for pasted text document ${document.id}`);
+      this.logger.log(
+        `Enqueued ingestion job for pasted text [jobId=${textJobId}, documentId=${document.id}, queue=${QueueName.DOCUMENT_INGESTION}]`,
+      );
       this.workerWakeService?.wake('pasted-text-upload');
     } catch (err) {
-      this.logger.error(`Failed to enqueue text ingestion job for document ${document.id}`, err);
+      this.logger.error(
+        `Failed to enqueue text ingestion job [jobId=${textJobId}, documentId=${document.id}]: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      await this.markEnqueuePendingRetry(document.id);
     }
 
     return this.sanitizeDocument(document);
@@ -399,17 +452,32 @@ export class DocumentsService {
     const isComplete = document.status === 'READY';
     const isFailed = document.status === 'FAILED';
 
-    // If document is in an incomplete ingestion state, trigger a throttled wake attempt
+    // If document is in an incomplete ingestion state, trigger a throttled wake attempt (read-only on queue)
     if (!isComplete && !isFailed) {
-      this.workerWakeService?.wakeThrottled('document-status-poll');
+      this.workerWakeService?.wakeThrottled('document-status-poll', 25000);
     }
+
+    const isWorkerWaking =
+      !isComplete &&
+      !isFailed &&
+      document.status === 'UPLOADED' &&
+      (document.processingProgress ?? 0) === 0 &&
+      document.processingStage !== 'ENQUEUE_FAILED' &&
+      Boolean(this.workerWakeService?.isWaking?.());
+
+    const resolvedStage = isWorkerWaking
+      ? 'WORKER_STARTING'
+      : (document.processingStage ?? (isComplete ? 'READY' : document.status));
+    const resolvedMessage = isWorkerWaking
+      ? 'Starting background worker (cold start may take up to 90s)...'
+      : (document.processingMessage ?? (isComplete ? 'Processing complete.' : ''));
 
     return {
       documentId: document.id,
       status: document.status as DocumentStatusDto['status'],
       progress: document.processingProgress ?? (isComplete ? 100 : 0),
-      stage: document.processingStage ?? (isComplete ? 'READY' : document.status),
-      message: document.processingMessage ?? (isComplete ? 'Processing complete.' : ''),
+      stage: resolvedStage,
+      message: resolvedMessage,
       completedUnits: document.completedUnits ?? null,
       totalUnits: document.totalUnits ?? null,
       isComplete,
@@ -517,10 +585,22 @@ export class DocumentsService {
       throw new BadRequestException('This book has already been processed successfully.');
     }
 
-    // Clean up any failed, waiting, or delayed BullMQ jobs for this document
+    const retryJobId = `ingest-${documentId}`;
+
+    // Clean up any existing BullMQ job with this deterministic ID or documentId before re-enqueueing
     try {
+      if (typeof this.ingestionQueue?.getJob === 'function') {
+        const directJob = await this.ingestionQueue.getJob(retryJobId);
+        if (directJob) {
+          const jobState = typeof directJob.getState === 'function' ? await directJob.getState() : 'unknown';
+          if (jobState !== 'active') {
+            await directJob.remove();
+            this.logger.log(`Removed previous job ${directJob.id} (state=${jobState}) for retried document ${documentId}`);
+          }
+        }
+      }
       if (typeof this.ingestionQueue?.getJobs === 'function') {
-        const existingJobs = await this.ingestionQueue.getJobs(['waiting', 'delayed', 'active', 'failed']);
+        const existingJobs = await this.ingestionQueue.getJobs(['waiting', 'delayed', 'failed', 'completed']);
         for (const job of existingJobs) {
           if (job.data?.documentId === documentId) {
             await job.remove();
@@ -529,7 +609,9 @@ export class DocumentsService {
         }
       }
     } catch (queueErr) {
-      this.logger.warn(`Failed to clean up queue jobs for retried document ${documentId}: ${queueErr}`);
+      this.logger.warn(
+        `Failed to clean up queue jobs for retried document ${documentId}: ${queueErr instanceof Error ? queueErr.message : String(queueErr)}`,
+      );
     }
 
     // Update document status in database to UPLOADED with QUEUED stage
@@ -560,15 +642,19 @@ export class DocumentsService {
           fileSizeBytes: document.sizeBytes,
         },
         {
+          jobId: retryJobId,
           attempts: 3,
           backoff: {
             type: 'exponential',
             delay: 2000,
           },
           removeOnComplete: true,
+          removeOnFail: 3,
         },
       );
-      this.logger.log(`Re-queued ingestion job for document ${document.id} (${document.title})`);
+      this.logger.log(
+        `Re-queued ingestion job [jobId=${retryJobId}, documentId=${document.id}, queue=${QueueName.DOCUMENT_INGESTION}]`,
+      );
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : String(err);
       this.logger.error(`Failed to re-enqueue document ${documentId}: ${errMsg}`);
