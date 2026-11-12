@@ -51,49 +51,40 @@ export function InlineLoader({
 }
 
 /**
- * Skeleton placeholder for a single 3D Book Card on the dashboard.
- * Mirrors the exact book aspect ratio (1/1.45), spine crease, and card spacing of `BookCard`.
+ * Skeleton placeholder for a single Reference Book Card on the dashboard.
+ * Mirrors the integrated cover + cream info strip card proportions of `BookCard`.
  */
 export function BookCardSkeleton() {
   return (
     <div
       aria-hidden="true"
-      className="w-full min-w-0 max-w-full flex flex-col select-none"
+      className="w-full min-w-0 max-w-full rounded-xl sm:rounded-2xl overflow-hidden bg-[#FAF6EE] border-[1.5px] border-[#1B3428]/15 shadow-[0_6px_18px_rgba(20,38,29,0.06)] flex flex-col select-none"
     >
-      {/* 1. PHYSICAL 3D BOOK COVER PLACEHOLDER */}
-      <div className="relative w-full aspect-[1/1.45] rounded-l-xs rounded-r-xl p-3 sm:p-4 flex flex-col justify-between overflow-hidden bg-[#FAF8F4] border-[1.5px] border-[#1B3428]/20 border-r-[4px] border-r-[#FAF8F4]/80 shadow-[0_4px_12px_rgba(27,52,40,0.08),inset_-2px_0_4px_rgba(0,0,0,0.1)]">
-        {/* Spine Crease Accent */}
-        <div className="absolute top-0 left-0 bottom-0 w-3 sm:w-4 bg-gradient-to-r from-black/15 via-black/5 to-transparent border-r border-[#1B3428]/10" />
-
-        {/* Top Meta Row inside Book */}
-        <div className="flex items-start justify-between gap-1 pl-2 sm:pl-3">
-          <div className="flex items-center gap-1.5">
-            <Skeleton className="h-4 w-9 rounded-md bg-[#1B3428]/15" />
-            <Skeleton className="h-4 w-14 rounded-md bg-[#1B3428]/10" />
-          </div>
-          <div className="w-2.5 sm:w-3.5 h-4 sm:h-5 bg-[#E8722C]/40 rounded-b-xs" />
+      {/* 1. COVER PLACEHOLDER */}
+      <div className="relative w-full min-h-[146px] xs:min-h-[164px] sm:min-h-[205px] p-3 xs:p-3.5 sm:p-5 flex flex-col justify-between overflow-hidden bg-[#1B3C2D]/15">
+        <div className="flex items-start justify-between gap-2">
+          <Skeleton className="h-4 sm:h-5 w-9 sm:w-11 rounded bg-[#1B3428]/15" />
+          <div className="w-3.5 sm:w-4 h-5 sm:h-6 bg-[#E8722C]/35 rounded-b-xs" />
         </div>
-
-        {/* Center: Book Title Lines */}
-        <div className="my-auto pl-2 sm:pl-3 pr-1.5 space-y-2">
-          <Skeleton className="h-3.5 w-[85%] rounded bg-[#1B3428]/20" />
-          <Skeleton className="h-3 w-[60%] rounded bg-[#1B3428]/15" />
-          <Skeleton className="h-2.5 w-[40%] rounded bg-[#1B3428]/10 mt-1" />
-        </div>
-
-        {/* Bottom Meta inside Cover */}
-        <div className="pl-2 sm:pl-3 pt-1 border-t border-[#1B3428]/10 flex items-center justify-between">
-          <Skeleton className="h-2.5 w-12 rounded bg-[#1B3428]/15" />
-          <Skeleton className="h-2.5 w-8 rounded bg-[#1B3428]/15" />
+        <div className="space-y-1.5 sm:space-y-2 mt-auto pt-4 sm:pt-8">
+          <Skeleton className="h-3.5 sm:h-4 w-[82%] rounded bg-[#1B3428]/20" />
+          <Skeleton className="h-2.5 sm:h-3 w-[52%] rounded bg-[#1B3428]/15" />
         </div>
       </div>
 
-      {/* 2. CARD METADATA BELOW BOOK */}
-      <div className="mt-2.5 px-0.5 space-y-1.5">
-        <Skeleton className="h-3.5 w-3/4 rounded bg-[#1B3428]/15" />
-        <div className="flex items-center justify-between gap-2 pt-0.5">
-          <Skeleton className="h-2 w-full rounded-full bg-[#1B3428]/10" />
-          <Skeleton className="h-2.5 w-7 shrink-0 rounded bg-[#1B3428]/15" />
+      {/* 2. CREAM INFO STRIP PLACEHOLDER */}
+      <div className="bg-[#FAF6EE] px-2.5 py-2.5 xs:px-3 xs:py-3 sm:px-5 sm:py-4 space-y-2.5 sm:space-y-3 border-t border-[#1B3428]/10">
+        <div className="space-y-1.5 min-h-[2rem] sm:min-h-[2.5rem]">
+          <Skeleton className="h-3.5 sm:h-4 w-[85%] rounded bg-[#1B3428]/15" />
+          <Skeleton className="h-3 sm:h-3.5 w-[55%] rounded bg-[#1B3428]/10" />
+        </div>
+        <div className="flex items-center gap-2 min-h-[1.25rem] sm:min-h-[1.5rem]">
+          <Skeleton className="h-1.5 flex-1 rounded-full bg-[#1B3428]/10" />
+          <Skeleton className="h-3 w-6 sm:w-7 rounded bg-[#1B3428]/15" />
+        </div>
+        <div className="pt-2 sm:pt-3 border-t border-[#1B3428]/10 flex items-center justify-between">
+          <Skeleton className="h-3 w-16 sm:w-24 rounded bg-[#1B3428]/10" />
+          <Skeleton className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-[#1B3C2D]/20" />
         </div>
       </div>
     </div>
@@ -102,7 +93,7 @@ export function BookCardSkeleton() {
 
 /**
  * Full Dashboard Skeleton that matches `MyBooksDashboardContent`.
- * Renders header, search/filter bar, and responsive book grid with 5 items.
+ * Renders header, search/filter bar, and responsive reference book grid.
  */
 export function DashboardSkeleton() {
   return (
@@ -111,10 +102,10 @@ export function DashboardSkeleton() {
       aria-busy="true"
       className="space-y-6 sm:space-y-8 animate-fadeIn"
     >
-      {/* Header Row: Title, Subtitle, and Add Material Button */}
+      {/* Header Row: My BOOKS heading and Add Material Button */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-[#1B3428]/10">
-        <div className="space-y-2">
-          <Skeleton className="h-8 sm:h-9 w-40 sm:w-48 rounded-xl bg-[#1B3428]/20" />
+        <div className="space-y-2.5">
+          <Skeleton className="h-10 sm:h-12 w-48 sm:w-56 rounded-xl bg-[#4A7D64]/25" />
           <Skeleton className="h-4 w-64 sm:w-80 rounded-md bg-[#1B3428]/15" />
         </div>
         <Skeleton className="h-10 w-36 rounded-full bg-[#E8722C]/40" />
@@ -131,16 +122,14 @@ export function DashboardSkeleton() {
         </div>
       </div>
 
-      {/* Section 1: "My Books" Header + Responsive Cards Grid */}
+      {/* Responsive Grid matching BookCard layout */}
       <section className="space-y-4">
         <div className="flex items-center gap-2">
           <Skeleton className="h-6 w-24 rounded-lg bg-[#1B3428]/20" />
           <Skeleton className="h-5 w-7 rounded-full bg-[#1B3428]/10" />
         </div>
 
-        {/* Responsive Grid matching BookCard layout */}
-        <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-          <BookCardSkeleton />
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 xs:gap-3.5 sm:gap-5 lg:gap-6">
           <BookCardSkeleton />
           <BookCardSkeleton />
           <BookCardSkeleton />

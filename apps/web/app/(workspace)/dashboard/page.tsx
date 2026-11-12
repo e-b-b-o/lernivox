@@ -261,25 +261,112 @@ function MyBooksDashboardContent() {
     void loadWorkspaces(false);
   }, [accessToken, user, loadWorkspaces]);
 
-  // Polling for processing materials: check every 3s if any book is ingesting
+  const latestWorkspacesRef = useRef(workspacesData);
   useEffect(() => {
-    if (!accessToken) return;
+    latestWorkspacesRef.current = workspacesData;
+  }, [workspacesData]);
 
+  // Bounded, visibility-aware adaptive polling for ingesting books.
+  // Polls /status on one pending book alongside workspace refresh so sleeping Render workers receive wake signals cleanly,
+  // and stops automatically on terminal states (READY / FAILED) or after 3 minutes.
+  const ingestingIdsKey = useMemo(() => {
     const allItems = [...workspacesData.myBooks, ...workspacesData.sharedWithMe];
-    const hasIngestingBooks = allItems.some((item) =>
-      ['UPLOADED', 'PROCESSING', 'EXTRACTING', 'CHUNKING', 'EMBEDDING'].includes(
-        item.document.status,
-      ),
-    );
+    return allItems
+      .filter((item) =>
+        ['UPLOADED', 'PROCESSING', 'EXTRACTING', 'CHUNKING', 'EMBEDDING'].includes(
+          item.document.status,
+        ),
+      )
+      .map((item) => `${item.document.id}:${item.document.status}:${item.document.processingProgress ?? 0}`)
+      .join('|');
+  }, [workspacesData.myBooks, workspacesData.sharedWithMe]);
 
-    if (!hasIngestingBooks) return;
+  useEffect(() => {
+    if (!accessToken || !ingestingIdsKey) return;
 
-    const interval = setInterval(() => {
-      loadWorkspaces();
-    }, 2000);
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const pollStartedAt = Date.now();
+    const MAX_POLL_DURATION_MS = 180000;
 
-    return () => clearInterval(interval);
-  }, [workspacesData, accessToken, loadWorkspaces]);
+    const getNextDelayMs = (elapsedMs: number): number => {
+      if (elapsedMs < 35000) return 3500;
+      if (elapsedMs < 95000) return 7000;
+      return 12000;
+    };
+
+    const scheduleNext = () => {
+      if (cancelled) return;
+      const elapsedMs = Date.now() - pollStartedAt;
+      if (elapsedMs >= MAX_POLL_DURATION_MS) return;
+
+      timer = setTimeout(async () => {
+        if (cancelled) return;
+        if (typeof document !== 'undefined' && document.hidden) {
+          scheduleNext();
+          return;
+        }
+
+        const currentData = latestWorkspacesRef.current;
+        const allItems = [...currentData.myBooks, ...currentData.sharedWithMe];
+        const firstWaitingDoc = allItems.find((item) =>
+          ['UPLOADED', 'PROCESSING', 'EXTRACTING', 'CHUNKING', 'EMBEDDING'].includes(
+            item.document.status,
+          ),
+        )?.document;
+
+        if (firstWaitingDoc) {
+          try {
+            const statusRes = await api.documents.getStatus(firstWaitingDoc.id, accessToken);
+            if (!cancelled) {
+              setWorkspacesData((prev) => {
+                const patchDoc = (doc: DocumentDto): DocumentDto =>
+                  doc.id === firstWaitingDoc.id
+                    ? {
+                        ...doc,
+                        status: statusRes.status,
+                        processingProgress: statusRes.progress,
+                        processingStage: statusRes.stage,
+                        processingMessage: statusRes.message,
+                        completedUnits: statusRes.completedUnits ?? doc.completedUnits,
+                        totalUnits: statusRes.totalUnits ?? doc.totalUnits,
+                        errorCode: statusRes.errorCode ?? doc.errorCode,
+                      }
+                    : doc;
+                return {
+                  myBooks: prev.myBooks.map((item) => ({ ...item, document: patchDoc(item.document) })),
+                  sharedWithMe: prev.sharedWithMe.map((item) => ({
+                    ...item,
+                    document: patchDoc(item.document),
+                  })),
+                };
+              });
+            }
+          } catch {
+            // Fall through to workspace refresh
+          }
+        }
+
+        await loadWorkspaces(true);
+        scheduleNext();
+      }, getNextDelayMs(elapsedMs));
+    };
+
+    scheduleNext();
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden && !cancelled) {
+        void loadWorkspaces(true);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [ingestingIdsKey, accessToken, loadWorkspaces]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -434,14 +521,36 @@ function MyBooksDashboardContent() {
     <div className="w-full px-4 sm:px-6 md:px-10 flex-1 flex flex-col">
       <div className="w-full max-w-[1380px] mx-auto py-8 sm:py-10 space-y-10 flex-1">
         {/* =========================================================================
-            PAGE INTRODUCTION: "My Books"
+            PAGE INTRODUCTION: "My BOOKS"
             ========================================================================= */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-[#1B3428]/10">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-5 border-b border-[#1B3428]/10">
         <div>
-          <h1 className="font-display font-black text-2xl sm:text-3xl lg:text-4xl text-[#14261D] tracking-tight">
-            My Books
+          <h1 className="font-display font-extrabold text-4xl sm:text-5xl md:text-[54px] tracking-tight leading-none flex flex-wrap items-baseline gap-x-2.5 sm:gap-x-3.5">
+            <span className="text-[#1B2A23]">My</span>
+            <span
+              className="relative inline-block text-[#4A7D64] select-none"
+              style={{
+                transform: 'rotate(-2deg)',
+                transformOrigin: 'bottom left',
+                display: 'inline-block',
+              }}
+            >
+              BOOKS
+              <svg
+                aria-hidden="true"
+                className="absolute -bottom-2.5 left-0 w-full h-[10px] sm:h-[13px] text-[#E8722C] pointer-events-none overflow-visible"
+                viewBox="0 0 220 14"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                preserveAspectRatio="none"
+              >
+                <path d="M 3 7 C 55 2, 155 3, 217 6" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
+                <path d="M 14 11 C 75 5, 165 10, 206 5" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" opacity="0.85" />
+                <path d="M 42 9 C 90 6, 138 7, 178 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
+              </svg>
+            </span>
           </h1>
-          <p className="font-sans text-xs sm:text-sm text-[#14261D]/75 mt-1 max-w-xl">
+          <p className="font-sans text-xs sm:text-sm text-[#14261D]/75 mt-4 max-w-xl">
             Your books, your learning spaces. Pick up where you left off.
           </p>
         </div>
@@ -537,10 +646,8 @@ function MyBooksDashboardContent() {
           <div
             aria-label="Loading your personal library"
             aria-busy="true"
-            className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5 sm:gap-7"
+            className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 xs:gap-3.5 sm:gap-5 lg:gap-6"
           >
-            <BookCardSkeleton />
-            <BookCardSkeleton />
             <BookCardSkeleton />
             <BookCardSkeleton />
             <BookCardSkeleton />
@@ -565,28 +672,23 @@ function MyBooksDashboardContent() {
             </div>
           </div>
         ) : (
-          <div className="relative pb-6 after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[6px] after:bg-gradient-to-b after:from-[#1B3428]/15 after:to-transparent after:rounded-full">
-            <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5 sm:gap-7 pb-2">
-              {filteredMyBooks.map((item) => (
-                <BookCard
-                  key={item.id}
-                  document={item.document}
-                  workspaceId={item.id}
-                  workspaceType={item.type}
-                  isOwner={item.isOwner}
-                  readingProgress={item.myReadingProgress}
-                  onDelete={(docId, title) => setDeletingDoc({ id: docId, title })}
-                  isDeleting={isDeleting && deletingDoc?.id === item.document.id}
-                  onRetry={handleRetryDocument}
-                  isRetrying={retryingDocId === item.document.id}
-                  onCheckStatus={handleCheckStatus}
-                />
-              ))}
-            </div>
-            {/* Wooden Bookshelf Ledge Grounding */}
-            <div className="mt-3 w-full h-3 sm:h-3.5 rounded-sm bg-gradient-to-b from-[#8C5835] via-[#6E4226] to-[#452714] shadow-[0_6px_12px_rgba(20,38,29,0.22),inset_0_1px_1px_rgba(255,255,255,0.35)] border-t border-[#B0764A]/60 relative overflow-hidden">
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/15 via-transparent to-black/25 pointer-events-none" />
-            </div>
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 xs:gap-3.5 sm:gap-5 lg:gap-6">
+            {filteredMyBooks.map((item) => (
+              <BookCard
+                key={item.id}
+                document={item.document}
+                workspaceId={item.id}
+                workspaceType={item.type}
+                isOwner={item.isOwner}
+                readingProgress={item.myReadingProgress}
+                unreadDiscussionCount={item.unreadDiscussionCount}
+                onDelete={(docId, title) => setDeletingDoc({ id: docId, title })}
+                isDeleting={isDeleting && deletingDoc?.id === item.document.id}
+                onRetry={handleRetryDocument}
+                isRetrying={retryingDocId === item.document.id}
+                onCheckStatus={handleCheckStatus}
+              />
+            ))}
           </div>
         )}
       </section>
@@ -685,24 +787,18 @@ function MyBooksDashboardContent() {
             </p>
           </div>
         ) : (
-          <div className="relative pb-6 after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[6px] after:bg-gradient-to-b after:from-[#1B3428]/15 after:to-transparent after:rounded-full">
-            <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5 sm:gap-7 pb-2">
-              {filteredSharedWithMe.map((item) => (
-                <BookCard
-                  key={item.id}
-                  document={item.document}
-                  workspaceId={item.id}
-                  workspaceType={item.type}
-                  isOwner={false}
-                  readingProgress={item.myReadingProgress}
-                  onCheckStatus={handleCheckStatus}
-                />
-              ))}
-            </div>
-            {/* Wooden Bookshelf Ledge Grounding */}
-            <div className="mt-3 w-full h-3 sm:h-3.5 rounded-sm bg-gradient-to-b from-[#8C5835] via-[#6E4226] to-[#452714] shadow-[0_6px_12px_rgba(20,38,29,0.22),inset_0_1px_1px_rgba(255,255,255,0.35)] border-t border-[#B0764A]/60 relative overflow-hidden">
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/15 via-transparent to-black/25 pointer-events-none" />
-            </div>
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 xs:gap-3.5 sm:gap-5 lg:gap-6">
+            {filteredSharedWithMe.map((item) => (
+              <BookCard
+                key={item.id}
+                document={item.document}
+                workspaceId={item.id}
+                workspaceType={item.type}
+                isOwner={false}
+                readingProgress={item.myReadingProgress}
+                onCheckStatus={handleCheckStatus}
+              />
+            ))}
           </div>
         )}
       </section>

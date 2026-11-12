@@ -35,15 +35,15 @@ export default function WorkspaceLayout({
       <div
         className="fixed inset-0 pointer-events-none -z-10 bg-cover bg-center sm:bg-top bg-no-repeat opacity-85 transition-opacity duration-300"
         style={{
-          backgroundImage: `url('/images/library-cozy-bg.jpg')`,
+          backgroundImage: `url('/images/library-cozy-bg.webp')`,
         }}
       >
         {/* Soft warm parchment wash for ideal reading contrast */}
         <div className="absolute inset-0 bg-[#F4F0E5]/65 backdrop-blur-[0.5px]" />
       </div>
 
-      {/* Persistent Authenticated Navigation Header (Aligned with Reference & Homepage Navbar) */}
-      <header className="w-full bg-[#F4EFE4]/95 backdrop-blur-md sticky top-0 z-50 border-b-[1.5px] border-[#1B3428]/10 transition-colors px-4 sm:px-6 md:px-10">
+      {/* Transparent Authenticated Navigation Header (Seamlessly reveals cozy library background) */}
+      <header className="w-full bg-transparent relative z-40 transition-colors px-4 sm:px-6 md:px-10">
         <div className="w-full max-w-[1380px] mx-auto h-16 md:h-20 flex items-center justify-between">
           {/* Left Zone: Brand Logo & Wordmark (Returns to /dashboard) */}
           <div className="flex items-center justify-start shrink-0">
